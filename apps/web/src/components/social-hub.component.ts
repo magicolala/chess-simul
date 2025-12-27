@@ -168,17 +168,17 @@ export class SocialHubComponent implements OnInit {
 
     currentMessages = computed(() => {
        const id = this.selectedFriendId();
-       return id ? this.social.getMessages(id)() : [];
+       return id ? this.social.messagesFor(id)() : [];
     });
 
     ngOnInit(): void {
-      this.social.loadFriends();
-      this.social.loadFriendRequests();
+      this.social.getFriends();
+      this.social.getFriendRequests();
     }
 
     selectFriend(id: string) {
         this.selectedFriendId.set(id);
-        this.social.fetchMessages(id);
+        this.social.getMessages(id);
     }
 
     async addFriend(name: string) {
@@ -201,7 +201,7 @@ export class SocialHubComponent implements OnInit {
 
     async acceptRequest(id: string) {
       try {
-        await this.social.acceptRequest(id);
+        await this.social.acceptFriendRequest(id);
       } catch (error) {
         console.error(error);
         alert('Unable to accept friend request.');
@@ -210,7 +210,7 @@ export class SocialHubComponent implements OnInit {
 
     async declineRequest(id: string) {
       try {
-        await this.social.declineRequest(id);
+        await this.social.declineFriendRequest(id);
       } catch (error) {
         console.error(error);
         alert('Unable to decline friend request.');

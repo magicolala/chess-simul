@@ -312,7 +312,10 @@ export class AppComponent {
       this.isBoardFlipped.update(v => !v);
   }
 
-  handleMpJoined() {
+  handleMpJoined(gameId?: string | null) {
+      if (gameId) {
+        this.viewParam.set(gameId);
+      }
       this.currentView.set('game-room');
   }
 

@@ -29,7 +29,7 @@ export interface GameState {
   history: string[]; 
   fenHistory: string[];
   viewIndex: number;
-  status: 'active' | 'checkmate' | 'draw' | 'resigned' | 'timeout' | 'waiting';
+  status: 'active' | 'checkmate' | 'draw' | 'resigned' | 'timeout' | 'waiting' | 'aborted';
   turn: 'w' | 'b';
   lastMove: { from: string; to: string } | null;
   
@@ -40,7 +40,7 @@ export interface GameState {
   opponentAvatar: string;
   
   systemMessage: string;
-  chat: ChatMessage[]; // New Chat Array
+  chat: ChatMessage[]; 
   isProcessing: boolean; 
 
   // Time management (ms)
@@ -51,6 +51,10 @@ export interface GameState {
   
   // Simul specific
   isHostTurn: boolean; 
+
+  // Online Specific
+  eloChange?: number;
+  rematchOfferedBy?: 'me' | 'opponent';
 }
 
 @Injectable({
@@ -122,16 +126,21 @@ export class ChessSimulService {
   }
 
   /**
-   * Starts a PvP Session
+   * Starts a PvP Session (Local or Online initialized)
    */
-  startPvpSession(config: GameConfig) {
+  startPvpSession(config: GameConfig, mode: 'local' | 'online' = 'local', onlineMetadata?: Partial<GameState>) {
     this.config = config;
     this.gamesMap.clear();
     const newGames: GameState[] = [];
     
-    this.createGameInstance(0, config, 'local');
-    newGames.push(this.gamesMap.get(0)!);
+    const game = this.createGameInstance(0, config, mode);
     
+    // Override defaults with online metadata if provided
+    if (mode === 'online' && onlineMetadata) {
+        Object.assign(game, onlineMetadata);
+    }
+
+    newGames.push(this.gamesMap.get(0)!);
     this.games.set(newGames);
   }
 
@@ -153,7 +162,7 @@ export class ChessSimulService {
         turn: 'w',
         lastMove: null,
         playerName: "Joueur 1",
-        opponentName: mode === 'local' ? "Joueur 2" : "En attente...",
+        opponentName: mode === 'local' ? "Joueur 2" : "Adversaire",
         opponentRating: 1200,
         opponentAvatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${internalId}`,
         isProcessing: false,
@@ -202,6 +211,23 @@ export class ChessSimulService {
                 }
             }, 3000 + Math.random() * 2000);
 
+        } else if (game.mode === 'online') {
+             // For the demo, we simulate online opponent move
+             // In real app, this would be handled by socket event
+             game.systemMessage = "En attente de l'adversaire...";
+             setTimeout(() => {
+                if (game.status === 'active' && game.turn !== 'w') { // Assuming player is white for demo
+                    const possibleMoves = game.chess.moves();
+                    if (possibleMoves.length > 0) {
+                        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        const m = game.chess.move(randomMove);
+                        game.blackTime += this.config.incrementSeconds * 1000;
+                        this.updateGameState(gameId, m);
+                        game.systemMessage = "À vous de jouer !";
+                        this.games.set([...this.gamesMap.values()]);
+                    }
+                }
+             }, 2000);
         } else {
             game.systemMessage = game.turn === 'w' ? "Tour des Blancs" : "Tour des Noirs";
         }
@@ -230,7 +256,7 @@ export class ChessSimulService {
       this.games.set([...this.gamesMap.values()]);
 
       // Mock opponent response
-      if (game.mode === 'simul-host' && Math.random() > 0.7) {
+      if ((game.mode === 'simul-host' || game.mode === 'online') && Math.random() > 0.7) {
           setTimeout(() => {
               const responses = ["Bien joué !", "Hmm...", "Intéressant.", "Je réfléchis...", "Oups."];
               const reply: ChatMessage = {
@@ -265,6 +291,38 @@ export class ChessSimulService {
     game.viewIndex = currentIndex;
     this.gamesMap.set(gameId, { ...game });
     this.games.set([...this.gamesMap.values()]);
+  }
+
+  resign(gameId: number) {
+      const game = this.gamesMap.get(gameId);
+      if(!game || game.status !== 'active') return;
+      
+      game.status = 'resigned';
+      game.systemMessage = "Vous avez abandonné.";
+      this.recordGame(game, 'loss');
+      this.gamesMap.set(gameId, { ...game });
+      this.games.set([...this.gamesMap.values()]);
+  }
+
+  offerDraw(gameId: number) {
+      // Simulation: Opponent refuses or accepts randomly
+      const game = this.gamesMap.get(gameId);
+      if(!game || game.status !== 'active') return;
+
+      game.systemMessage = "Nulle proposée...";
+      this.games.set([...this.gamesMap.values()]);
+
+      setTimeout(() => {
+          if (Math.random() > 0.5) {
+               game.status = 'draw';
+               game.systemMessage = "Adversaire a accepté la nulle.";
+               this.recordGame(game, 'draw');
+          } else {
+               game.systemMessage = "Nulle refusée. Continuez à jouer.";
+          }
+          this.gamesMap.set(gameId, { ...game });
+          this.games.set([...this.gamesMap.values()]);
+      }, 1500);
   }
 
   private updateTimers() {
@@ -366,14 +424,24 @@ export class ChessSimulService {
   }
 
   private handleGameOver(game: GameState) {
-      if (['checkmate', 'draw', 'timeout', 'resigned'].includes(game.status)) return;
+      if (['checkmate', 'draw', 'timeout', 'resigned', 'aborted'].includes(game.status)) return;
 
       if (game.chess.isCheckmate()) {
           game.status = 'checkmate';
           const winner = game.turn === 'w' ? 'Black' : 'White';
           game.systemMessage = `Échec et mat ! ${winner === 'White' ? 'Les Blancs gagnent' : 'Les Noirs gagnent'}.`;
           
-          const isWin = (game.mode === 'simul-host' && winner === 'White') || (game.mode === 'local' && winner === 'White'); 
+          // Determine local player win/loss based on mode
+          let isWin = false;
+          if (game.mode === 'online') {
+              // Assume player is always White for this demo simplicity
+              isWin = winner === 'White';
+          } else if (game.mode === 'local') {
+              isWin = winner === 'White';
+          } else {
+               isWin = (game.mode === 'simul-host' && winner === 'White');
+          }
+
           this.recordGame(game, isWin ? 'win' : 'loss');
 
       } else if (game.chess.isDraw()) {
@@ -385,6 +453,13 @@ export class ChessSimulService {
   }
 
   private recordGame(game: GameState, result: 'win' | 'loss' | 'draw') {
+      if (game.mode === 'online') {
+          // Calculate Mock ELO Change
+          if (result === 'win') game.eloChange = 8 + Math.floor(Math.random() * 8);
+          if (result === 'loss') game.eloChange = -5 - Math.floor(Math.random() * 8);
+          if (result === 'draw') game.eloChange = 0;
+      }
+
       this.historyService.addResult({
           id: Date.now().toString() + Math.random(),
           opponentName: game.opponentName,

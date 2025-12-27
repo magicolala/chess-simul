@@ -6,6 +6,8 @@ import { ChessSimulService, GameState, GameConfig } from './services/chess-logic
 import { AuthService } from './services/auth.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
+import { MultiplayerService } from './services/multiplayer.service';
+
 import { ChessBoardComponent } from './components/chess-board.component';
 import { LoginComponent } from './components/login.component';
 import { RegisterComponent } from './components/register.component';
@@ -19,8 +21,11 @@ import { VerifyEmailComponent } from './components/verify-email.component';
 import { OnboardingComponent } from './components/onboarding.component';
 import { ForgotPasswordComponent } from './components/forgot-password.component';
 import { DashboardComponent } from './components/dashboard.component';
+import { MultiplayerLobbyComponent } from './components/multiplayer-lobby.component';
+import { GameRoomComponent } from './components/game-room.component';
+import { OnlineGameComponent } from './components/online-game.component';
 
-type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host';
+type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'multiplayer-lobby' | 'game-room' | 'online-game';
 
 @Component({
   selector: 'app-root',
@@ -40,7 +45,10 @@ type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-
     VerifyEmailComponent,
     OnboardingComponent,
     ForgotPasswordComponent,
-    DashboardComponent
+    DashboardComponent,
+    MultiplayerLobbyComponent,
+    GameRoomComponent,
+    OnlineGameComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -50,6 +58,7 @@ export class AppComponent {
   auth = inject(AuthService);
   historyService = inject(HistoryService);
   prefs = inject(PreferencesService);
+  mpService = inject(MultiplayerService);
 
   currentView = signal<ViewState>('landing');
   
@@ -104,7 +113,6 @@ export class AppComponent {
               this.currentView.set('onboarding');
           } else {
               // Only redirect to dashboard if we are currently in an auth/onboarding flow
-              // This prevents resetting the view if user is already playing
               const authViews: ViewState[] = ['landing', 'login', 'register', 'verify-email', 'onboarding', 'forgot-password'];
               if (authViews.includes(this.currentView())) {
                   this.currentView.set('dashboard');
@@ -117,7 +125,7 @@ export class AppComponent {
     this.simulService.makeMove(gameId, move.from, move.to);
     
     const game = this.games().find(g => g.id === gameId);
-    if (game && game.status !== 'active' && game.status !== 'waiting') {
+    if (game && game.status !== 'active' && game.status !== 'waiting' && game.mode !== 'online') {
         setTimeout(() => this.showGameOverModal.set(game), 1000);
     }
   }
@@ -221,5 +229,13 @@ export class AppComponent {
 
   toggleBoardFlip() {
       this.isBoardFlipped.update(v => !v);
+  }
+
+  handleMpJoined() {
+      this.currentView.set('game-room');
+  }
+
+  handleGameStart() {
+      this.currentView.set('online-game');
   }
 }

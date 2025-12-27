@@ -35,6 +35,22 @@
               [class.dark:hover:bg-gray-800]="currentView() !== 'dashboard'">
               <span class="mr-3 text-lg">📊</span> Tableau de bord
             </button>
+            
+            <!-- Multiplayer Button -->
+            <button (click)="switchView('multiplayer-lobby')" 
+              class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
+              [class.bg-[#FFF48D]]="currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game'"
+              [class.border-[#1D1C1C]]="currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game'"
+              [class.wero-shadow-sm]="currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game'"
+              [class.text-[#1D1C1C]]="true"
+              [class.border-transparent]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
+              [class.text-gray-600]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
+              [class.dark:text-gray-300]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
+              [class.hover:bg-gray-100]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
+              [class.dark:hover:bg-gray-800]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')">
+              <span class="mr-3 text-lg">🌍</span> Multijoueur
+            </button>
+
             <button (click)="switchView('simul-create')" 
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
               [class.bg-[#FFF48D]]="currentView() === 'simul-create' || currentView() === 'simul-host'"
@@ -132,6 +148,17 @@
             </app-dashboard>
         } 
         
+        <!-- MULTIPLAYER VIEWS -->
+        @else if (currentView() === 'multiplayer-lobby') {
+            <app-multiplayer-lobby (joined)="handleMpJoined()"></app-multiplayer-lobby>
+        }
+        @else if (currentView() === 'game-room') {
+            <app-game-room (gameStarted)="handleGameStart()" (goBack)="switchView('multiplayer-lobby')"></app-game-room>
+        }
+        @else if (currentView() === 'online-game') {
+            <app-online-game (leaveGame)="switchView('dashboard')"></app-online-game>
+        }
+
         <!-- SIMUL CREATE -->
         @else if (currentView() === 'simul-create') {
             <app-simul-create (start)="launchSimul($event)"></app-simul-create>
@@ -238,7 +265,7 @@
         </div>
     }
 
-    <!-- GAME OVER MODAL -->
+    <!-- GAME OVER MODAL (Local Only - Online handled in component) -->
     @if (showGameOverModal()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-[#1D1C1C]/90 backdrop-blur-sm" (click)="showGameOverModal.set(null)"></div>

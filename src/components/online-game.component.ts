@@ -1,0 +1,219 @@
+
+import { Component, inject, computed, signal, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ChessBoardComponent } from './chess-board.component';
+import { ChessSimulService, GameState } from '../services/chess-logic.service';
+import { MultiplayerService } from '../services/multiplayer.service';
+import { AuthService } from '../services/auth.service';
+
+@Component({
+  selector: 'app-online-game',
+  standalone: true,
+  imports: [CommonModule, ChessBoardComponent, FormsModule],
+  template: `
+    @if (game()) {
+        <div class="h-full flex flex-col md:flex-row max-w-7xl mx-auto md:p-4 gap-4 font-sans">
+            
+            <!-- LEFT: Board Area -->
+            <div class="flex-1 flex flex-col">
+                <!-- Top Player (Opponent) -->
+                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-2 mb-2 flex justify-between items-center wero-shadow">
+                    <div class="flex items-center space-x-3">
+                        <img [src]="game()!.opponentAvatar" class="w-10 h-10 border border-[#1D1C1C] dark:border-white rounded-full">
+                        <div>
+                            <p class="font-bold text-sm text-[#1D1C1C] dark:text-white leading-none">{{ game()!.opponentName }}</p>
+                            <p class="text-[10px] font-mono text-gray-500">{{ game()!.opponentRating }}</p>
+                        </div>
+                    </div>
+                    <div class="font-mono text-xl font-black px-4 py-1 bg-gray-100 dark:bg-gray-800 rounded-[2px]"
+                         [class.bg-green-100]="game()!.turn === 'b'"
+                         [class.text-red-600]="game()!.blackTime < 30000">
+                        {{ formatTime(game()!.blackTime) }}
+                    </div>
+                </div>
+
+                <!-- BOARD -->
+                <div class="flex-1 bg-[#e0e0e0] dark:bg-gray-900 border-2 border-[#1D1C1C] dark:border-white flex items-center justify-center p-2 relative">
+                    <div class="w-full max-w-[70vh] aspect-square wero-shadow">
+                        <app-chess-board 
+                            [fen]="game()!.fen" 
+                            [lastMove]="game()!.lastMove"
+                            [isInteractive]="game()!.status === 'active' && game()!.turn === 'w'"
+                            [allowedColor]="'w'" 
+                            [orientation]="'w'"
+                            (move)="onMove($event)">
+                        </app-chess-board>
+                    </div>
+
+                    <!-- Game Over Overlay (Online Specific) -->
+                    @if (game()!.status !== 'active' && game()!.status !== 'waiting') {
+                        <div class="absolute inset-0 bg-[#1D1C1C]/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm animate-in fade-in zoom-in">
+                            <h2 class="text-4xl font-black text-white uppercase mb-2">
+                                {{ getResultTitle() }}
+                            </h2>
+                            <p class="text-[#FFF48D] font-bold text-lg mb-6">{{ game()!.systemMessage }}</p>
+                            
+                            <!-- ELO Change -->
+                            <div class="flex items-center space-x-2 text-2xl font-black mb-8">
+                                <span class="text-white">ELO:</span>
+                                <span [class.text-green-400]="(game()!.eloChange || 0) > 0" 
+                                      [class.text-red-400]="(game()!.eloChange || 0) < 0"
+                                      [class.text-gray-400]="(game()!.eloChange || 0) === 0">
+                                    {{ (game()!.eloChange || 0) > 0 ? '+' : '' }}{{ game()!.eloChange }}
+                                </span>
+                            </div>
+
+                            <div class="flex space-x-4">
+                                <button (click)="leave()" class="px-6 py-3 bg-white text-[#1D1C1C] font-black uppercase border-2 border-white hover:bg-gray-200">Menu Principal</button>
+                                <button class="px-6 py-3 bg-[#7AF7F7] text-[#1D1C1C] font-black uppercase border-2 border-[#1D1C1C] wero-shadow hover:bg-[#FFF48D]">Revanche</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Bottom Player (Me) -->
+                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-2 mt-2 flex justify-between items-center wero-shadow">
+                    <div class="flex items-center space-x-3">
+                        <img [src]="game()!.playerName === 'Joueur 1' ? auth.currentUser()?.avatar : '...'" class="w-10 h-10 border border-[#1D1C1C] dark:border-white rounded-full">
+                        <div>
+                            <p class="font-bold text-sm text-[#1D1C1C] dark:text-white leading-none">{{ auth.currentUser()?.name }}</p>
+                            <p class="text-[10px] font-mono text-gray-500">1200</p>
+                        </div>
+                    </div>
+                    <div class="font-mono text-xl font-black px-4 py-1 bg-gray-100 dark:bg-gray-800 rounded-[2px]"
+                         [class.bg-green-100]="game()!.turn === 'w'"
+                         [class.text-red-600]="game()!.whiteTime < 30000">
+                        {{ formatTime(game()!.whiteTime) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Controls & Chat -->
+            <div class="w-full md:w-80 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col">
+                
+                <!-- Chat History -->
+                <div class="flex-1 bg-gray-50 dark:bg-[#121212] p-4 overflow-y-auto space-y-2 min-h-[200px]">
+                    <div class="text-center text-[10px] font-bold text-gray-400 uppercase mb-4">Début de partie</div>
+                    @for (msg of game()!.chat; track msg.id) {
+                        <div class="flex flex-col" [class.items-end]="msg.isSelf" [class.items-start]="!msg.isSelf">
+                             <div class="max-w-[85%] p-2 rounded-[2px] border border-gray-200 dark:border-gray-700 text-xs font-medium shadow-sm"
+                                  [class.bg-[#FFF48D]]="msg.isSelf"
+                                  [class.text-[#1D1C1C]]="msg.isSelf"
+                                  [class.bg-white]="!msg.isSelf"
+                                  [class.dark:bg-[#1a1a1a]]="!msg.isSelf"
+                                  [class.dark:text-white]="!msg.isSelf">
+                                 {{ msg.text }}
+                             </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Chat Input -->
+                <div class="p-2 border-t border-b border-gray-200 dark:border-gray-700">
+                     <div class="flex space-x-2">
+                         <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendChat()" placeholder="Message..." 
+                            class="flex-1 border-2 border-gray-300 dark:border-gray-600 px-2 py-1 text-xs focus:border-[#1D1C1C] dark:focus:border-white outline-none bg-transparent">
+                         <button (click)="sendChat()" class="px-3 py-1 bg-[#1D1C1C] text-white text-xs font-bold uppercase hover:bg-[#7AF7F7] hover:text-[#1D1C1C]">
+                             >
+                         </button>
+                     </div>
+                </div>
+
+                <!-- Game Actions -->
+                <div class="p-4 grid grid-cols-2 gap-3 bg-gray-100 dark:bg-[#0f0f0f]">
+                    <button (click)="offerDraw()" class="py-3 bg-white border-2 border-gray-300 text-xs font-black uppercase hover:bg-gray-200 text-gray-700 wero-shadow-sm">
+                        ½ Nulle
+                    </button>
+                    <button (click)="resign()" class="py-3 bg-white border-2 border-gray-300 text-xs font-black uppercase hover:bg-red-50 text-red-600 wero-shadow-sm">
+                        🏳 Abandon
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    }
+  `
+})
+export class OnlineGameComponent {
+  logic = inject(ChessSimulService);
+  mpService = inject(MultiplayerService);
+  auth = inject(AuthService);
+  
+  leaveGame = output<void>();
+
+  // Assuming only 1 game active in logic service for this view
+  game = computed(() => this.logic.games()[0]);
+  chatInput = signal('');
+
+  constructor() {
+      // Initialize a game based on the lobby room configuration
+      const room = this.mpService.currentRoom();
+      const user = this.auth.currentUser();
+      
+      if (room && user) {
+          const opponent = room.players.find(p => p.name !== user.name); // Simple match
+          
+          this.logic.startPvpSession(room.config, 'online', {
+              opponentName: opponent ? opponent.name : 'Adversaire',
+              opponentAvatar: opponent ? opponent.avatar : '',
+              playerName: user.name,
+              systemMessage: 'Partie classée commencée.'
+          });
+      }
+  }
+
+  onMove(move: {from: string, to: string}) {
+      if (this.game()) {
+          this.logic.makeMove(this.game()!.id, move.from, move.to);
+      }
+  }
+
+  sendChat() {
+      if (this.game() && this.chatInput().trim()) {
+          this.logic.sendChatMessage(this.game()!.id, this.chatInput());
+          this.chatInput.set('');
+      }
+  }
+
+  resign() {
+      if (this.game()) {
+          this.logic.resign(this.game()!.id);
+      }
+  }
+
+  offerDraw() {
+      if (this.game()) {
+          this.logic.offerDraw(this.game()!.id);
+      }
+  }
+
+  leave() {
+      this.leaveGame.emit();
+  }
+
+  formatTime(ms: number): string {
+    if (ms < 0) ms = 0;
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  getResultTitle() {
+      const g = this.game();
+      if (!g) return '';
+      if (g.status === 'checkmate') {
+          return g.turn === 'b' ? 'Victoire !' : 'Défaite'; // Assuming Player is White
+      }
+      if (g.status === 'resigned') {
+           // Did I resign?
+           return g.systemMessage.includes('Vous') ? 'Défaite' : 'Victoire !';
+      }
+      if (g.status === 'timeout') {
+          return g.whiteTime === 0 ? 'Temps écoulé (Déf)' : 'Temps écoulé (Vic)';
+      }
+      return 'Match Nul';
+  }
+}

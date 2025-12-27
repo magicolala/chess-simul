@@ -43,7 +43,10 @@ import { AuthService } from '../services/auth.service';
             </div>
 
             <div>
-              <label class="block text-sm font-bold font-display text-[#1D1C1C] mb-2 uppercase tracking-wide">Mot de passe</label>
+              <div class="flex justify-between mb-2">
+                  <label class="block text-sm font-bold font-display text-[#1D1C1C] uppercase tracking-wide">Mot de passe</label>
+                  <button type="button" (click)="goToForgot.emit()" class="text-xs font-bold text-gray-500 hover:text-[#1D1C1C] uppercase underline">Oublié ?</button>
+              </div>
               <input type="password" formControlName="password"
                 class="w-full px-4 py-3 border-2 border-[#1D1C1C] bg-white focus:bg-[#7AF7F7] focus:outline-none transition-colors rounded-none placeholder-gray-400 font-medium"
                 placeholder="••••••••">
@@ -77,6 +80,7 @@ export class LoginComponent {
   private fb: FormBuilder = inject(FormBuilder);
   
   goToRegister = output<void>();
+  goToForgot = output<void>();
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],

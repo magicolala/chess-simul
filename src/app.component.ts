@@ -1,5 +1,5 @@
 
-import { Component, inject, computed, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, computed, signal, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessSimulService, GameState, GameConfig } from './services/chess-logic.service';
@@ -13,8 +13,14 @@ import { SettingsComponent } from './components/settings.component';
 import { HistoryComponent } from './components/history.component';
 import { FriendLobbyComponent } from './components/friend-lobby.component';
 import { LandingComponent } from './components/landing.component';
+import { SimulCreateComponent } from './components/simul-create.component';
+import { SimulHostComponent } from './components/simul-host.component';
+import { VerifyEmailComponent } from './components/verify-email.component';
+import { OnboardingComponent } from './components/onboarding.component';
+import { ForgotPasswordComponent } from './components/forgot-password.component';
+import { DashboardComponent } from './components/dashboard.component';
 
-type ViewState = 'landing' | 'login' | 'register' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby';
+type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +34,13 @@ type ViewState = 'landing' | 'login' | 'register' | 'dashboard' | 'history' | 'g
     SettingsComponent, 
     HistoryComponent, 
     FriendLobbyComponent,
-    LandingComponent
+    LandingComponent,
+    SimulCreateComponent,
+    SimulHostComponent,
+    VerifyEmailComponent,
+    OnboardingComponent,
+    ForgotPasswordComponent,
+    DashboardComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -39,7 +51,6 @@ export class AppComponent {
   historyService = inject(HistoryService);
   prefs = inject(PreferencesService);
 
-  // Default to landing if no user, otherwise logic in constructor handles it
   currentView = signal<ViewState>('landing');
   
   // UI State for Modals
@@ -47,74 +58,78 @@ export class AppComponent {
   showSettingsModal = signal(false);
   showGameOverModal = signal<GameState | null>(null);
 
-  // Focus Game State
   focusedGameId = signal<number | null>(null);
-  
-  // Friend Game Flip State
   isBoardFlipped = signal(false);
 
-  // New Game Form Data
   newGameConfig = signal<GameConfig>({
       timeMinutes: 10,
       incrementSeconds: 0,
-      opponentCount: 1, // Default to 1 for PvP
+      opponentCount: 1, 
       difficulty: 'pvp'
   });
 
   games = this.simulService.games;
 
-  // Stats Computeds
   activeGamesCount = computed(() => 
     this.games().filter(g => g.status === 'active').length
   );
   
-  // Get Focus Game
   focusedGame = computed(() => {
      const id = this.focusedGameId();
      return id !== null ? this.games().find(g => g.id === id) : null;
   });
 
   totalGamesPlayed = computed(() => this.historyService.history().length);
-  
-  totalWins = computed(() => 
-    this.historyService.history().filter(g => g.result === 'win').length
-  );
-
+  totalWins = computed(() => this.historyService.history().filter(g => g.result === 'win').length);
   currentElo = signal(1200); 
 
-  recentGames = computed(() => this.historyService.history().slice(0, 5));
-
   constructor() {
-    if (this.auth.currentUser()) {
-      this.currentView.set('dashboard');
-    } else {
-      this.currentView.set('landing');
-    }
+      // Routing Logic based on Auth State
+      effect(() => {
+          const user = this.auth.currentUser();
+          
+          if (!user) {
+              // If we are in an auth view, stay there, otherwise go to landing
+              const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
+              if (!publicViews.includes(this.currentView())) {
+                  this.currentView.set('landing');
+              }
+              return;
+          }
+
+          // User is authenticated, check progression
+          if (!user.emailVerified) {
+              this.currentView.set('verify-email');
+          } else if (!user.onboardingCompleted) {
+              this.currentView.set('onboarding');
+          } else {
+              // Only redirect to dashboard if we are currently in an auth/onboarding flow
+              // This prevents resetting the view if user is already playing
+              const authViews: ViewState[] = ['landing', 'login', 'register', 'verify-email', 'onboarding', 'forgot-password'];
+              if (authViews.includes(this.currentView())) {
+                  this.currentView.set('dashboard');
+              }
+          }
+      }, { allowSignalWrites: true });
   }
 
   onMove(gameId: number, move: { from: string, to: string }) {
     this.simulService.makeMove(gameId, move.from, move.to);
     
-    // Check if game ended immediately after move
     const game = this.games().find(g => g.id === gameId);
     if (game && game.status !== 'active' && game.status !== 'waiting') {
         setTimeout(() => this.showGameOverModal.set(game), 1000);
     }
   }
 
-  // --- Display Helpers for History Navigation ---
-
+  // --- Helpers ---
   getDisplayFen(game: GameState): string {
-    if (game.viewIndex === -1) {
-        return game.fen;
-    }
+    if (game.viewIndex === -1) return game.fen;
     return game.fenHistory[game.viewIndex] || game.fen;
   }
 
   getDisplayLastMove(game: GameState): { from: string, to: string } | null {
-      if (game.viewIndex === -1) {
-          return game.lastMove;
-      }
+      if (game.viewIndex === -1) return game.lastMove;
       return null;
   }
 
@@ -126,37 +141,38 @@ export class AppComponent {
       return game.viewIndex === -1;
   }
 
-  // ----------------------------------------------
-
-  openNewGameModal() {
-    this.showNewGameModal.set(true);
-  }
-
-  openSettings() {
-      this.showSettingsModal.set(true);
-  }
-
-  closeSettings() {
-      this.showSettingsModal.set(false);
-  }
+  // --- Modal / View Logic ---
+  openNewGameModal() { this.showNewGameModal.set(true); }
+  openSettings() { this.showSettingsModal.set(true); }
+  closeSettings() { this.showSettingsModal.set(false); }
 
   startNewSession() {
     this.simulService.startPvpSession(this.newGameConfig());
     this.showNewGameModal.set(false);
-    this.currentView.set('game'); // Go directly to game view
+    this.currentView.set('game'); 
   }
 
-  startFriendGame(config: { time: number, inc: number, color: 'w' | 'b' | 'random' }) {
-      // Use the standard session starter for consistency in this PvP version
+  handleQuickPlay(config: { time: number, inc: number }) {
       this.newGameConfig.set({
           timeMinutes: config.time,
           incrementSeconds: config.inc,
           opponentCount: 1,
           difficulty: 'pvp'
       });
+      this.startNewSession();
+  }
+
+  startFriendGame(config: { time: number, inc: number, color: 'w' | 'b' | 'random' }) {
+      this.newGameConfig.set({ timeMinutes: config.time, incrementSeconds: config.inc, opponentCount: 1, difficulty: 'pvp' });
       this.simulService.startPvpSession(this.newGameConfig());
-      this.enterFocusMode(0); // Assuming ID 0 for single game
+      this.enterFocusMode(0); 
       this.isBoardFlipped.set(config.color === 'b'); 
+  }
+  
+  // Simul Logic
+  launchSimul(config: GameConfig) {
+      this.simulService.startSimulHosting(config);
+      this.currentView.set('simul-host');
   }
 
   enterFocusMode(gameId: number) {
@@ -165,13 +181,7 @@ export class AppComponent {
   }
 
   exitFocusMode() {
-      // If we are in friend mode, exiting focus might mean ending session or going back to lobby
-      const game = this.focusedGame();
-      if (game?.mode === 'local' || game?.mode === 'online') {
-          this.currentView.set('game'); // Back to table view
-      } else {
-          this.currentView.set('game');
-      }
+      this.currentView.set('game');
       this.focusedGameId.set(null);
   }
 
@@ -188,9 +198,7 @@ export class AppComponent {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
   
-  isLowTime(ms: number): boolean {
-      return ms > 0 && ms < 30000; // Under 30 seconds
-  }
+  isLowTime(ms: number): boolean { return ms > 0 && ms < 30000; }
   
   getTimePercentage(current: number, initial: number): string {
       if (!initial || initial === 0) return '0%';
@@ -204,15 +212,11 @@ export class AppComponent {
 
   handleLogout() {
     this.auth.logout();
-    this.currentView.set('landing'); // Return to landing on logout
+    // Handled by effect
   }
 
   updateTimeConfig(minutes: number) {
     this.newGameConfig.update(c => ({...c, timeMinutes: minutes}));
-  }
-
-  updateOpponentCount(count: number) {
-    this.newGameConfig.update(c => ({...c, opponentCount: count}));
   }
 
   toggleBoardFlip() {

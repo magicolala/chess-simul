@@ -7,14 +7,22 @@ import { ApiService, CreateGameRequest } from './api.service';
 export interface GameConfig {
   timeMinutes: number;
   incrementSeconds: number;
-  opponentCount: number; // Kept for future multi-table features
-  difficulty: 'pvp'; // Simplified
+  opponentCount: number;
+  difficulty: 'pvp';
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: string;
+  text: string;
+  isSelf: boolean;
+  timestamp: number;
 }
 
 export interface GameState {
   id: number;
-  sessionId: string; // Backend ID
-  mode: 'local' | 'online';
+  sessionId: string;
+  mode: 'local' | 'online' | 'simul-host' | 'simul-player';
   chess: Chess;
   fen: string;
   pgn: string;
@@ -26,18 +34,23 @@ export interface GameState {
   lastMove: { from: string; to: string } | null;
   
   // Players Info
+  playerName: string; 
   opponentName: string;
   opponentRating: number;
   opponentAvatar: string;
   
   systemMessage: string;
-  isProcessing: boolean; // Replaces aiThinking for API calls
+  chat: ChatMessage[]; // New Chat Array
+  isProcessing: boolean; 
 
   // Time management (ms)
   initialTime: number;
   whiteTime: number;
   blackTime: number;
   lastMoveTime: number;
+  
+  // Simul specific
+  isHostTurn: boolean; 
 }
 
 @Injectable({
@@ -55,48 +68,76 @@ export class ChessSimulService {
   private config: GameConfig = { timeMinutes: 10, incrementSeconds: 0, opponentCount: 1, difficulty: 'pvp' };
 
   constructor() {
-    // Global Timer Loop
     this.timerInterval = setInterval(() => {
         this.updateTimers();
     }, 100);
   }
 
   /**
-   * Starts a new session. Currently supports Local PvP (Pass & Play).
-   * Prepared to handle multiple games if we want a "Simul PvP" later.
+   * Starts a Simultaneous Exhibition as the Host.
+   */
+  startSimulHosting(config: GameConfig) {
+      this.config = config;
+      this.gamesMap.clear();
+      const newGames: GameState[] = [];
+      const baseTimeMs = config.timeMinutes * 60 * 1000;
+
+      for (let i = 0; i < config.opponentCount; i++) {
+          const chess = new Chess();
+          const hostIsWhite = true; 
+
+          const game: GameState = {
+              id: i,
+              sessionId: `simul-${Date.now()}-${i}`,
+              mode: 'simul-host',
+              chess: chess,
+              fen: chess.fen(),
+              pgn: chess.pgn(),
+              history: [],
+              fenHistory: [chess.fen()],
+              viewIndex: -1,
+              status: 'active',
+              turn: 'w',
+              lastMove: null,
+              playerName: "Hôte (Vous)",
+              opponentName: `Challenger #${i + 1}`,
+              opponentRating: 1200 + Math.floor(Math.random() * 800),
+              opponentAvatar: `https://api.dicebear.com/7.x/notionists/svg?seed=challenger${i}`,
+              systemMessage: "En attente du coup...",
+              chat: [
+                  { id: 'sys', sender: 'Système', text: 'Début de la partie.', isSelf: false, timestamp: Date.now() }
+              ],
+              isProcessing: false,
+              initialTime: baseTimeMs,
+              whiteTime: baseTimeMs,
+              blackTime: baseTimeMs,
+              lastMoveTime: Date.now(),
+              isHostTurn: hostIsWhite 
+          };
+          
+          this.gamesMap.set(i, game);
+          newGames.push(game);
+      }
+      this.games.set(newGames);
+  }
+
+  /**
+   * Starts a PvP Session
    */
   startPvpSession(config: GameConfig) {
     this.config = config;
     this.gamesMap.clear();
     const newGames: GameState[] = [];
     
-    // Create requested number of boards (default 1 for PvP usually)
-    for (let i = 0; i < config.opponentCount; i++) {
-       this.createGameInstance(i, config, 'local');
-       newGames.push(this.gamesMap.get(i)!);
-    }
+    this.createGameInstance(0, config, 'local');
+    newGames.push(this.gamesMap.get(0)!);
     
     this.games.set(newGames);
   }
 
-  /**
-   * Helper to initialize a single game state
-   */
   private createGameInstance(internalId: number, config: GameConfig, mode: 'local' | 'online') {
       const chess = new Chess();
       const baseTimeMs = config.timeMinutes * 60 * 1000;
-
-      // Call API to register game (even if local, good practice to get an ID)
-      const apiReq: CreateGameRequest = {
-          opponentType: 'human',
-          color: 'random',
-          timeControl: { minutes: config.timeMinutes, increment: config.incrementSeconds }
-      };
-
-      this.apiService.createGame(apiReq).subscribe(session => {
-         // Update the placeholder state with real session ID if needed
-         // For now, we initialize synchronously for UI responsiveness
-      });
 
       const game: GameState = {
         id: internalId,
@@ -111,15 +152,18 @@ export class ChessSimulService {
         status: 'active',
         turn: 'w',
         lastMove: null,
-        opponentName: mode === 'local' ? "Joueur 2 (Local)" : "En attente...",
+        playerName: "Joueur 1",
+        opponentName: mode === 'local' ? "Joueur 2" : "En attente...",
         opponentRating: 1200,
         opponentAvatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${internalId}`,
         isProcessing: false,
         systemMessage: "À vous de jouer !",
+        chat: [],
         initialTime: baseTimeMs,
         whiteTime: baseTimeMs,
         blackTime: baseTimeMs,
-        lastMoveTime: Date.now()
+        lastMoveTime: Date.now(),
+        isHostTurn: true
       };
 
       this.gamesMap.set(internalId, game);
@@ -130,46 +174,76 @@ export class ChessSimulService {
     const game = this.gamesMap.get(gameId);
     if (!game || game.status !== 'active') return;
 
-    // Apply time increment locally before validation
     if (game.turn === 'w') game.whiteTime += this.config.incrementSeconds * 1000;
     else game.blackTime += this.config.incrementSeconds * 1000;
     
     try {
       const move = game.chess.move({ from, to, promotion });
       if (move) {
-        // Optimistic UI Update
         this.updateGameState(gameId, move);
         
-        // Prepare API Call
-        if (game.mode === 'online') {
-            game.isProcessing = true;
-            this.games.set([...this.gamesMap.values()]);
-
-            this.apiService.sendMove({
-                gameId: game.sessionId,
-                from, to, promotion
-            }).subscribe({
-                next: (res) => {
-                    game.isProcessing = false;
-                    // Sync FEN from server if needed:
-                    // if (res.fen !== game.fen) ...
-                    this.games.set([...this.gamesMap.values()]);
-                },
-                error: () => {
-                   // Rollback logic would go here
-                   game.isProcessing = false;
-                   game.systemMessage = "Erreur de synchronisation.";
-                   this.games.set([...this.gamesMap.values()]);
+        if (game.mode === 'simul-host') {
+            game.systemMessage = "Tour de l'adversaire...";
+            game.isHostTurn = false;
+            
+            // Simulation: Opponent plays back after 3 seconds (random move)
+            setTimeout(() => {
+                if (game.status === 'active') {
+                    const possibleMoves = game.chess.moves();
+                    if (possibleMoves.length > 0) {
+                        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        const m = game.chess.move(randomMove);
+                        game.blackTime += this.config.incrementSeconds * 1000;
+                        this.updateGameState(gameId, m);
+                        game.systemMessage = "À vous de jouer !";
+                        game.isHostTurn = true;
+                        this.games.set([...this.gamesMap.values()]);
+                    }
                 }
-            });
+            }, 3000 + Math.random() * 2000);
+
         } else {
-            // Local Pass & Play
             game.systemMessage = game.turn === 'w' ? "Tour des Blancs" : "Tour des Noirs";
         }
+        
+        this.games.set([...this.gamesMap.values()]);
       }
     } catch (e) {
       console.error('Invalid move', e);
     }
+  }
+
+  // --- CHAT FUNCTIONALITY ---
+  sendChatMessage(gameId: number, text: string) {
+      const game = this.gamesMap.get(gameId);
+      if (!game) return;
+
+      const userMsg: ChatMessage = {
+          id: Date.now().toString(),
+          sender: game.playerName,
+          text: text,
+          isSelf: true,
+          timestamp: Date.now()
+      };
+
+      game.chat = [...game.chat, userMsg];
+      this.games.set([...this.gamesMap.values()]);
+
+      // Mock opponent response
+      if (game.mode === 'simul-host' && Math.random() > 0.7) {
+          setTimeout(() => {
+              const responses = ["Bien joué !", "Hmm...", "Intéressant.", "Je réfléchis...", "Oups."];
+              const reply: ChatMessage = {
+                  id: Date.now().toString(),
+                  sender: game.opponentName,
+                  text: responses[Math.floor(Math.random() * responses.length)],
+                  isSelf: false,
+                  timestamp: Date.now()
+              };
+              game.chat = [...game.chat, reply];
+              this.games.set([...this.gamesMap.values()]);
+          }, 2000);
+      }
   }
 
   navigateHistory(gameId: number, direction: 'start' | 'prev' | 'next' | 'end') {
@@ -273,6 +347,12 @@ export class ChessSimulService {
     game.history = game.chess.history();
     game.lastMoveTime = Date.now(); 
     
+    // In Simul Mode host side logic
+    if (game.mode === 'simul-host') {
+        // Host is usually White. If turn is W, it's host turn.
+        game.isHostTurn = game.turn === 'w'; 
+    }
+
     if (lastMove) {
         game.lastMove = { from: lastMove.from, to: lastMove.to };
     }
@@ -293,9 +373,8 @@ export class ChessSimulService {
           const winner = game.turn === 'w' ? 'Black' : 'White';
           game.systemMessage = `Échec et mat ! ${winner === 'White' ? 'Les Blancs gagnent' : 'Les Noirs gagnent'}.`;
           
-          // In Local PvP, we record 'win' for current user for simplicity, 
-          // but in real app we'd need to know WHO the user is playing as.
-          this.recordGame(game, 'win');
+          const isWin = (game.mode === 'simul-host' && winner === 'White') || (game.mode === 'local' && winner === 'White'); 
+          this.recordGame(game, isWin ? 'win' : 'loss');
 
       } else if (game.chess.isDraw()) {
           game.status = 'draw';

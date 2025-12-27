@@ -6,6 +6,8 @@ export interface User {
   email: string;
   name: string;
   avatar: string;
+  emailVerified: boolean;
+  onboardingCompleted: boolean;
 }
 
 @Injectable({
@@ -35,28 +37,22 @@ export class AuthService {
     this.error.set(null);
 
     try {
-      // Simulation délai réseau
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Validation de base
-      if (!email || !password) {
-        throw new Error("Veuillez remplir tous les champs.");
-      }
-
-      if (!email.includes('@')) {
-        throw new Error("Format d'email invalide.");
-      }
-
-      if (password.length < 6) {
-        throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
-      }
+      if (!email || !password) throw new Error("Veuillez remplir tous les champs.");
+      if (!email.includes('@')) throw new Error("Format d'email invalide.");
+      if (password.length < 6) throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
 
       // Simulation de validation (succès)
+      // Pour la démo, on considère que le login renvoie un user déjà vérifié/onboardé
+      // Sauf si c'est un compte de test spécifique
       const user: User = {
         id: '1',
         email,
         name: email.split('@')[0],
-        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${email}`
+        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${email}`,
+        emailVerified: true,
+        onboardingCompleted: true
       };
       
       this.finishAuth(user);
@@ -64,7 +60,7 @@ export class AuthService {
 
     } catch (e: any) {
       console.error('[AuthService] Login Error:', e);
-      this.error.set(e.message || "Une erreur inattendue est survenue lors de la connexion.");
+      this.error.set(e.message || "Erreur de connexion.");
       return false;
     } finally {
       this.isLoading.set(false);
@@ -76,34 +72,77 @@ export class AuthService {
     this.error.set(null);
 
     try {
-      // Simulation délai réseau
       await new Promise(resolve => setTimeout(resolve, 1200));
 
-      if (!name || !email || !password) {
-        throw new Error("Veuillez remplir tous les champs.");
-      }
-
-      if (password.length < 6) {
-        throw new Error("Le mot de passe est trop court.");
-      }
+      if (!name || !email || !password) throw new Error("Veuillez remplir tous les champs.");
+      if (password.length < 6) throw new Error("Le mot de passe est trop court.");
 
       const user: User = {
         id: Math.random().toString(36).substr(2, 9),
         email,
         name,
-        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${name}`
+        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${name}`,
+        emailVerified: false,       // NEW: Needs verification
+        onboardingCompleted: false  // NEW: Needs onboarding
       };
       
       this.finishAuth(user);
       return true;
 
     } catch (e: any) {
-      console.error('[AuthService] Register Error:', e);
-      this.error.set(e.message || "Impossible de créer le compte. Veuillez réessayer.");
+      this.error.set(e.message || "Erreur lors de l'inscription.");
       return false;
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  async verifyEmail(code: string): Promise<boolean> {
+    this.isLoading.set(true);
+    try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (code !== '1234') throw new Error("Code invalide (Essayez 1234)");
+        
+        const user = this.currentUser();
+        if (user) {
+            this.finishAuth({ ...user, emailVerified: true });
+        }
+        return true;
+    } catch (e: any) {
+        this.error.set(e.message);
+        return false;
+    } finally {
+        this.isLoading.set(false);
+    }
+  }
+
+  async completeOnboarding(updates: { avatar: string, name: string }): Promise<boolean> {
+      this.isLoading.set(true);
+      try {
+          await new Promise(resolve => setTimeout(resolve, 800));
+          const user = this.currentUser();
+          if (user) {
+              this.finishAuth({ ...user, ...updates, onboardingCompleted: true });
+          }
+          return true;
+      } finally {
+          this.isLoading.set(false);
+      }
+  }
+
+  async resetPassword(email: string): Promise<boolean> {
+      this.isLoading.set(true);
+      this.error.set(null);
+      try {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          if (!email.includes('@')) throw new Error("Email invalide");
+          return true; // Success
+      } catch(e: any) {
+          this.error.set(e.message);
+          return false;
+      } finally {
+          this.isLoading.set(false);
+      }
   }
 
   updateAvatar(seed: string) {
@@ -115,7 +154,6 @@ export class AuthService {
       }
     } catch (e) {
       console.error('[AuthService] Avatar Update Error:', e);
-      this.error.set("Erreur lors de la mise à jour de l'avatar.");
     }
   }
 

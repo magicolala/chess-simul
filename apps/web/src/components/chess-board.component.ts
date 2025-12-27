@@ -21,17 +21,17 @@ import { PreferencesService } from '../services/preferences.service';
             @let isSelected = selectedSquare() === squareId;
             @let isLastMove = lastMove()?.from === squareId || lastMove()?.to === squareId;
             @let isCheck = isKingInCheck(piece);
-            
+
             <!-- Analysis Highlights -->
             @let isBestMoveSource = bestMove()?.substring(0, 2) === squareId;
             @let isBestMoveDest = bestMove()?.substring(2, 4) === squareId;
 
             <!-- Logic for interaction -->
             @let canInteract = isInteractive() && (allowedColor() === 'both' ? piece?.color === chess().turn() : piece?.color === allowedColor());
-            
+
             @let isLegal = isLegalMove(squareId);
 
-            <div 
+            <div
               (click)="handleSquareClick(squareId)"
               (dragover)="handleDragOver($event)"
               (drop)="handleDrop($event, squareId)"
@@ -39,7 +39,7 @@ import { PreferencesService } from '../services/preferences.service';
               [class.cursor-pointer]="canInteract || isLegal"
               [style.backgroundColor]="getSquareColor(isLight, isLastMove, isSelected, isBestMoveSource, isBestMoveDest)"
             >
-              
+
               <!-- Rank/File Labels -->
               @if ((file === 'a' && orientation() === 'w') || (file === 'h' && orientation() === 'b')) {
                 <span class="absolute top-0.5 left-1 text-[10px] font-bold z-0"
@@ -47,7 +47,7 @@ import { PreferencesService } from '../services/preferences.service';
                   {{ rank }}
                 </span>
               }
-              
+
               @if ((rank === 1 && orientation() === 'w') || (rank === 8 && orientation() === 'b')) {
                 <span class="absolute bottom-0 right-1 text-[10px] font-bold z-0"
                       [style.color]="isLight ? prefs.currentTheme.dark : prefs.currentTheme.light">
@@ -74,8 +74,8 @@ import { PreferencesService } from '../services/preferences.service';
 
               <!-- Piece -->
               @if (piece) {
-                <img 
-                  [src]="getPieceUrl(piece)" 
+                <img
+                  [src]="getPieceUrl(piece)"
                   [draggable]="canInteract"
                   (dragstart)="handleDragStart($event, squareId)"
                   (dragend)="handleDragEnd()"
@@ -91,7 +91,7 @@ import { PreferencesService } from '../services/preferences.service';
           }
         }
       </div>
-      
+
       <!-- Interaction Blocker if not active -->
       @if (!isInteractive()) {
         <div class="absolute inset-0 z-30"></div>
@@ -107,8 +107,8 @@ export class ChessBoardComponent {
   bestMove = input<string | null>(null); // e.g. "e2e4"
   isInteractive = input<boolean>(false);
   orientation = input<'w' | 'b'>('w');
-  allowedColor = input<'w' | 'b' | 'both'>('w'); 
-  
+  allowedColor = input<'w' | 'b' | 'both'>('w');
+
   move = output<{ from: string, to: string }>();
 
   private baseRanks = [8, 7, 6, 5, 4, 3, 2, 1];
@@ -123,14 +123,14 @@ export class ChessBoardComponent {
     const c = new Chess();
     try {
       c.load(this.fen());
-    } catch (e) {
+    } catch {
       // Silent catch
     }
     return c;
   });
 
   selectedSquare = signal<string | null>(null);
-  draggingSquare = signal<string | null>(null); 
+  draggingSquare = signal<string | null>(null);
   legalMoves = signal<string[]>([]);
 
   constructor() {
@@ -153,10 +153,9 @@ export class ChessBoardComponent {
   getSquareColor(isLight: boolean, isLastMove: boolean, isSelected: boolean, isBestFrom: boolean, isBestTo: boolean): string {
     const theme = this.prefs.currentTheme;
     const CYAN = '#7AF7F7';
-    const ENGINE_BLUE = 'rgba(60, 100, 255, 0.5)';
 
-    if (isSelected) return CYAN; 
-    
+    if (isSelected) return CYAN;
+
     // Engine Suggestion Overlay
     if (isBestTo || isBestFrom) return isLight ? '#a5b4fc' : '#818cf8'; // Indigo-ish
 
@@ -183,7 +182,7 @@ export class ChessBoardComponent {
     const game = this.chess();
     const turn = game.turn();
     const allowed = this.allowedColor();
-    
+
     if (allowed !== 'both' && allowed !== turn) return;
 
     const piece = game.get(square as any);
@@ -222,7 +221,7 @@ export class ChessBoardComponent {
           e.preventDefault();
           return;
       }
-      
+
       const piece = game.get(square as any);
       if (!piece || piece.color !== turn) {
           e.preventDefault();
@@ -239,7 +238,7 @@ export class ChessBoardComponent {
   }
 
   handleDragOver(e: DragEvent) {
-      e.preventDefault(); 
+      e.preventDefault();
       if (e.dataTransfer) {
           e.dataTransfer.dropEffect = 'move';
       }
@@ -248,11 +247,11 @@ export class ChessBoardComponent {
   handleDrop(e: DragEvent, targetSquare: string) {
       e.preventDefault();
       const fromSquare = e.dataTransfer?.getData('text/plain');
-      
+
       if (fromSquare && fromSquare !== targetSquare) {
           this.attemptMove(fromSquare, targetSquare);
       }
-      
+
       this.handleDragEnd();
   }
 
@@ -279,13 +278,13 @@ export class ChessBoardComponent {
       try {
           const moves = game.moves({ square: from as any, verbose: true });
           const move = moves.find(m => m.to === to);
-          
+
           if (move) {
               this.move.emit({ from, to });
               this.deselect();
               return true;
           }
-      } catch (e) { }
+      } catch {}
       return false;
   }
 

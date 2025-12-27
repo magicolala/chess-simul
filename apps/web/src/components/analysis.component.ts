@@ -12,10 +12,10 @@ import { Chess } from 'chess.js';
   imports: [CommonModule, ChessBoardComponent, FormsModule],
   template: `
     <div class="h-full max-w-[1920px] mx-auto p-4 flex flex-col lg:flex-row gap-4 lg:gap-0 font-sans bg-gray-100 dark:bg-[#0a0a0a]">
-        
+
         <!-- Center: Board & Eval -->
         <div class="flex-1 flex justify-center items-start lg:items-center relative">
-            
+
             <div class="flex w-full max-w-4xl gap-2">
                 <!-- Evaluation Bar -->
                 <div class="w-8 h-[60vh] lg:h-[80vh] bg-gray-300 border-2 border-[#1D1C1C] dark:border-white relative overflow-hidden flex flex-col justify-end">
@@ -23,7 +23,7 @@ import { Chess } from 'chess.js';
                     <div class="absolute top-0 w-full h-full bg-[#404040]"></div>
                     <!-- White Bar (Height depends on eval) -->
                     <div class="w-full bg-white transition-all duration-500 relative z-10" [style.height.%]="evalHeight()"></div>
-                    
+
                     <!-- Eval Text -->
                     <div class="absolute top-2 left-0 w-full text-center text-[10px] font-black text-white z-20" *ngIf="evalHeight() < 50">{{ evalText() }}</div>
                     <div class="absolute bottom-2 left-0 w-full text-center text-[10px] font-black text-[#1D1C1C] z-20" *ngIf="evalHeight() >= 50">{{ evalText() }}</div>
@@ -31,8 +31,8 @@ import { Chess } from 'chess.js';
 
                 <!-- Board -->
                 <div class="flex-1 aspect-square max-h-[80vh]">
-                    <app-chess-board 
-                        [fen]="currentFen()" 
+                    <app-chess-board
+                        [fen]="currentFen()"
                         [lastMove]="lastMove()"
                         [bestMove]="engineData()?.bestMove || null"
                         [isInteractive]="true"
@@ -46,7 +46,7 @@ import { Chess } from 'chess.js';
 
         <!-- Right: Analysis Tools -->
         <div class="w-full lg:w-96 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col h-[60vh] lg:h-auto">
-            
+
             <!-- Header Tabs -->
             <div class="flex border-b-2 border-[#1D1C1C] dark:border-white">
                 <button (click)="tab.set('moves')" [class.bg-[#1D1C1C]]="tab() === 'moves'" [class.text-white]="tab() === 'moves'" class="flex-1 py-3 font-bold uppercase text-xs hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white transition-colors">Coups</button>
@@ -89,7 +89,7 @@ import { Chess } from 'chess.js';
 
             <!-- Content Area -->
             <div class="flex-1 overflow-y-auto bg-white dark:bg-[#1a1a1a]">
-                
+
                 @if (tab() === 'moves') {
                     <div class="grid grid-cols-2 text-sm font-mono font-bold">
                         @for (movePair of moveList(); track $index) {
@@ -97,7 +97,7 @@ import { Chess } from 'chess.js';
                                 {{ $index + 1 }}.
                             </div>
                             <div class="col-span-1 grid grid-cols-2">
-                                <div (click)="jumpToMove(movePair.white.index)" 
+                                <div (click)="jumpToMove(movePair.white.index)"
                                      class="p-2 cursor-pointer hover:bg-[#FFF48D] dark:hover:bg-gray-700 flex items-center justify-center transition-colors"
                                      [class.bg-[#FFF48D]]="currentMoveIndex() === movePair.white.index"
                                      [class.dark:bg-gray-700]="currentMoveIndex() === movePair.white.index"
@@ -105,7 +105,7 @@ import { Chess } from 'chess.js';
                                     {{ movePair.white.san }}
                                 </div>
                                 @if (movePair.black) {
-                                    <div (click)="jumpToMove(movePair.black.index)" 
+                                    <div (click)="jumpToMove(movePair.black.index)"
                                          class="p-2 cursor-pointer hover:bg-[#FFF48D] dark:hover:bg-gray-700 flex items-center justify-center transition-colors"
                                          [class.bg-[#FFF48D]]="currentMoveIndex() === movePair.black.index"
                                          [class.dark:bg-gray-700]="currentMoveIndex() === movePair.black.index"
@@ -142,7 +142,7 @@ import { Chess } from 'chess.js';
 })
 export class AnalysisComponent {
   analysisService = inject(AnalysisService);
-  
+
   // Inputs from parent if we want to preload a game
   initialPgn = input<string>('');
 
@@ -151,10 +151,10 @@ export class AnalysisComponent {
   currentFen = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
   currentMoveIndex = signal(-1); // -1 = Start position
   history: { fen: string, move: any }[] = [];
-  
+
   tab = signal<'moves' | 'pgn'>('moves');
   pgnInput = signal('');
-  
+
   // Analysis State
   engineData = signal<Partial<AnalysisNode> | null>(null);
   isAnalyzing = signal(false);
@@ -179,10 +179,7 @@ export class AnalysisComponent {
 
   moveList = computed(() => {
       // Re-calculate move pairs for display
-      const pairs = [];
-      const history = this.history; // This is a raw array, not a signal, so we might need to trigger update manually or assume component re-renders on signal change.
-      // Actually, since history array is mutated, we should probably rely on re-generation or signalize it.
-      // Let's rely on standard change detection triggered by currentMoveIndex/signals.
+      // History array is mutated, we rely on standard change detection triggered by currentMoveIndex/signals.
       // Ideally, history should be a signal.
       return this.generateMovePairs();
   });
@@ -213,23 +210,23 @@ export class AnalysisComponent {
               if (this.currentMoveIndex() < this.history.length - 1) {
                   this.history = this.history.slice(0, this.currentMoveIndex() + 1);
               }
-              
+
               this.history.push({ fen: tempChess.fen(), move: m });
               this.currentMoveIndex.update(i => i + 1);
               this.updateBoardState();
           }
-      } catch(e) {}
+      } catch {}
   }
 
   loadPgn() {
       try {
           const c = new Chess();
           c.loadPgn(this.pgnInput());
-          
+
           // Rebuild history array
           this.history = [];
           const historyMoves = c.history({ verbose: true });
-          
+
           const tempC = new Chess();
           for (const m of historyMoves) {
               tempC.move(m);
@@ -238,7 +235,7 @@ export class AnalysisComponent {
 
           this.navigate('end');
           this.tab.set('moves');
-      } catch(e) {
+      } catch {
           alert('PGN Invalide');
       }
   }
@@ -264,9 +261,9 @@ export class AnalysisComponent {
   private updateBoardState() {
       const idx = this.currentMoveIndex();
       const fen = idx === -1 ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : this.history[idx].fen;
-      
+
       this.currentFen.set(fen);
-      
+
       // Trigger Analysis
       this.isAnalyzing.set(true);
       this.analysisService.analyzePosition(fen).then(data => {

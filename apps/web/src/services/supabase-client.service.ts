@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -13,6 +14,7 @@ export class SupabaseClientService {
   readonly session$: Observable<Session | null> = this.sessionSubject.asObservable();
   readonly user$: Observable<User | null> = this.userSubject.asObservable();
   readonly sessionReady$: Observable<boolean> = this.sessionReadySubject.asObservable();
+  readonly currentUser = toSignal(this.user$, { initialValue: null });
 
   get currentUser(): User | null {
     return this.userSubject.value;

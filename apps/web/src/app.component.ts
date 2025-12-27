@@ -3,11 +3,11 @@ import { Component, inject, computed, signal, ChangeDetectionStrategy, effect } 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessSimulService, GameState, GameConfig } from './services/chess-logic.service';
-import { AuthService } from './services/auth.service';
+import { SupabaseClientService } from './services/supabase-client.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
 import { MultiplayerService } from './services/multiplayer.service';
-import { SimulService } from './services/simul.service';
+import { SupabaseSimulService } from './services/supabase-simul.service';
 import { SocialService } from './services/social.service';
 import { AnalysisService } from './services/analysis.service';
 
@@ -70,11 +70,11 @@ type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-
 })
 export class AppComponent {
   private logicService = inject(ChessSimulService);
-  auth = inject(AuthService);
+  auth = inject(SupabaseClientService);
   historyService = inject(HistoryService);
   prefs = inject(PreferencesService);
   mpService = inject(MultiplayerService);
-  simulService = inject(SimulService);
+  simulService = inject(SupabaseSimulService);
   socialService = inject(SocialService);
   analysisService = inject(AnalysisService);
 
@@ -112,29 +112,32 @@ export class AppComponent {
   currentElo = signal(1200); 
 
   constructor() {
-      // Routing Logic based on Auth State
-      effect(() => {
-          const user = this.auth.currentUser();
-          
-          if (!user) {
-              const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
-              if (!publicViews.includes(this.currentView())) {
-                  this.currentView.set('landing');
-              }
-              return;
-          }
+    // Routing Logic based on Auth State
+    effect(() => {
+        const user = this.auth.currentUser();
+        
+        if (!user) {
+            const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
+            if (!publicViews.includes(this.currentView())) {
+                this.currentView.set('landing');
+            }
+            return;
+        }
 
-          if (!user.emailVerified) {
-              this.currentView.set('verify-email');
-          } else if (!user.onboardingCompleted) {
-              this.currentView.set('onboarding');
-          } else {
-              const authViews: ViewState[] = ['landing', 'login', 'register', 'verify-email', 'onboarding', 'forgot-password'];
-              if (authViews.includes(this.currentView())) {
-                  this.currentView.set('dashboard');
-              }
-          }
-      }, { allowSignalWrites: true });
+        const emailVerified = !!user.email_confirmed_at;
+        const onboardingCompleted = user.user_metadata?.['onboardingCompleted'] === true;
+
+        if (!emailVerified) {
+            this.currentView.set('verify-email');
+        } else if (!onboardingCompleted) {
+            this.currentView.set('onboarding');
+        } else {
+            const authViews: ViewState[] = ['landing', 'login', 'register', 'verify-email', 'onboarding', 'forgot-password'];
+            if (authViews.includes(this.currentView())) {
+                this.currentView.set('dashboard');
+            }
+        }
+    }, { allowSignalWrites: true });
   }
 
   onMove(gameId: number, move: { from: string, to: string }) {
@@ -194,28 +197,47 @@ export class AppComponent {
   }
   
   // Simul Logic
-  createSimul(config: GameConfig) {
-      this.simulService.createSimul(config, false); // Default public
-      this.currentView.set('simul-lobby');
+  async createSimul(config: GameConfig) {
+    try {
+      // For now, we'll use a generic name. In a real app, you might have a form for this.
+      const simulName = `Simul by ${this.auth.currentUser()?.email}`;
+      const newSimul = await this.simulService.createSimul(simulName, config.opponentCount);
+      if (newSimul) {
+        this.viewParam.set(newSimul.id);
+        this.currentView.set('simul-lobby');
+      }
+    } catch (error) {
+      console.error('Error creating simul:', error);
+      // Optionally, show an error to the user
+    }
   }
 
-  joinSimul(id: string) {
-      this.simulService.joinSimul(id);
+  async joinSimul(id: string) {
+    try {
+      await this.simulService.joinSimul(id);
+      this.viewParam.set(id);
       this.currentView.set('simul-lobby');
+    } catch (error) {
+      console.error('Error joining simul:', error);
+    }
   }
 
   leaveSimulLobby() {
-      this.simulService.leaveSimul();
-      this.currentView.set('simul-list');
+    this.simulService.clearContext();
+    this.currentView.set('simul-list');
   }
 
-  startSimulHost() {
-      this.simulService.startSimul();
-      const simul = this.simulService.currentSimul();
-      if(simul) {
-          this.logicService.startSimulHosting(simul.config);
-          this.currentView.set('simul-host');
+  async startSimulHost() {
+    const tableId = this.simulService.activeTable()?.id;
+    if (tableId) {
+      try {
+        await this.simulService.startTable(tableId);
+        // Maybe navigate to a specific view for the host
+        this.currentView.set('simul-host');
+      } catch (error) {
+        console.error('Error starting table:', error);
       }
+    }
   }
 
   startSimulPlayer() {
@@ -276,7 +298,7 @@ export class AppComponent {
   }
 
   handleLogout() {
-    this.auth.logout();
+    this.auth.signOut();
   }
 
   updateTimeConfig(minutes: number) {

@@ -2,7 +2,7 @@
 import { Component, inject, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MultiplayerService, MultiplayerRoom } from '../services/multiplayer.service';
+import { MultiplayerService } from '../services/multiplayer.service';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -11,7 +11,7 @@ import { AuthService } from '../services/auth.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="max-w-6xl mx-auto p-4 md:p-8 font-sans h-full flex flex-col">
-        
+
         <!-- Header -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between">
             <div>
@@ -27,7 +27,7 @@ import { AuthService } from '../services/auth.service';
         </div>
 
         <div class="flex-1 overflow-y-auto">
-            
+
             <!-- QUICK MATCH -->
             @if (activeTab() === 'quick') {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full items-center">
@@ -43,7 +43,7 @@ import { AuthService } from '../services/auth.service';
                              <div class="absolute right-4 bottom-4 text-6xl opacity-20">🐢</div>
                          </div>
                     </div>
-                    
+
                     <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 p-8 rounded-[2px] h-full min-h-[300px]">
                         @if (mpService.isMatchmaking()) {
                             <div class="animate-spin text-4xl mb-4">⏳</div>
@@ -99,7 +99,7 @@ import { AuthService } from '../services/auth.service';
             @if (activeTab() === 'create') {
                 <div class="max-w-2xl mx-auto bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-8">
                     <h3 class="text-2xl font-black font-display uppercase mb-6 text-[#1D1C1C] dark:text-white">Paramètres du salon</h3>
-                    
+
                     <div class="space-y-6">
                          <div>
                             <label class="block text-xs font-bold font-display text-gray-500 uppercase mb-2">Cadence</label>
@@ -137,12 +137,12 @@ import { AuthService } from '../services/auth.service';
 export class MultiplayerLobbyComponent {
   mpService = inject(MultiplayerService);
   auth = inject(AuthService);
-  
+
   // Output events to handle navigation in Parent
   joined = output<void>();
 
   activeTab = signal<'quick' | 'lobby' | 'create'>('quick');
-  
+
   // Create Config
   createConfig = { timeMinutes: 10, incrementSeconds: 0, opponentCount: 1, difficulty: 'pvp' as const };
   isPrivate = signal(false);
@@ -157,7 +157,7 @@ export class MultiplayerLobbyComponent {
      if (!user) return;
 
      this.mpService.createRoom(
-         this.createConfig, 
+         this.createConfig,
          this.isPrivate(),
          user.name,
          user.avatar,

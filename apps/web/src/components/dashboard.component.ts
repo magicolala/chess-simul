@@ -1,5 +1,5 @@
 
-import { Component, inject, output, computed, signal } from '@angular/core';
+import { Component, inject, output, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ChessSimulService } from '../services/chess-logic.service';
 import { HistoryService } from '../services/history.service';
@@ -13,20 +13,20 @@ import { ChessBoardComponent } from './chess-board.component';
   imports: [CommonModule, ChessBoardComponent, DatePipe],
   template: `
     <div class="max-w-7xl mx-auto space-y-8 p-4 md:p-0 font-sans animate-in fade-in slide-in-from-bottom-2 duration-500">
-        
+
         <!-- Welcome & Quick Play Section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+
             <!-- Left: Hero / Quick Play -->
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-6 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 font-display text-9xl select-none group-hover:rotate-12 transition-transform duration-700">♟</div>
-                    
+
                     <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-tight mb-2">
                         Prêt à jouer, <span class="text-[#1D1C1C] dark:text-white underline decoration-[#FFF48D] decoration-4 underline-offset-4">{{ auth.currentUser()?.name }}</span> ?
                     </h2>
                     <p class="text-gray-500 dark:text-gray-400 font-medium mb-6 max-w-md">Choisissez votre cadence préférée et lancez une partie instantanée.</p>
-                    
+
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <button (click)="triggerQuickGame(1, 0)" class="flex flex-col items-center justify-center p-4 bg-red-50 dark:bg-red-900/20 border-2 border-[#1D1C1C] dark:border-white hover:bg-[#1D1C1C] hover:text-[#FFF48D] dark:hover:bg-white dark:hover:text-black transition-all group/btn">
                             <span class="text-2xl mb-1 group-hover/btn:scale-110 transition-transform">🔥</span>
@@ -71,7 +71,7 @@ import { ChessBoardComponent } from './chess-board.component';
                                             <span class="text-[10px] font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">{{ formatTime(game.whiteTime) }}</span>
                                         </div>
                                         <p class="text-xs text-gray-500 truncate mt-1">
-                                            {{ game.isHostTurn ? 'C\'est à vous !' : 'En attente...' }}
+                                            {{ game.isHostTurn ? 'C'est à vous !' : 'En attente...' }}
                                         </p>
                                         <button class="mt-2 text-[10px] font-bold uppercase bg-[#1D1C1C] text-white px-3 py-1 hover:bg-[#7AF7F7] hover:text-[#1D1C1C] transition-colors">
                                             Reprendre
@@ -95,13 +95,13 @@ import { ChessBoardComponent } from './chess-board.component';
                              <span class="text-sm font-bold text-green-600 bg-green-50 px-1 border border-green-200 mb-2">▲ 24</span>
                          </div>
                      </div>
-                     
+
                      <!-- Simple SVG Graph Mockup -->
                      <svg class="absolute bottom-0 left-0 w-full h-32 text-[#FFF48D] opacity-50 dark:opacity-20" viewBox="0 0 100 40" preserveAspectRatio="none">
                          <path d="M0,40 L0,30 L10,35 L20,25 L30,28 L40,15 L50,20 L60,10 L70,12 L80,5 L90,8 L100,0 L100,40 Z" fill="currentColor"/>
                          <path d="M0,30 L10,35 L20,25 L30,28 L40,15 L50,20 L60,10 L70,12 L80,5 L90,8 L100,0" fill="none" stroke="#1D1C1C" stroke-width="0.5" class="dark:stroke-white"/>
                      </svg>
-                     
+
                      <div class="z-10 mt-auto pt-4 border-t-2 border-gray-100 dark:border-gray-800 flex justify-between text-xs font-bold text-gray-500">
                          <span>Progression</span>
                          <span>+12% ce mois</span>
@@ -142,7 +142,7 @@ import { ChessBoardComponent } from './chess-board.component';
 
         <!-- Cards Row: Simul, Tournaments, History -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             <!-- Simultanées Card -->
             <div (click)="goToSimul.emit()" class="bg-[#FFF48D] border-2 border-[#1D1C1C] wero-shadow p-6 cursor-pointer hover:-translate-y-1 transition-transform relative overflow-hidden group">
                 <div class="absolute -right-4 -bottom-4 text-8xl opacity-20 font-display group-hover:scale-110 transition-transform">⚔️</div>
@@ -171,12 +171,12 @@ import { ChessBoardComponent } from './chess-board.component';
                     <h3 class="text-sm font-black font-display text-[#1D1C1C] dark:text-white uppercase">Historique Récent</h3>
                     <button (click)="goToHistory.emit()" class="text-[10px] font-bold underline">TOUT VOIR</button>
                  </div>
-                 
+
                  <div class="flex-1 space-y-2 overflow-hidden">
                      @for (game of recentHistory(); track game.id) {
                          <div class="flex items-center justify-between text-xs py-1 border-b border-gray-100 dark:border-gray-800 last:border-0">
                              <div class="flex items-center space-x-2">
-                                 <span class="w-2 h-2 rounded-full" 
+                                 <span class="w-2 h-2 rounded-full"
                                     [class.bg-green-500]="game.result === 'win'"
                                     [class.bg-red-500]="game.result === 'loss'"
                                     [class.bg-gray-400]="game.result === 'draw'"></span>
@@ -208,15 +208,15 @@ export class DashboardComponent {
     goToSocial = output<void>();
 
     // Computed
-    activeGames = computed(() => 
+    activeGames = computed(() =>
         this.simulService.games().filter(g => g.status === 'active' && g.mode !== 'simul-host')
     );
 
-    recentHistory = computed(() => 
+    recentHistory = computed(() =>
         this.historyService.history().slice(0, 5)
     );
 
-    onlineFriends = computed(() => 
+    onlineFriends = computed(() =>
         this.socialService.friends().filter(f => f.status !== 'offline').slice(0, 3)
     );
 

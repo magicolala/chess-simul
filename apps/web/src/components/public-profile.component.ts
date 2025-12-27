@@ -1,15 +1,15 @@
 
 import { Component, inject, input, effect } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { SocialService } from '../services/social.service';
-import { AuthService } from '../services/auth.service';
+import { SupabaseSocialService } from '../services/supabase-social.service';
+import { SupabaseClientService } from '../services/supabase-client.service';
 
 @Component({
   selector: 'app-public-profile',
   standalone: true,
   imports: [CommonModule, DatePipe],
   template: `
-    @if (social.viewedProfile(); as profile) {
+    @if (viewedProfile(); as profile) {
         <div class="max-w-6xl mx-auto p-4 md:p-8 font-sans animate-in fade-in slide-in-from-bottom-4 duration-500">
             
             <!-- Header Card -->
@@ -136,16 +136,20 @@ import { AuthService } from '../services/auth.service';
   `
 })
 export class PublicProfileComponent {
-  social = inject(SocialService);
-  auth = inject(AuthService);
+  social = inject(SupabaseSocialService);
+  auth = inject(SupabaseClientService);
   
   // Input: Profile ID to load (from route param usually)
   userId = input<string>('');
 
+  viewedProfile = signal<any | null>(null);
+
   constructor() {
       effect(() => {
           if (this.userId()) {
-              this.social.loadProfile(this.userId());
+              this.social.getProfile(this.userId()).then(profile => {
+                this.viewedProfile.set(profile);
+              });
           }
       });
   }

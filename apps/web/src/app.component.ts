@@ -8,7 +8,7 @@ import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
 import { MultiplayerService } from './services/multiplayer.service';
 import { SupabaseSimulService } from './services/supabase-simul.service';
-import { SocialService } from './services/social.service';
+import { SupabaseSocialService } from './services/supabase-social.service';
 import { AnalysisService } from './services/analysis.service';
 
 import { ChessBoardComponent } from './components/chess-board.component';
@@ -75,7 +75,7 @@ export class AppComponent {
   prefs = inject(PreferencesService);
   mpService = inject(MultiplayerService);
   simulService = inject(SupabaseSimulService);
-  socialService = inject(SocialService);
+  socialService = inject(SupabaseSocialService);
   analysisService = inject(AnalysisService);
 
   currentView = signal<ViewState>('landing');

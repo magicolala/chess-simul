@@ -21,7 +21,7 @@ import { SupabaseClientService } from '../services/supabase-client.service';
         <span class="text-[10px] font-semibold uppercase text-slate-500">Flux demo</span>
       </header>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div class="space-y-3">
           <label class="block text-sm font-semibold text-slate-700">Game ID</label>
           <div class="flex space-x-2">
@@ -38,6 +38,22 @@ import { SupabaseClientService } from '../services/supabase-client.service';
             <button (click)="connectSimul()" class="rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white">Subscribe</button>
             <button (click)="disconnectSimul()" class="rounded border px-3 py-2 text-sm font-semibold text-slate-700">Stop</button>
           </div>
+        </div>
+
+        <div class="space-y-3">
+          <label class="block text-sm font-semibold text-slate-700">Envoyer un coup (Edge Function)</label>
+          <div class="flex space-x-2">
+            <input [(ngModel)]="uciMove" type="text" class="flex-1 rounded border px-3 py-2 text-sm" placeholder="ex: e2e4" />
+            <button
+              (click)="submitMove()"
+              [disabled]="submitting"
+              class="rounded bg-purple-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {{ submitting ? 'Envoi...' : 'Jouer' }}
+            </button>
+          </div>
+          <p *ngIf="submitError" class="text-xs font-semibold text-red-600">{{ submitError }}</p>
+          <pre *ngIf="moveResponse" class="max-h-32 overflow-auto rounded border bg-white p-3 text-[11px] leading-tight">{{ moveResponse | json }}</pre>
         </div>
       </div>
 
@@ -115,6 +131,10 @@ export class RealtimeSandboxComponent implements OnDestroy {
 
   gameId = '';
   simulId = '';
+  uciMove = '';
+  submitting = false;
+  submitError: string | null = null;
+  moveResponse: unknown = null;
   user: PresenceUser = { user_id: 'anon', username: 'invite' };
 
   game$ = this.realtime.game$;
@@ -154,6 +174,30 @@ export class RealtimeSandboxComponent implements OnDestroy {
 
   disconnectSimul() {
     void this.simulRealtime.teardown();
+  }
+
+  async submitMove() {
+    this.submitError = null;
+    this.moveResponse = null;
+
+    const trimmedGame = this.gameId.trim();
+    const trimmedUci = this.uciMove.trim();
+
+    if (!trimmedGame || !trimmedUci) {
+      this.submitError = 'Game ID et UCI sont requis';
+      return;
+    }
+
+    try {
+      this.submitting = true;
+      const result = await this.realtime.submitMove(trimmedGame, trimmedUci);
+      this.moveResponse = result?.data ?? result;
+      this.uciMove = '';
+    } catch (err) {
+      this.submitError = (err as { message?: string })?.message ?? "Impossible d'envoyer le coup";
+    } finally {
+      this.submitting = false;
+    }
   }
 
   trackById(_index: number, item: { id?: string }) {

@@ -5,6 +5,8 @@
   "scripts": {
     "start": "supabase start",
     "stop": "supabase stop",
-    "types": "supabase gen types typescript --linked --schema public > types/database.types.ts"
+    "reset": "supabase db reset --use-migra --seed supabase/seed.sql",
+    "db:push": "supabase db push --use-migra",
+    "gen:types": "supabase gen types typescript --linked --schema public > types/database.types.ts"
   }
 }

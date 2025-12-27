@@ -48,6 +48,7 @@ Les valeurs sont injectées au build. Ne stockez jamais la clé `service_role` c
 
 ## Sécurité Supabase
 - RLS est activé sur toutes les tables métier : `profiles`, `user_settings`, `simuls`, `simul_tables`, `games`, `moves` (voir `supabase/migrations/20240614000000_chess_schema.sql`).
+- Les clients ne peuvent plus modifier `games` ou insérer/éditer `moves` directement : les coups doivent passer par la fonction Edge `submit-move` (service role) qui valide l'auth, l'ordre de jeu et la légalité du coup.
 - Les politiques limitent les actions aux hôtes et invités de chaque simul ; les fonctions RPC (`create_simul`, `join_simul`, `start_simul_game`) sont `security definer` et vérifient `auth.uid()`.
 - Ne jamais exposer ou injecter la clé `service_role` : seules les clés `anon` (prod/préprod) sont nécessaires côté front et CI.
 - Pour vérifier les policies : ouvrez la console SQL Supabase et exécutez `select * from <table>;` avec un utilisateur qui ne correspond pas aux filtres RLS ; l'appel doit être rejeté.

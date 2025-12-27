@@ -15,6 +15,11 @@ This directory holds database migrations, seed data, and generated types for the
 5. Load seed data and reset local state: `npm run supabase:reset`.
 6. Generate TypeScript types from the linked project: `npm run supabase:gen:types`.
 
+## Edge functions
+- `functions/submit-move`: applies and validates a chess move server-side. It reads the current FEN, checks that the caller owns the turn, rejects illegal UCI coordinates, and persists the resulting FEN + move metadata atomically. The frontend should call it with `supabase.functions.invoke('submit-move', { body: { game_id, uci } })` instead of writing to `games`/`moves` directly.
+
+When serving locally, run `supabase functions serve submit-move --env-file supabase/.env` so the function can reach your linked database with the service role key. The `Authorization: Bearer <access_token>` header is still required to identify the player.
+
 The migration `20250223000007_initial_conventions.sql` enables `pgcrypto`/`uuid-ossp` and provides the `default_uuid` and `handle_timestamps` helpers. Future tables should:
 - Use `public` schema with `uuid` primary keys defaulting to `default_uuid()`.
 - Add `created_at timestamptz not null default timezone('utc', now())` and `updated_at timestamptz not null default timezone('utc', now())` columns.

@@ -2,11 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { PresenceUser } from '../models/realtime.model';
+import { RealtimeGameService } from '../services/realtime-game.service';
+import { RealtimeSimulService } from '../services/realtime-simul.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
-import {
-  PresenceUser,
-  RealtimeGameService
-} from '../services/realtime-game.service';
 
 @Component({
   selector: 'app-realtime-sandbox',
@@ -47,18 +46,29 @@ import {
           <h4 class="mb-2 text-xs font-semibold uppercase text-slate-500">Game state (UPDATE)</h4>
           <pre class="max-h-48 overflow-auto rounded bg-white p-3 text-[11px] leading-tight">{{ game$ | async | json }}</pre>
         </div>
-        <div class="rounded-lg border bg-slate-50 p-3">
+        <div class="rounded-lg border bg-slate-50 p-3 space-y-2">
           <h4 class="mb-2 text-xs font-semibold uppercase text-slate-500">Moves stream (INSERT)</h4>
+          <div class="flex items-center justify-between text-[10px] text-slate-600">
+            <button
+              (click)="loadMoreMoves()"
+              class="rounded border px-2 py-1 font-semibold hover:bg-slate-100"
+              [disabled]="(loadingMoves$ | async) || !(hasMoreMoves$ | async)"
+            >
+              Charger plus d'historique
+            </button>
+            <span *ngIf="loadingMoves$ | async" class="animate-pulse">Chargement...</span>
+            <span *ngIf="!(hasMoreMoves$ | async)" class="text-emerald-600">Tous les coups chargés</span>
+          </div>
           <div class="space-y-1 overflow-auto rounded bg-white p-3 text-[11px] leading-tight max-h-48">
             <div *ngFor="let move of moves$ | async; trackBy: trackById" class="flex items-center justify-between">
-              <span class="font-mono">{{ move.san || move.uci }}</span>
+              <span class="font-mono">{{ move.ply ? '#' + move.ply + ' ' : '' }}{{ move.san || move.uci }}</span>
               <span class="text-[10px] text-slate-500">{{ move.created_at || 'now' }}</span>
             </div>
             <p *ngIf="(moves$ | async)?.length === 0" class="text-[11px] text-slate-500">En attente d'un coup...</p>
           </div>
         </div>
         <div class="rounded-lg border bg-slate-50 p-3">
-          <h4 class="mb-2 text-xs font-semibold uppercase text-slate-500">Présence (game:${'{'}{ gameId || '...' }{'}'})</h4>
+          <h4 class="mb-2 text-xs font-semibold uppercase text-slate-500">Présence (game:{{ gameId || '...' }})</h4>
           <div class="space-y-1 overflow-auto rounded bg-white p-3 text-[11px] leading-tight max-h-48">
             <div *ngFor="let player of onlinePlayers$ | async" class="flex items-center justify-between">
               <span class="font-semibold">{{ player.username || player.user_id }}</span>
@@ -70,16 +80,28 @@ import {
       </div>
 
       <div class="rounded-lg border bg-slate-50 p-3">
-        <h4 class="mb-2 text-xs font-semibold uppercase text-slate-500">Simul tables (UPDATE games simul_id)</h4>
+        <h4 class="mb-2 text-xs font-semibold uppercase text-slate-500">Simul tables (UPDATE simul_tables)</h4>
         <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
           <div *ngFor="let table of simulTables$ | async" class="rounded border bg-white p-3 text-[11px] leading-tight">
             <div class="flex items-center justify-between">
-              <span class="font-semibold">Table {{ table.gameId }}</span>
-              <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600">live</span>
+              <span class="font-semibold">Seat {{ table.seat_no ?? '??' }}</span>
+              <span class="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600">{{ table.status || '...' }}</span>
             </div>
-            <pre class="mt-2 whitespace-pre-wrap">{{ table.data | json }}</pre>
+            <p class="mt-1 text-[10px] text-slate-600">Guest: {{ table.guest_id || '---' }}</p>
+            <p class="text-[10px] text-slate-600">Game: {{ table.game_id || '---' }}</p>
           </div>
           <p *ngIf="(simulTables$ | async)?.length === 0" class="text-[11px] text-slate-500">Aucun update reçu pour le lobby.</p>
+        </div>
+      </div>
+
+      <div class="rounded-lg border bg-slate-50 p-3">
+        <h4 class="mb-2 text-xs font-semibold uppercase text-slate-500">Présence (simul:{{ simulId || '...' }})</h4>
+        <div class="space-y-1 overflow-auto rounded bg-white p-3 text-[11px] leading-tight max-h-48">
+          <div *ngFor="let player of simulPresence$ | async" class="flex items-center justify-between">
+            <span class="font-semibold">{{ player.username || player.user_id }}</span>
+            <span class="text-[10px] text-emerald-600">online</span>
+          </div>
+          <p *ngIf="(simulPresence$ | async)?.length === 0" class="text-[11px] text-slate-500">Personne dans le lobby.</p>
         </div>
       </div>
     </section>
@@ -88,6 +110,7 @@ import {
 export class RealtimeSandboxComponent implements OnDestroy {
   private readonly supabase = inject(SupabaseClientService);
   private readonly realtime = inject(RealtimeGameService);
+  private readonly simulRealtime = inject(RealtimeSimulService);
   private userSub: Subscription;
 
   gameId = '';
@@ -97,7 +120,11 @@ export class RealtimeSandboxComponent implements OnDestroy {
   game$ = this.realtime.game$;
   moves$ = this.realtime.moves$;
   onlinePlayers$ = this.realtime.onlinePlayers$;
-  simulTables$ = this.realtime.simulTables$;
+  loadingMoves$ = this.realtime.loadingMoves$;
+  hasMoreMoves$ = this.realtime.hasMoreMoves$;
+
+  simulTables$ = this.simulRealtime.tables$;
+  simulPresence$ = this.simulRealtime.presence$;
 
   constructor() {
     this.userSub = this.supabase.user$.subscribe((u) => {
@@ -110,19 +137,23 @@ export class RealtimeSandboxComponent implements OnDestroy {
   }
 
   connectGame() {
-    this.realtime.subscribeToGame(this.gameId.trim(), this.user);
+    this.realtime.subscribe(this.gameId.trim(), this.user);
   }
 
   connectSimul() {
-    this.realtime.subscribeToSimul(this.simulId.trim(), this.user);
+    this.simulRealtime.subscribe(this.simulId.trim(), this.user);
+  }
+
+  loadMoreMoves() {
+    void this.realtime.loadNextMovesPage();
   }
 
   disconnectGame() {
-    void this.realtime.teardownGameChannel();
+    void this.realtime.teardown();
   }
 
   disconnectSimul() {
-    void this.realtime.teardownSimulChannel();
+    void this.simulRealtime.teardown();
   }
 
   trackById(_index: number, item: { id?: string }) {
@@ -131,7 +162,7 @@ export class RealtimeSandboxComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.userSub.unsubscribe();
-    void this.realtime.teardownGameChannel();
-    void this.realtime.teardownSimulChannel();
+    void this.realtime.teardown();
+    void this.simulRealtime.teardown();
   }
 }

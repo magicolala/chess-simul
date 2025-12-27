@@ -1,64 +1,45 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
+import { GameRow, MoveRow, PresenceUser } from '../models/realtime.model';
 import { SupabaseClientService } from './supabase-client.service';
-
-export interface GameRow {
-  id: string;
-  status?: string;
-  fen?: string;
-  updated_at?: string;
-  simul_id?: string | null;
-  [key: string]: unknown;
-}
-
-export interface MoveRow {
-  id: string;
-  game_id: string;
-  uci?: string;
-  san?: string;
-  created_at?: string;
-  [key: string]: unknown;
-}
-
-export interface PresenceUser {
-  user_id: string;
-  username?: string;
-}
-
-export interface SimulTableChange {
-  gameId: string;
-  data: GameRow | null;
-}
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeGameService implements OnDestroy {
   private readonly supabase = inject(SupabaseClientService).client;
 
-  private gameChannel?: RealtimeChannel;
-  private simulChannel?: RealtimeChannel;
+  private channel?: RealtimeChannel;
+  private currentGameId?: string;
+  private loadedMoves = 0;
+  private defaultPageSize = 25;
 
   private gameSubject = new BehaviorSubject<GameRow | null>(null);
   private movesSubject = new BehaviorSubject<MoveRow[]>([]);
   private onlinePlayersSubject = new BehaviorSubject<PresenceUser[]>([]);
-  private simulTablesSubject = new BehaviorSubject<SimulTableChange[]>([]);
+  private loadingMovesSubject = new BehaviorSubject<boolean>(false);
+  private hasMoreMovesSubject = new BehaviorSubject<boolean>(true);
 
   readonly game$ = this.gameSubject.asObservable();
   readonly moves$ = this.movesSubject.asObservable();
   readonly onlinePlayers$ = this.onlinePlayersSubject.asObservable();
-  readonly simulTables$ = this.simulTablesSubject.asObservable();
+  readonly loadingMoves$ = this.loadingMovesSubject.asObservable();
+  readonly hasMoreMoves$ = this.hasMoreMovesSubject.asObservable();
 
-  subscribeToGame(gameId: string, presence: PresenceUser) {
+  subscribe(gameId: string, presence?: PresenceUser) {
     if (!gameId) return;
 
-    this.teardownGameChannel();
-    this.gameSubject.next(null);
-    this.movesSubject.next([]);
-    this.onlinePlayersSubject.next([]);
+    void this.teardown();
+    this.resetState();
+    this.currentGameId = gameId;
+
+    const presencePayload: PresenceUser = presence ?? {
+      user_id: `observer-${Date.now()}`,
+      username: 'Observateur'
+    };
 
     const channel = this.supabase.channel(`game:${gameId}`, {
       config: {
-        presence: { key: presence.user_id }
+        presence: { key: presencePayload.user_id }
       }
     });
 
@@ -74,8 +55,7 @@ export class RealtimeGameService implements OnDestroy {
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'moves', filter: `game_id=eq.${gameId}` },
       (payload: RealtimePostgresChangesPayload<MoveRow>) => {
-        const nextMoves = [...this.movesSubject.value, payload.new as MoveRow];
-        this.movesSubject.next(nextMoves);
+        this.mergeMoves([payload.new as MoveRow]);
       }
     );
 
@@ -85,57 +65,48 @@ export class RealtimeGameService implements OnDestroy {
 
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        channel.track(presence);
+        channel.track(presencePayload);
+        void this.loadNextMovesPage();
       }
     });
 
-    this.gameChannel = channel;
+    this.channel = channel;
   }
 
-  subscribeToSimul(simulId: string, presence?: PresenceUser) {
-    if (!simulId) return;
+  async loadNextMovesPage(pageSize = this.defaultPageSize) {
+    if (!this.currentGameId || this.loadingMovesSubject.value || !this.hasMoreMovesSubject.value) return;
 
-    this.teardownSimulChannel();
-    this.simulTablesSubject.next([]);
+    this.loadingMovesSubject.next(true);
+    const from = this.loadedMoves;
+    const to = from + pageSize - 1;
 
-    const channel = this.supabase.channel(`simul:${simulId}`, {
-      config: {
-        presence: { key: presence?.user_id ?? `observer-${Date.now()}` }
+    const { data, error } = await this.supabase
+      .from('moves')
+      .select('*')
+      .eq('game_id', this.currentGameId)
+      .order('ply', { ascending: true })
+      .range(from, to);
+
+    if (!error && data) {
+      this.mergeMoves(data as MoveRow[]);
+      if ((data as MoveRow[]).length < pageSize) {
+        this.hasMoreMovesSubject.next(false);
       }
-    });
+    } else if (error) {
+      console.error('Failed to load moves', error);
+      this.hasMoreMovesSubject.next(false);
+    }
 
-    channel.on(
-      'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'games', filter: `simul_id=eq.${simulId}` },
-      (payload: RealtimePostgresChangesPayload<GameRow>) => {
-        const newGame = this.coerceGameRow(payload.new);
-        const oldGame = this.coerceGameRow(payload.old as Partial<GameRow> | null | undefined);
-        const gameId = newGame?.id ?? oldGame?.id;
-        if (!gameId) return;
-        const next = this.simulTablesSubject.value.filter((g) => g.gameId !== gameId);
-        this.simulTablesSubject.next([...next, { gameId, data: newGame }]);
-      }
-    );
-
-    channel.on('presence', { event: 'sync' }, () => this.refreshPresence(channel));
-    channel.on('presence', { event: 'join' }, () => this.refreshPresence(channel));
-    channel.on('presence', { event: 'leave' }, () => this.refreshPresence(channel));
-
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED' && presence) {
-        channel.track(presence);
-      }
-    });
-
-    this.simulChannel = channel;
-  }
-
-  preloadMoves(moves: MoveRow[]) {
-    this.movesSubject.next(moves);
+    this.loadingMovesSubject.next(false);
   }
 
   preloadGame(game: GameRow | null) {
     this.gameSubject.next(game);
+  }
+
+  preloadMoves(moves: MoveRow[]) {
+    this.mergeMoves(moves);
+    this.hasMoreMovesSubject.next(false);
   }
 
   async submitMove(gameId: string, uci: string) {
@@ -158,23 +129,36 @@ export class RealtimeGameService implements OnDestroy {
     return data;
   }
 
-  async teardownGameChannel() {
-    if (this.gameChannel) {
-      await this.supabase.removeChannel(this.gameChannel);
-      this.gameChannel = undefined;
+  async teardown() {
+    if (this.channel) {
+      await this.supabase.removeChannel(this.channel);
+      this.channel = undefined;
     }
-  }
-
-  async teardownSimulChannel() {
-    if (this.simulChannel) {
-      await this.supabase.removeChannel(this.simulChannel);
-      this.simulChannel = undefined;
-    }
+    this.currentGameId = undefined;
+    this.resetState();
   }
 
   ngOnDestroy(): void {
-    this.teardownGameChannel();
-    this.teardownSimulChannel();
+    void this.teardown();
+  }
+
+  private mergeMoves(incoming: MoveRow[]) {
+    if (!incoming || incoming.length === 0) return;
+
+    const existingById = new Map<string, MoveRow>();
+    for (const move of this.movesSubject.value) {
+      existingById.set(move.id, move);
+    }
+
+    for (const move of incoming) {
+      if (move?.id) {
+        existingById.set(move.id, move);
+      }
+    }
+
+    const merged = Array.from(existingById.values()).sort((a, b) => (a.ply ?? 0) - (b.ply ?? 0));
+    this.movesSubject.next(merged);
+    this.loadedMoves = merged.length;
   }
 
   private refreshPresence(channel: RealtimeChannel) {
@@ -188,5 +172,14 @@ export class RealtimeGameService implements OnDestroy {
       return row as GameRow;
     }
     return null;
+  }
+
+  private resetState() {
+    this.gameSubject.next(null);
+    this.movesSubject.next([]);
+    this.onlinePlayersSubject.next([]);
+    this.loadingMovesSubject.next(false);
+    this.hasMoreMovesSubject.next(true);
+    this.loadedMoves = 0;
   }
 }

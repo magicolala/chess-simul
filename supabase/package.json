@@ -1,0 +1,10 @@
+{
+  "name": "@chess-simul/supabase",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "start": "supabase start",
+    "stop": "supabase stop",
+    "types": "supabase gen types typescript --linked --schema public > types/database.types.ts"
+  }
+}

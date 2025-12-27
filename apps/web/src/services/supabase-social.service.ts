@@ -52,4 +52,24 @@ export class SupabaseSocialService {
 
     return profile;
   }
+
+  async getUserIdByUsername(username: string): Promise<string | null> {
+    const { data, error } = await this.supabase.rpc('get_user_id_by_username', { p_username: username });
+
+    if (error) {
+      console.error('Error getting user ID by username:', error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async sendFriendRequest(friendId: string): Promise<void> {
+    const { error } = await this.supabase.rpc('send_friend_request', { friend_id: friendId });
+
+    if (error) {
+      console.error('Error sending friend request:', error);
+      throw error;
+    }
+  }
 }

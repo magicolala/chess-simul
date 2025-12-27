@@ -83,6 +83,7 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
   private realtimeSimul = inject(RealtimeSimulService);
   simulService = inject(SupabaseSimulService);
   private tablesSub?: Subscription;
+  private lastSimulId?: string;
 
   @Input({ required: true }) simulId!: string;
 
@@ -105,13 +106,21 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(): void {
-    if (this.simulId) {
-      this.simulService.fetchSimul(this.simulId).then(() => {
+    if (!this.simulId || this.simulId === this.lastSimulId) return;
+
+    this.lastSimulId = this.simulId;
+
+    this.simulService
+      .fetchSimul(this.simulId)
+      .then(() => {
         const tables = this.simulService.activeSimul()?.simul_tables ?? [];
         this.realtimeSimul.preloadTables(tables);
+      })
+      .catch((err) => {
+        this.simulService.error.set(this.simulService.friendlyError(err));
       });
-      this.subscribeRealtime();
-    }
+
+    this.subscribeRealtime();
   }
 
   ngOnDestroy(): void {

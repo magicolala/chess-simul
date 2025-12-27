@@ -25,16 +25,21 @@ export class RealtimeGameService implements OnDestroy {
   readonly loadingMoves$ = this.loadingMovesSubject.asObservable();
   readonly hasMoreMoves$ = this.hasMoreMovesSubject.asObservable();
 
-  subscribe(gameId: string, presence: PresenceUser) {
+  subscribe(gameId: string, presence?: PresenceUser) {
     if (!gameId) return;
 
     void this.teardown();
     this.resetState();
     this.currentGameId = gameId;
 
+    const presencePayload: PresenceUser = presence ?? {
+      user_id: `observer-${Date.now()}`,
+      username: 'Observateur'
+    };
+
     const channel = this.supabase.channel(`game:${gameId}`, {
       config: {
-        presence: { key: presence.user_id }
+        presence: { key: presencePayload.user_id }
       }
     });
 
@@ -60,7 +65,7 @@ export class RealtimeGameService implements OnDestroy {
 
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        channel.track(presence);
+        channel.track(presencePayload);
         void this.loadNextMovesPage();
       }
     });

@@ -1,14 +1,16 @@
-
 import '@angular/compiler';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './src/app.component';
-import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { AppShellComponent } from './src/app-shell.component';
+import { routes } from './src/app.routes';
 
-bootstrapApplication(AppComponent, {
+bootstrapApplication(AppShellComponent, {
   providers: [
     provideZonelessChangeDetection(),
-    provideHttpClient()
+    provideHttpClient(),
+    provideRouter(routes)
   ]
 }).catch((err) => console.error(err));
 

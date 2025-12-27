@@ -138,6 +138,26 @@ export class RealtimeGameService implements OnDestroy {
     this.gameSubject.next(game);
   }
 
+  async submitMove(gameId: string, uci: string) {
+    const { data, error } = await this.supabase.functions.invoke<{
+      success?: boolean;
+      fen?: string;
+      turn?: 'white' | 'black';
+      ply?: number;
+      san?: string;
+      error?: string;
+      message?: string;
+    }>('submit-move', {
+      body: { game_id: gameId, uci }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
   async teardownGameChannel() {
     if (this.gameChannel) {
       await this.supabase.removeChannel(this.gameChannel);

@@ -39,6 +39,12 @@ npm run typecheck
 Create a `.env.local` at the repo root for web-only secrets (e.g., `GEMINI_API_KEY`).
 When running Supabase locally, the CLI will generate `.env` files inside `supabase/`—do not commit them.
 
+For the Angular client, configure your Supabase public credentials in `apps/web/src/environments/`:
+- `environment.ts` (production defaults)
+- `environment.development.ts` (used by `ng serve`)
+
+Only ever expose the public `anon` key in these files. Never ship or commit the `service_role` key to the browser.
+
 ## Supabase quick start
 1. Install and authenticate the Supabase CLI: `supabase login`.
 2. Link to your project: `supabase link --project-ref <ref>`.

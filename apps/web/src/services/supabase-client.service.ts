@@ -14,6 +14,10 @@ export class SupabaseClientService {
   readonly user$: Observable<User | null> = this.userSubject.asObservable();
   readonly sessionReady$: Observable<boolean> = this.sessionReadySubject.asObservable();
 
+  get currentUser(): User | null {
+    return this.userSubject.value;
+  }
+
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
     this.initAuthListeners();

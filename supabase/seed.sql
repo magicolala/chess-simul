@@ -27,17 +27,17 @@ with host_user as (
   returning user_id
 ), simul_seed as (
   insert into public.simuls (host_id, name, status)
-  select id, 'Friday Simul', 'active' from host_user
+  select id, 'Friday Simul', 'running' from host_user
   on conflict do nothing
   returning id as simul_id
 ), game_seed as (
   insert into public.games (mode, simul_id, host_id, white_id, black_id, status, turn_color, fen, pgn, last_move_at)
-  select 'simul', simul_id, h.id, h.id, g1.id, 'active', 'black', 'rnbqkbnr/pppp1ppp/8/4p3/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1', '1. e3 e5', now()
+  select 'simul', simul_id, h.id, h.id, g1.id, 'playing', 'black', 'rnbqkbnr/pppp1ppp/8/4p3/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1', '1. e3 e5', now()
   from simul_seed s
   join host_user h on true
   join guest1 g1 on true
   union all
-  select 'simul', simul_id, h.id, h.id, g2.id, 'pending', 'white', 'startpos', null, null
+  select 'simul', simul_id, h.id, h.id, g2.id, 'waiting', 'white', 'startpos', null, null
   from simul_seed s
   join host_user h on true
   join guest2 g2 on true
@@ -45,10 +45,10 @@ with host_user as (
   returning id, simul_id
 ), table_seed as (
   insert into public.simul_tables (simul_id, guest_id, game_id, seat_no, status)
-  select g.simul_id, g1.id, g.id, 1, 'active' from game_seed g
+  select g.simul_id, g1.id, g.id, 1, 'playing' from game_seed g
   join guest1 g1 on true
   union all
-  select g.simul_id, g2.id, g.id, 2, 'open' from game_seed g
+  select g.simul_id, g2.id, g.id, 2, 'free' from game_seed g
   join guest2 g2 on true
   on conflict do nothing
   returning game_id

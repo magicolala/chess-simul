@@ -12,8 +12,8 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
         <div>
           <p class="text-xs uppercase font-semibold text-gray-500">Table #{{ simulService.activeTable()?.seat_no }}</p>
           <p class="font-bold">Statut : {{ simulService.tableStatus() }}</p>
-          <p class="text-sm text-gray-500" *ngIf="simulService.activeTable()?.guest_id">
-            Adversaire : {{ simulService.activeTable()?.guest_id }}
+          <p class="text-sm text-gray-500" *ngIf="simulService.activeTable()?.challenger_id">
+            Adversaire : {{ simulService.activeTable()?.challenger_id }}
           </p>
         </div>
         <button class="px-3 py-1 border rounded" (click)="refresh()">Actualiser</button>

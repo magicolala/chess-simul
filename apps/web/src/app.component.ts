@@ -201,7 +201,10 @@ export class AppComponent {
     try {
       // For now, we'll use a generic name. In a real app, you might have a form for this.
       const simulName = `Simul by ${this.auth.currentUser()?.email}`;
-      const newSimul = await this.simulService.createSimul(simulName, config.opponentCount);
+      const newSimul = await this.simulService.createSimul(simulName, config.opponentCount, {
+        initial: config.timeMinutes * 60,
+        increment: config.incrementSeconds,
+      });
       if (newSimul) {
         this.viewParam.set(newSimul.id);
         this.currentView.set('simul-lobby');
@@ -309,7 +312,10 @@ export class AppComponent {
       this.isBoardFlipped.update(v => !v);
   }
 
-  handleMpJoined() {
+  handleMpJoined(gameId?: string | null) {
+      if (gameId) {
+        this.viewParam.set(gameId);
+      }
       this.currentView.set('game-room');
   }
 

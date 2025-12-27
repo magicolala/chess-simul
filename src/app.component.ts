@@ -8,6 +8,7 @@ import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
 import { MultiplayerService } from './services/multiplayer.service';
 import { SimulService } from './services/simul.service';
+import { SocialService } from './services/social.service';
 
 import { ChessBoardComponent } from './components/chess-board.component';
 import { LoginComponent } from './components/login.component';
@@ -28,8 +29,10 @@ import { DashboardComponent } from './components/dashboard.component';
 import { MultiplayerLobbyComponent } from './components/multiplayer-lobby.component';
 import { GameRoomComponent } from './components/game-room.component';
 import { OnlineGameComponent } from './components/online-game.component';
+import { SocialHubComponent } from './components/social-hub.component';
+import { PublicProfileComponent } from './components/public-profile.component';
 
-type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'simul-list' | 'simul-lobby' | 'simul-player' | 'multiplayer-lobby' | 'game-room' | 'online-game';
+type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'simul-list' | 'simul-lobby' | 'simul-player' | 'multiplayer-lobby' | 'game-room' | 'online-game' | 'social-hub' | 'public-profile';
 
 @Component({
   selector: 'app-root',
@@ -55,7 +58,9 @@ type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-
     DashboardComponent,
     MultiplayerLobbyComponent,
     GameRoomComponent,
-    OnlineGameComponent
+    OnlineGameComponent,
+    SocialHubComponent,
+    PublicProfileComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -67,8 +72,10 @@ export class AppComponent {
   prefs = inject(PreferencesService);
   mpService = inject(MultiplayerService);
   simulService = inject(SimulService);
+  socialService = inject(SocialService);
 
   currentView = signal<ViewState>('landing');
+  viewParam = signal<string>(''); // For profile ID, room ID etc
   
   // UI State for Modals
   showNewGameModal = signal(false);
@@ -247,8 +254,9 @@ export class AppComponent {
       return `${Math.max(0, Math.min(100, pct))}%`;
   }
 
-  switchView(view: ViewState) {
+  switchView(view: ViewState, param: string = '') {
     this.currentView.set(view);
+    this.viewParam.set(param);
   }
 
   handleLogout() {

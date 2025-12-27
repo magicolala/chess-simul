@@ -4,6 +4,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { ChessSimulService } from '../services/chess-logic.service';
 import { HistoryService } from '../services/history.service';
 import { AuthService } from '../services/auth.service';
+import { SocialService } from '../services/social.service';
 import { ChessBoardComponent } from './chess-board.component';
 
 @Component({
@@ -107,39 +108,34 @@ import { ChessBoardComponent } from './chess-board.component';
                      </div>
                 </div>
 
-                <!-- Friends Online -->
+                <!-- Friends Online (Powered by SocialService) -->
                 <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-4">
                     <h3 class="text-xs font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-widest mb-4 flex justify-between items-center">
-                        Amis en ligne <span class="bg-green-500 text-white text-[10px] px-1.5 rounded-full">3</span>
+                        Amis en ligne <span class="bg-green-500 text-white text-[10px] px-1.5 rounded-full">{{ onlineFriends().length }}</span>
                     </h3>
                     <div class="space-y-3">
-                        <div class="flex items-center space-x-3 group cursor-pointer">
-                            <div class="relative">
-                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Alice" class="w-8 h-8 border border-[#1D1C1C] dark:border-white bg-gray-100 rounded-full">
-                                <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full"></div>
+                        @for (friend of onlineFriends(); track friend.id) {
+                            <div class="flex items-center space-x-3 group cursor-pointer" (click)="goToSocial.emit()">
+                                <div class="relative">
+                                    <img [src]="friend.avatar" class="w-8 h-8 border border-[#1D1C1C] dark:border-white bg-gray-100 rounded-full">
+                                    <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full"></div>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-xs font-bold text-[#1D1C1C] dark:text-white group-hover:underline">{{ friend.name }}</p>
+                                    <p class="text-[10px] text-gray-400">{{ friend.status === 'ingame' ? 'En partie' : 'Disponible' }}</p>
+                                </div>
+                                <button class="text-[10px] border border-[#1D1C1C] dark:border-white px-2 py-0.5 hover:bg-[#1D1C1C] hover:text-white dark:hover:bg-white dark:hover:text-black uppercase font-bold transition-colors">
+                                    ⚔️
+                                </button>
                             </div>
-                            <div class="flex-1">
-                                <p class="text-xs font-bold text-[#1D1C1C] dark:text-white group-hover:underline">Alice_Gambit</p>
-                                <p class="text-[10px] text-gray-400">En partie • Blitz</p>
-                            </div>
-                            <button class="text-[10px] border border-[#1D1C1C] dark:border-white px-2 py-0.5 hover:bg-[#1D1C1C] hover:text-white dark:hover:bg-white dark:hover:text-black uppercase font-bold transition-colors">
-                                ⚔️
-                            </button>
-                        </div>
-                        <div class="flex items-center space-x-3 group cursor-pointer">
-                            <div class="relative">
-                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Bob" class="w-8 h-8 border border-[#1D1C1C] dark:border-white bg-gray-100 rounded-full">
-                                <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full"></div>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-xs font-bold text-[#1D1C1C] dark:text-white group-hover:underline">BobbyFisherPrice</p>
-                                <p class="text-[10px] text-gray-400">Disponible</p>
-                            </div>
-                             <button class="text-[10px] border border-[#1D1C1C] dark:border-white px-2 py-0.5 hover:bg-[#1D1C1C] hover:text-white dark:hover:bg-white dark:hover:text-black uppercase font-bold transition-colors">
-                                ⚔️
-                            </button>
-                        </div>
+                        }
+                        @if (onlineFriends().length === 0) {
+                            <p class="text-xs text-gray-400 italic">Aucun ami en ligne.</p>
+                        }
                     </div>
+                    <button (click)="goToSocial.emit()" class="w-full mt-4 text-[10px] font-bold uppercase bg-gray-100 dark:bg-gray-800 py-2 hover:bg-[#1D1C1C] hover:text-white transition-colors">
+                        Voir tout le monde
+                    </button>
                 </div>
             </div>
         </div>
@@ -203,11 +199,13 @@ export class DashboardComponent {
     auth = inject(AuthService);
     simulService = inject(ChessSimulService);
     historyService = inject(HistoryService);
+    socialService = inject(SocialService);
 
     startQuickGame = output<{ time: number, inc: number }>();
     resumeGame = output<number>();
     goToSimul = output<void>();
     goToHistory = output<void>();
+    goToSocial = output<void>();
 
     // Computed
     activeGames = computed(() => 
@@ -216,6 +214,10 @@ export class DashboardComponent {
 
     recentHistory = computed(() => 
         this.historyService.history().slice(0, 5)
+    );
+
+    onlineFriends = computed(() => 
+        this.socialService.friends().filter(f => f.status !== 'offline').slice(0, 3)
     );
 
     triggerQuickGame(time: number, inc: number) {

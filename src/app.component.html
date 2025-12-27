@@ -80,6 +80,21 @@
               <span class="mr-3 text-lg">🤝</span> Jouer un ami
             </button>
 
+            <!-- Social / Communauté -->
+            <button (click)="switchView('social-hub')" 
+              class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
+              [class.bg-[#FFF48D]]="currentView() === 'social-hub' || currentView() === 'public-profile'"
+              [class.border-[#1D1C1C]]="currentView() === 'social-hub' || currentView() === 'public-profile'"
+              [class.wero-shadow-sm]="currentView() === 'social-hub' || currentView() === 'public-profile'"
+              [class.text-[#1D1C1C]]="true"
+              [class.border-transparent]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
+              [class.text-gray-600]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
+              [class.dark:text-gray-300]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
+              [class.hover:bg-gray-100]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
+              [class.dark:hover:bg-gray-800]="!(currentView() === 'social-hub' || currentView() === 'public-profile')">
+              <span class="mr-3 text-lg">💬</span> Communauté
+            </button>
+
             <button (click)="switchView('history')" 
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
               [class.bg-[#FFF48D]]="currentView() === 'history'"
@@ -127,7 +142,7 @@
 
          <!-- Right Actions -->
          <div class="flex items-center space-x-6">
-            <div class="flex items-center pl-6 border-l-2 border-gray-100 dark:border-gray-800 cursor-pointer hover:opacity-80">
+            <div class="flex items-center pl-6 border-l-2 border-gray-100 dark:border-gray-800 cursor-pointer hover:opacity-80" (click)="switchView('public-profile', auth.currentUser()!.id)">
                <div class="text-right mr-3 hidden md:block">
                   <p class="text-sm font-black font-display text-[#1D1C1C] dark:text-white leading-none">{{ auth.currentUser()?.name }}</p>
                   <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-1">ELO: {{ currentElo() }}</p>
@@ -145,7 +160,8 @@
                 (startQuickGame)="handleQuickPlay($event)"
                 (resumeGame)="enterFocusMode($event)"
                 (goToSimul)="switchView('simul-list')"
-                (goToHistory)="switchView('history')">
+                (goToHistory)="switchView('history')"
+                (goToSocial)="switchView('social-hub')">
             </app-dashboard>
         } 
         
@@ -175,6 +191,14 @@
         }
         @else if (currentView() === 'simul-player') {
              <app-simul-player (quit)="leaveSimulLobby()"></app-simul-player>
+        }
+
+        <!-- SOCIAL VIEWS -->
+        @else if (currentView() === 'social-hub') {
+            <app-social-hub (goToProfile)="switchView('public-profile', $event)" (goToGame)="switchView('friend-lobby')"></app-social-hub>
+        }
+        @else if (currentView() === 'public-profile') {
+            <app-public-profile [userId]="viewParam()"></app-public-profile>
         }
 
         <!-- GAME MODE (Grid of playable games - PvP) -->

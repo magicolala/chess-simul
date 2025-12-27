@@ -191,7 +191,7 @@ export class RealtimeSandboxComponent implements OnDestroy {
     try {
       this.submitting = true;
       const result = await this.realtime.submitMove(trimmedGame, trimmedUci);
-      this.moveResponse = result?.data ?? result;
+      this.moveResponse = result;
       this.uciMove = '';
     } catch (err) {
       this.submitError = (err as { message?: string })?.message ?? "Impossible d'envoyer le coup";

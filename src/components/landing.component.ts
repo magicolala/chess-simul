@@ -33,14 +33,14 @@ import { CommonModule } from '@angular/common';
 
          <div class="max-w-4xl relative z-10 animate-in fade-in zoom-in duration-700 bg-white/80 p-8 border-2 border-[#1D1C1C] wero-shadow backdrop-blur-sm">
             <span class="inline-block py-1 px-3 bg-[#E0F7FA] text-[#006064] border border-[#006064] text-xs font-black font-display uppercase tracking-widest rounded-full mb-6">
-               Propulsé par Google Gemini
+               Multijoueur Premium
             </span>
             <h1 class="text-6xl md:text-8xl font-black font-display tracking-tighter mb-6 leading-[0.9]">
                L'ÉCHECS <br>
-               <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#1D1C1C] to-gray-500">RÉINVENTÉ.</span>
+               <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#1D1C1C] to-gray-500">ENTRE AMIS.</span>
             </h1>
             <p class="text-xl md:text-2xl text-gray-600 font-medium max-w-2xl mx-auto mb-10 leading-relaxed font-sans">
-               Défiez plusieurs personnalités d'IA simultanément. Améliorez votre jeu avec une expérience visuelle unique.
+               Défiez vos amis en local ou préparez-vous pour le mode en ligne. Une expérience visuelle épurée et intense.
             </p>
             
             <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
@@ -61,10 +61,10 @@ import { CommonModule } from '@angular/common';
             <!-- Card 1 -->
             <div class="bg-white p-8 border-2 border-[#1D1C1C] wero-shadow hover:wero-shadow-hover transition-all">
                <div class="w-16 h-16 bg-[#FFF48D] border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mb-6 rounded-full">
-                  🤖
+                  🤝
                </div>
-               <h3 class="text-2xl font-black font-display uppercase mb-3">Adversaires Gemini</h3>
-               <p class="text-gray-600 font-medium font-sans">Jouez contre des IA aux personnalités distinctes : du débutant maladroit au Grand Maître impitoyable.</p>
+               <h3 class="text-2xl font-black font-display uppercase mb-3">Pass & Play</h3>
+               <p class="text-gray-600 font-medium font-sans">Jouez contre un ami sur le même appareil avec une interface fluide et réactive.</p>
             </div>
 
             <!-- Card 2 -->
@@ -72,8 +72,8 @@ import { CommonModule } from '@angular/common';
                <div class="w-16 h-16 bg-[#7AF7F7] border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mb-6 rounded-full">
                   ⚡
                </div>
-               <h3 class="text-2xl font-black font-display uppercase mb-3">Mode Simultanée</h3>
-               <p class="text-gray-600 font-medium font-sans">Testez vos limites mentales en affrontant jusqu'à 8 adversaires en même temps sur un seul écran.</p>
+               <h3 class="text-2xl font-black font-display uppercase mb-3">Rapidité</h3>
+               <p class="text-gray-600 font-medium font-sans">Optimisé pour la performance. Pas de latence, juste du pur jeu d'échecs.</p>
             </div>
 
             <!-- Card 3 -->
@@ -81,8 +81,8 @@ import { CommonModule } from '@angular/common';
                <div class="w-16 h-16 bg-[#1D1C1C] text-white border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mb-6 rounded-full">
                   📈
                </div>
-               <h3 class="text-2xl font-black font-display uppercase mb-3">Progression</h3>
-               <p class="text-gray-600 font-medium font-sans">Suivez votre historique, analysez vos parties et regardez votre classement grimper.</p>
+               <h3 class="text-2xl font-black font-display uppercase mb-3">Analyses</h3>
+               <p class="text-gray-600 font-medium font-sans">Exportez vos parties en PGN ou analysez directement sur Lichess.</p>
             </div>
 
          </div>

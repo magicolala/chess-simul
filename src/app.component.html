@@ -46,23 +46,9 @@
               [class.dark:text-gray-300]="!(currentView() === 'game' || currentView() === 'focus')"
               [class.hover:bg-gray-100]="!(currentView() === 'game' || currentView() === 'focus')"
               [class.dark:hover:bg-gray-800]="!(currentView() === 'game' || currentView() === 'focus')">
-              <span class="mr-3 text-lg">⚔️</span> Parties en cours <span class="ml-auto bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] text-[10px] px-1.5 py-0.5 rounded-sm">{{ activeGamesCount() }}</span>
+              <span class="mr-3 text-lg">⚔️</span> Partie Rapide <span class="ml-auto bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] text-[10px] px-1.5 py-0.5 rounded-sm">{{ activeGamesCount() }}</span>
             </button>
             
-            <button (click)="switchView('friend-lobby')" 
-              class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
-              [class.bg-[#FFF48D]]="currentView() === 'friend-lobby'"
-              [class.border-[#1D1C1C]]="currentView() === 'friend-lobby'"
-              [class.wero-shadow-sm]="currentView() === 'friend-lobby'"
-              [class.text-[#1D1C1C]]="true"
-              [class.border-transparent]="currentView() !== 'friend-lobby'"
-              [class.text-gray-600]="currentView() !== 'friend-lobby'"
-              [class.dark:text-gray-300]="currentView() !== 'friend-lobby'"
-              [class.hover:bg-gray-100]="currentView() !== 'friend-lobby'"
-              [class.dark:hover:bg-gray-800]="currentView() !== 'friend-lobby'">
-              <span class="mr-3 text-lg">🤝</span> Jouer un ami
-            </button>
-
             <button (click)="switchView('history')" 
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
               [class.bg-[#FFF48D]]="currentView() === 'history'"
@@ -110,11 +96,6 @@
 
          <!-- Right Actions -->
          <div class="flex items-center space-x-6">
-            <button class="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 border-2 border-transparent hover:border-[#1D1C1C] dark:hover:border-white transition-all rounded-[2px]">
-               🔔
-               <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
-            
             <div class="flex items-center pl-6 border-l-2 border-gray-100 dark:border-gray-800 cursor-pointer hover:opacity-80">
                <div class="text-right mr-3 hidden md:block">
                   <p class="text-sm font-black font-display text-[#1D1C1C] dark:text-white leading-none">{{ auth.currentUser()?.name }}</p>
@@ -134,10 +115,10 @@
             <div class="flex items-center justify-between">
                <div>
                  <h2 class="text-4xl font-black font-display text-[#1D1C1C] dark:text-white tracking-tight mb-1">Tableau de bord</h2>
-                 <p class="text-gray-500 dark:text-gray-400 font-medium">Gérez vos parties en cours et suivez vos performances.</p>
+                 <p class="text-gray-500 dark:text-gray-400 font-medium">Gérez vos parties locales et suivez vos performances.</p>
                </div>
                <button (click)="openNewGameModal()" class="px-6 py-3 bg-[#1D1C1C] dark:bg-white text-white dark:text-black font-bold font-display border-2 border-[#1D1C1C] dark:border-white hover:bg-[#FFF48D] hover:text-[#1D1C1C] transition-all wero-shadow-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none uppercase tracking-wide flex items-center">
-                  <span class="mr-2 text-xl">+</span> Nouvelle Session
+                  <span class="mr-2 text-xl">+</span> Nouvelle Partie
                </button>
             </div>
              
@@ -177,7 +158,7 @@
                            <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-4 flex flex-col">
                               <div class="flex justify-between items-center mb-4">
                                  <div class="px-2 py-1 bg-[#E0F7FA] text-[#006064] text-[10px] font-black font-display uppercase border border-[#006064] rounded-[2px]">
-                                    {{ game.mode === 'friend' ? 'Amical' : 'Simultanée' }}
+                                    {{ game.mode === 'local' ? 'Local' : 'Online' }}
                                  </div>
                                  <span class="text-xs font-bold font-display text-gray-500">
                                     {{ game.turn === 'w' ? 'Tour Blancs' : 'Tour Noirs' }}
@@ -198,9 +179,6 @@
                                     <img [src]="game.opponentAvatar" class="w-8 h-8 border border-[#1D1C1C] bg-white rounded-[2px]">
                                     <div>
                                        <div class="text-sm font-black font-display text-[#1D1C1C] dark:text-white leading-none">{{ game.opponentName }}</div>
-                                       @if (game.mode === 'simul') {
-                                           <div class="text-[10px] text-gray-500 font-bold">ELO: {{ game.opponentRating }}</div>
-                                       }
                                     </div>
                                  </div>
                                  <button (click)="enterFocusMode(game.id)" class="px-4 py-2 bg-[#7AF7F7] hover:bg-[#FFF48D] border-2 border-[#1D1C1C] text-[#1D1C1C] text-xs font-black font-display uppercase transition-colors rounded-[2px]">
@@ -213,7 +191,7 @@
                   </div>
                } @else {
                   <div class="p-12 border-2 border-dashed border-gray-300 dark:border-gray-700 text-center rounded-[2px] bg-white dark:bg-[#1a1a1a]">
-                     <p class="text-gray-400 font-bold">Aucune partie active. Lancez une nouvelle session !</p>
+                     <p class="text-gray-400 font-bold">Aucune partie active. Lancez une nouvelle partie !</p>
                   </div>
                }
             </div>
@@ -225,7 +203,7 @@
         @else if (currentView() === 'game') {
             <div class="max-w-[1920px] mx-auto h-full flex flex-col">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase">Arène ({{ activeGamesCount() }})</h2>
+                    <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase">Table de jeu ({{ activeGamesCount() }})</h2>
                     <button (click)="openNewGameModal()" class="px-4 py-2 bg-[#FFF48D] text-[#1D1C1C] font-black font-display border-2 border-[#1D1C1C] dark:border-white uppercase text-xs hover:bg-[#7AF7F7]">
                         + Partie
                     </button>
@@ -257,27 +235,62 @@
                                 <div class="p-2 bg-gray-100 dark:bg-gray-900 flex justify-center relative">
                                      <div class="w-full aspect-square">
                                         <app-chess-board 
-                                            [fen]="game.fen" 
-                                            [lastMove]="game.lastMove" 
-                                            [isInteractive]="game.status === 'active'"
-                                            [allowedColor]="game.mode === 'friend' ? 'both' : 'w'"
+                                            [fen]="getDisplayFen(game)" 
+                                            [lastMove]="getDisplayLastMove(game)" 
+                                            [isInteractive]="game.status === 'active' && isAtLatest(game)"
+                                            [allowedColor]="'both'"
                                             (move)="onMove(game.id, $event)">
                                         </app-chess-board>
                                      </div>
                                 </div>
                                 
-                                <div class="p-2 text-center text-xs font-bold bg-white dark:bg-[#1a1a1a] dark:text-gray-300 border-t-2 border-[#1D1C1C] dark:border-white flex items-center justify-between">
-                                     <p class="italic text-gray-500 dark:text-gray-400 truncate flex-1 text-left mr-2"
-                                        [class.text-red-600]="game.hasError"
-                                        [class.dark:text-red-400]="game.hasError">
-                                       "{{ game.aiMessage }}"
-                                     </p>
-                                     
-                                     <button (click)="enterFocusMode(game.id)" 
-                                             class="p-1.5 hover:bg-[#FFF48D] border border-transparent hover:border-[#1D1C1C] rounded-[2px] transition-all text-[#1D1C1C] dark:text-white dark:hover:text-black"
-                                             title="Plein écran">
-                                        <span class="text-lg leading-none">⛶</span>
-                                     </button>
+                                <!-- History Controls & Move List -->
+                                <div class="bg-gray-50 dark:bg-[#121212] border-t-2 border-[#1D1C1C] dark:border-white h-24 flex flex-col">
+                                    <!-- Move list (Scrollable) -->
+                                    <div class="flex-1 overflow-x-auto whitespace-nowrap p-2 scrollbar-thin flex items-center space-x-1 text-xs font-mono font-bold text-gray-600 dark:text-gray-400">
+                                        @if (game.history.length === 0) {
+                                            <span class="text-gray-400 italic">Début de partie...</span>
+                                        }
+                                        @for (move of game.history; track $index) {
+                                            @if ($index % 2 === 0) {
+                                                <span class="text-gray-400 ml-1">{{ ($index / 2) + 1 }}.</span>
+                                            }
+                                            <span class="px-1 py-0.5 rounded-[2px] cursor-pointer hover:bg-[#FFF48D] hover:text-black transition-colors"
+                                                  [class.bg-[#1D1C1C]]="game.viewIndex === $index + 1"
+                                                  [class.text-white]="game.viewIndex === $index + 1"
+                                                  (click)="simulService.navigateHistory(game.id, 'start'); simulService.navigateHistory(game.id, 'next');"> 
+                                                {{ move }}
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <!-- Control Buttons -->
+                                    <div class="flex border-t border-gray-200 dark:border-gray-700 divide-x divide-gray-200 dark:divide-gray-700 h-8">
+                                        <button (click)="navigateGame(game.id, 'start')" class="flex-1 hover:bg-[#FFF48D] hover:text-black text-gray-500 dark:text-gray-400 text-xs font-bold transition-colors" title="Début">
+                                            |&lt;
+                                        </button>
+                                        <button (click)="navigateGame(game.id, 'prev')" class="flex-1 hover:bg-[#FFF48D] hover:text-black text-gray-500 dark:text-gray-400 text-xs font-bold transition-colors" title="Précédent">
+                                            &lt;
+                                        </button>
+                                        <button (click)="navigateGame(game.id, 'next')" class="flex-1 hover:bg-[#FFF48D] hover:text-black text-gray-500 dark:text-gray-400 text-xs font-bold transition-colors" title="Suivant">
+                                            &gt;
+                                        </button>
+                                        <button (click)="navigateGame(game.id, 'end')" 
+                                                class="flex-1 hover:bg-[#FFF48D] hover:text-black text-xs font-bold transition-colors"
+                                                [class.bg-[#7AF7F7]]="isAtLatest(game)"
+                                                [class.text-[#1D1C1C]]="isAtLatest(game)"
+                                                [class.text-gray-500]="!isAtLatest(game)"
+                                                title="Dernier coup">
+                                            &gt;|
+                                        </button>
+                                        <button (click)="enterFocusMode(game.id)" class="px-3 bg-[#1D1C1C] text-white hover:bg-gray-800 text-xs font-bold uppercase" title="Plein écran">
+                                            ⛶
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="p-1.5 text-center text-[10px] font-bold bg-white dark:bg-[#1a1a1a] dark:text-gray-300 border-t border-gray-200 dark:border-gray-700 truncate">
+                                     <span class="italic text-gray-500 dark:text-gray-400">"{{ game.systemMessage }}"</span>
                                 </div>
                             </div>
                         }
@@ -295,7 +308,7 @@
         @else if (currentView() === 'focus' && focusedGame()) {
             <div class="h-full flex flex-col max-w-6xl mx-auto">
                 <button (click)="exitFocusMode()" class="self-start mb-4 text-sm font-bold font-display text-gray-500 hover:text-[#1D1C1C] dark:hover:text-white flex items-center">
-                    ← {{ focusedGame()!.mode === 'friend' ? 'Retour au Salon' : 'Retour à l\'Arène' }}
+                    ← {{ 'Retour' }}
                 </button>
 
                 <div class="flex-1 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col md:flex-row overflow-hidden">
@@ -305,9 +318,6 @@
                         <div class="p-6 border-b-2 border-[#1D1C1C] dark:border-white text-center">
                             <img [src]="focusedGame()!.opponentAvatar" class="w-20 h-20 mx-auto border-2 border-[#1D1C1C] bg-white mb-3">
                             <h2 class="text-2xl font-black font-display text-[#1D1C1C] dark:text-white uppercase">{{ focusedGame()!.opponentName }}</h2>
-                            @if (focusedGame()!.mode === 'simul') {
-                                <p class="text-sm font-bold text-gray-500">{{ focusedGame()!.opponentRating }} ELO</p>
-                            }
                             
                             <div class="mt-4 bg-[#1D1C1C] text-white dark:bg-white dark:text-black py-2 font-mono text-2xl font-bold font-display rounded-[2px] relative overflow-hidden"
                                  [class.bg-red-600]="isLowTime(focusedGame()!.blackTime)"
@@ -327,26 +337,44 @@
 
                         <!-- Chat / Moves -->
                         <div class="flex-1 p-4 overflow-y-auto">
-                            <div class="bg-white dark:bg-gray-800 border-2 border-[#1D1C1C] dark:border-gray-600 p-3 rounded-[2px] mb-4"
-                                 [class.border-red-500]="focusedGame()!.hasError">
+                            <div class="bg-white dark:bg-gray-800 border-2 border-[#1D1C1C] dark:border-gray-600 p-3 rounded-[2px] mb-4">
                                 <p class="text-xs font-bold font-display text-gray-400 uppercase mb-1">
-                                    {{ focusedGame()!.mode === 'friend' ? 'Info Partie' : 'IA Chat' }}
+                                    Info Partie
                                 </p>
-                                <p class="italic text-sm text-[#1D1C1C] dark:text-gray-200" 
-                                   [class.text-red-600]="focusedGame()!.hasError"
-                                   [class.dark:text-red-400]="focusedGame()!.hasError">
-                                    "{{ focusedGame()!.aiMessage }}"
+                                <p class="italic text-sm text-[#1D1C1C] dark:text-gray-200">
+                                    "{{ focusedGame()!.systemMessage }}"
                                 </p>
+                            </div>
+
+                            <!-- History Controls (Focus Mode) -->
+                             <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-2 mb-4">
+                                <div class="flex justify-between space-x-2 mb-2">
+                                     <button (click)="navigateGame(focusedGame()!.id, 'start')" class="flex-1 bg-gray-100 hover:bg-[#FFF48D] py-1 text-xs font-black border border-gray-300 rounded-[2px]">&lt;&lt;</button>
+                                     <button (click)="navigateGame(focusedGame()!.id, 'prev')" class="flex-1 bg-gray-100 hover:bg-[#FFF48D] py-1 text-xs font-black border border-gray-300 rounded-[2px]">&lt;</button>
+                                     <button (click)="navigateGame(focusedGame()!.id, 'next')" class="flex-1 bg-gray-100 hover:bg-[#FFF48D] py-1 text-xs font-black border border-gray-300 rounded-[2px]">&gt;</button>
+                                     <button (click)="navigateGame(focusedGame()!.id, 'end')" class="flex-1 bg-gray-100 hover:bg-[#FFF48D] py-1 text-xs font-black border border-gray-300 rounded-[2px]">&gt;&gt;</button>
+                                </div>
+                                <div class="h-32 overflow-y-auto font-mono text-xs p-2 bg-gray-50 border border-gray-200">
+                                     @for (move of focusedGame()!.history; track $index) {
+                                         @if ($index % 2 === 0) {
+                                             <div class="flex">
+                                                 <span class="w-6 text-gray-400">{{ ($index / 2) + 1 }}.</span>
+                                                 <span class="w-12 font-bold cursor-pointer hover:bg-[#7AF7F7]" [class.bg-[#FFF48D]]="focusedGame()!.viewIndex === $index + 1">{{ move }}</span>
+                                                 @if ($index + 1 < focusedGame()!.history.length) {
+                                                     <span class="w-12 font-bold cursor-pointer hover:bg-[#7AF7F7]" [class.bg-[#FFF48D]]="focusedGame()!.viewIndex === $index + 2">{{ focusedGame()!.history[$index + 1] }}</span>
+                                                 }
+                                             </div>
+                                         }
+                                     }
+                                </div>
                             </div>
                             
                             <!-- Friend Mode Actions -->
-                            @if (focusedGame()!.mode === 'friend') {
-                                <div class="mt-4 space-y-2">
-                                     <button (click)="toggleBoardFlip()" class="w-full py-2 bg-gray-200 dark:bg-gray-700 text-[#1D1C1C] dark:text-white text-xs font-bold font-display uppercase border-2 border-transparent hover:border-[#1D1C1C] dark:hover:border-white">
-                                         🔄 Retourner l'échiquier
-                                     </button>
-                                </div>
-                            }
+                            <div class="mt-4 space-y-2">
+                                 <button (click)="toggleBoardFlip()" class="w-full py-2 bg-gray-200 dark:bg-gray-700 text-[#1D1C1C] dark:text-white text-xs font-bold font-display uppercase border-2 border-transparent hover:border-[#1D1C1C] dark:hover:border-white">
+                                     🔄 Retourner l'échiquier
+                                 </button>
+                            </div>
                         </div>
 
                         <!-- Player -->
@@ -377,10 +405,10 @@
                     <div class="flex-1 bg-[#e0e0e0] dark:bg-[#000] flex items-center justify-center p-4 md:p-10">
                         <div class="w-full max-w-[80vh] aspect-square wero-shadow">
                             <app-chess-board 
-                                [fen]="focusedGame()!.fen" 
-                                [lastMove]="focusedGame()!.lastMove"
-                                [isInteractive]="focusedGame()!.status === 'active'"
-                                [allowedColor]="focusedGame()!.mode === 'friend' ? 'both' : 'w'"
+                                [fen]="getDisplayFen(focusedGame()!)" 
+                                [lastMove]="getDisplayLastMove(focusedGame()!)"
+                                [isInteractive]="focusedGame()!.status === 'active' && isAtLatest(focusedGame()!)"
+                                [allowedColor]="'both'"
                                 [orientation]="isBoardFlipped() ? 'b' : 'w'"
                                 (move)="onMove(focusedGame()!.id, $event)"
                             ></app-chess-board>
@@ -405,7 +433,7 @@
             <div class="bg-white dark:bg-[#1a1a1a] w-full max-w-lg border-2 border-[#1D1C1C] dark:border-white wero-shadow relative z-10 p-8 animate-in fade-in zoom-in duration-200">
                 <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase mb-6 flex items-center">
                     <span class="bg-[#FFF48D] text-black w-8 h-8 flex items-center justify-center border-2 border-black mr-3 text-lg">+</span>
-                    Nouvelle Session
+                    Nouvelle Partie (Local)
                 </h2>
                 
                 <div class="space-y-6">
@@ -418,17 +446,10 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Nombre d'adversaires: {{ newGameConfig().opponentCount }}</label>
-                        <input type="range" min="1" max="8" [ngModel]="newGameConfig().opponentCount" (ngModelChange)="updateOpponentCount($event)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1D1C1C]">
-                        <div class="flex justify-between text-xs font-bold font-display mt-1">
-                            <span>1</span>
-                            <span>8</span>
-                        </div>
-                    </div>
-
+                    <!-- Opponent count removed for now as we focus on 1v1 PvP, but config kept for consistency -->
+                    
                     <button (click)="startNewSession()" class="w-full py-4 bg-[#7AF7F7] hover:bg-[#FFF48D] border-2 border-[#1D1C1C] dark:border-white text-[#1D1C1C] font-black font-display text-xl uppercase transition-colors wero-shadow-sm active:translate-y-[2px] active:shadow-none">
-                        Lancer le défi
+                        Jouer (Pass & Play)
                     </button>
                 </div>
             </div>
@@ -463,7 +484,7 @@
                 </h2>
                 
                 <p class="text-gray-600 dark:text-gray-300 font-medium italic mb-8">
-                    "{{ showGameOverModal()?.aiMessage }}"
+                    "{{ showGameOverModal()?.systemMessage }}"
                 </p>
                 
                 <div class="space-y-3">

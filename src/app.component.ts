@@ -57,8 +57,8 @@ export class AppComponent {
   newGameConfig = signal<GameConfig>({
       timeMinutes: 10,
       incrementSeconds: 0,
-      opponentCount: 4,
-      difficulty: 'mixed'
+      opponentCount: 1, // Default to 1 for PvP
+      difficulty: 'pvp'
   });
 
   games = this.simulService.games;
@@ -102,6 +102,32 @@ export class AppComponent {
     }
   }
 
+  // --- Display Helpers for History Navigation ---
+
+  getDisplayFen(game: GameState): string {
+    if (game.viewIndex === -1) {
+        return game.fen;
+    }
+    return game.fenHistory[game.viewIndex] || game.fen;
+  }
+
+  getDisplayLastMove(game: GameState): { from: string, to: string } | null {
+      if (game.viewIndex === -1) {
+          return game.lastMove;
+      }
+      return null;
+  }
+
+  navigateGame(gameId: number, direction: 'start' | 'prev' | 'next' | 'end') {
+      this.simulService.navigateHistory(gameId, direction);
+  }
+
+  isAtLatest(game: GameState): boolean {
+      return game.viewIndex === -1;
+  }
+
+  // ----------------------------------------------
+
   openNewGameModal() {
     this.showNewGameModal.set(true);
   }
@@ -115,15 +141,22 @@ export class AppComponent {
   }
 
   startNewSession() {
-    this.simulService.startSimul(this.newGameConfig());
+    this.simulService.startPvpSession(this.newGameConfig());
     this.showNewGameModal.set(false);
     this.currentView.set('game'); // Go directly to game view
   }
 
   startFriendGame(config: { time: number, inc: number, color: 'w' | 'b' | 'random' }) {
-      const id = this.simulService.startFriendGame(config.time, config.inc, config.color);
-      this.enterFocusMode(id);
-      this.isBoardFlipped.set(config.color === 'b'); // Auto flip if starting black
+      // Use the standard session starter for consistency in this PvP version
+      this.newGameConfig.set({
+          timeMinutes: config.time,
+          incrementSeconds: config.inc,
+          opponentCount: 1,
+          difficulty: 'pvp'
+      });
+      this.simulService.startPvpSession(this.newGameConfig());
+      this.enterFocusMode(0); // Assuming ID 0 for single game
+      this.isBoardFlipped.set(config.color === 'b'); 
   }
 
   enterFocusMode(gameId: number) {
@@ -134,8 +167,8 @@ export class AppComponent {
   exitFocusMode() {
       // If we are in friend mode, exiting focus might mean ending session or going back to lobby
       const game = this.focusedGame();
-      if (game?.mode === 'friend') {
-          this.currentView.set('friend-lobby');
+      if (game?.mode === 'local' || game?.mode === 'online') {
+          this.currentView.set('game'); // Back to table view
       } else {
           this.currentView.set('game');
       }

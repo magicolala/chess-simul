@@ -56,3 +56,15 @@ Only ever expose the public `anon` key in these files. Never ship or commit the 
 - Model chess simul entities (players, sessions, games) and add first migration in `supabase/migrations`.
 - Generate typed client artifacts into `supabase/types` and expose them via `@chess-simul/shared`.
 - Add Supabase auth and RPC calls to the Angular app once schemas are stable.
+
+## Supabase Realtime quick usage
+- `RealtimeGameService` (Angular) listens to Postgres changes on `games` (UPDATE) and `moves` (INSERT) while tracking presence on `game:{gameId}`.
+- Simul lobbies reuse the same service on `simul:{simulId}` to stream board updates for all hosted tables.
+- Presence payloads are limited to `{ user_id, username }` and exposed via `onlinePlayers$`.
+- Verify RLS policies by subscribing with a user that does **not** pass your row filters: the channel should not emit rows for games the session cannot `select`.
+
+### Performance notes
+- Filter early: listen only to `UPDATE`/`INSERT` events and apply `filter` parameters such as `id=eq.{gameId}` or `simul_id=eq.{simulId}`.
+- Keep payloads lean: restrict columns in your `select` queries that seed the client and avoid heavy computed fields in realtime payloads.
+- Paginate historical moves instead of streaming the full table—use `preloadMoves()` with the latest page and let Realtime append.
+- Prefer differential updates (incremental `updated_at`, `fen` slices) over full board snapshots to minimize websocket bandwidth.

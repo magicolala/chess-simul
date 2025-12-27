@@ -4,11 +4,12 @@ import { RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { SupabaseClientService } from '../services/supabase-client.service';
 import { Profile } from '../models/profile.model';
+import { RealtimeSandboxComponent } from '../components/realtime-sandbox.component';
 
 @Component({
   selector: 'app-settings-page',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RealtimeSandboxComponent],
   template: `
     <section class="min-h-screen bg-slate-50">
       <header class="flex items-center justify-between px-8 py-6 border-b bg-white">
@@ -65,6 +66,8 @@ import { Profile } from '../models/profile.model';
             côté navigateur et confiez les opérations privilégiées à des fonctions backend sécurisées.
           </p>
         </article>
+
+        <app-realtime-sandbox></app-realtime-sandbox>
       </div>
     </section>
   `

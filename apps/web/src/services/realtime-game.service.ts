@@ -109,6 +109,8 @@ export class RealtimeGameService implements OnDestroy {
       await this.supabase.removeChannel(this.channel);
       this.channel = undefined;
     }
+    this.currentGameId = undefined;
+    this.resetState();
   }
 
   ngOnDestroy(): void {

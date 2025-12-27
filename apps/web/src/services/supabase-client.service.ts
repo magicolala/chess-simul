@@ -14,9 +14,9 @@ export class SupabaseClientService {
   readonly session$: Observable<Session | null> = this.sessionSubject.asObservable();
   readonly user$: Observable<User | null> = this.userSubject.asObservable();
   readonly sessionReady$: Observable<boolean> = this.sessionReadySubject.asObservable();
-  readonly currentUser = toSignal(this.user$, { initialValue: null });
+  readonly currentUserSignal = toSignal(this.user$, { initialValue: null });
 
-  get currentUser(): User | null {
+  currentUser(): User | null {
     return this.userSubject.value;
   }
 

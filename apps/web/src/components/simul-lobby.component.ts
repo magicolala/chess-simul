@@ -66,11 +66,11 @@ export class SimulLobbyComponent implements OnChanges {
   @Input({ required: true }) simulId!: string;
 
   get currentUserId() {
-    return this.supabaseAuth.currentUser?.id ?? 'inconnu';
+    return this.supabaseAuth.currentUser()?.id ?? 'inconnu';
   }
 
   get isHost() {
-    return this.simulService.activeSimul()?.host_id === this.supabaseAuth.currentUser?.id;
+    return this.simulService.activeSimul()?.host_id === this.supabaseAuth.currentUser()?.id;
   }
 
   get reservedCount() {

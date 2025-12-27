@@ -21,3 +21,21 @@ The migration `20250223000007_initial_conventions.sql` enables `pgcrypto`/`uuid-
 - Attach `before insert or update` triggers to call `handle_timestamps`.
 
 Keep database credentials in environment variables (e.g., `.env.local` at the repo root) rather than committing them.
+
+## Edge functions
+
+### `submit-move`
+
+- Validates the authenticated user, ensures it is their turn, and applies a UCI move using `chess.js`.
+- Rejects illegal moves and updates both the `moves` table (with `ply`, `uci`, `san`, `fen_after`, `played_by`) and the parent `games` row (`fen`, `turn`, `last_move_uci`, `move_count`, `status`, `updated_at`).
+- RLS now blocks direct client updates to `games` and inserts into `moves`; moves must go through this function or the service role.
+
+**Local serve**: `supabase functions serve submit-move --env-file supabase/.env` (ensure `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present).
+
+**Client usage** (Angular example):
+
+```ts
+const { data, error } = await supabase.functions.invoke('submit-move', {
+  body: { game_id: '<game uuid>', uci: 'e2e4' }
+});
+```

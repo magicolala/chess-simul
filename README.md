@@ -69,6 +69,11 @@ Only ever expose the public `anon` key in these files. Never ship or commit the 
 - Presence payloads are limited to `{ user_id, username }` and exposed via `onlinePlayers$`.
 - Verify RLS policies by subscribing with a user that does **not** pass your row filters: the channel should not emit rows for games the session cannot `select`.
 
+## Secure move submission
+- Clients may no longer update `games` or insert `moves` directly; RLS allows write access only to the service role.
+- Use the `submit-move` Edge Function to validate the authenticated player, apply the UCI move with `chess.js`, and persist both the new move row and updated game state.
+- Angular example: `supabase.functions.invoke('submit-move', { body: { game_id, uci } })` (see the Realtime sandbox component for a ready-made tester).
+
 ### Performance notes
 - Filter early: listen only to `UPDATE`/`INSERT` events and apply `filter` parameters such as `id=eq.{gameId}` or `simul_id=eq.{simulId}`.
 - Keep payloads lean: restrict columns in your `select` queries that seed the client and avoid heavy computed fields in realtime payloads.

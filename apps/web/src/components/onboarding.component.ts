@@ -18,7 +18,7 @@ import { PreferencesService, BOARD_THEMES } from '../services/preferences.servic
             <h2 class="text-3xl font-black font-display text-[#1D1C1C] uppercase mb-6 text-center">Votre Style</h2>
             
             <div class="w-32 h-32 rounded-full border-4 border-[#1D1C1C] bg-white overflow-hidden mb-6 wero-shadow-sm">
-                <img [src]="currentAvatarUrl()" class="w-full h-full object-cover">
+                <img [src]="currentAvatarUrl" class="w-full h-full object-cover">
             </div>
             
             <h3 class="text-xl font-bold font-display text-[#1D1C1C] uppercase">{{ name() }}</h3>

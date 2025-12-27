@@ -1,20 +1,52 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Chess Simul Monorepo
 
-# Run and deploy your AI Studio app
+A minimal monorepo housing the Angular web client and a Supabase backend workspace.
 
-This contains everything you need to run your app locally.
+## Structure
+- `apps/web`: Angular application.
+- `packages/shared`: Reusable types and helpers shared across packages.
+- `supabase`: Database migrations, seed data, and generated types.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1BK6k4VgzmdYnQu9uioSnajj0CDjrRU64
+## Prerequisites
+- Node.js 20+
+- npm 10+ (using npm workspaces)
+- (Optional) Docker + Supabase CLI for local database work
 
-## Run Locally
+## Installation
+```bash
+npm install
+```
 
-**Prerequisites:**  Node.js
+## Local development
+```bash
+npm run dev
+```
+The Angular dev server runs on http://localhost:3000 by default.
 
+## Build
+```bash
+npm run build
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Lint, format, and type-check
+```bash
+npm run lint
+npm run format:check
+npm run typecheck
+```
+
+## Environment variables
+Create a `.env.local` at the repo root for web-only secrets (e.g., `GEMINI_API_KEY`).
+When running Supabase locally, the CLI will generate `.env` files inside `supabase/`—do not commit them.
+
+## Supabase quick start
+1. Install and authenticate the Supabase CLI: `supabase login`.
+2. Link to your project: `supabase link --project-ref <ref>`.
+3. Start local stack: `supabase start` (requires Docker).
+4. Apply migrations: `supabase migration up`.
+5. Seed local data (optional): `supabase db reset --use-migra --seed supabase/seed.sql`.
+
+## Next steps for Supabase
+- Model chess simul entities (players, sessions, games) and add first migration in `supabase/migrations`.
+- Generate typed client artifacts into `supabase/types` and expose them via `@chess-simul/shared`.
+- Add Supabase auth and RPC calls to the Angular app once schemas are stable.

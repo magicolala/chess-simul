@@ -168,7 +168,7 @@
         
         <!-- MULTIPLAYER VIEWS -->
         @else if (currentView() === 'multiplayer-lobby') {
-            <app-multiplayer-lobby (joined)="handleMpJoined()"></app-multiplayer-lobby>
+            <app-multiplayer-lobby (joined)="handleMpJoined($event)"></app-multiplayer-lobby>
         }
         @else if (currentView() === 'game-room') {
             <app-game-room (gameStarted)="handleGameStart()" (goBack)="switchView('multiplayer-lobby')"></app-game-room>

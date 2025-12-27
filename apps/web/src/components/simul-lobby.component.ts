@@ -1,8 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, inject } from '@angular/core';
-import { SupabaseSimulService } from '../services/supabase-simul.service';
-import { SupabaseClientService } from '../services/supabase-client.service';
+import { Component, Input, OnChanges, OnDestroy, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { SimulTableStatus } from '../models/simul.model';
+import { PresenceUser } from '../models/realtime.model';
+import { RealtimeSimulService } from '../services/realtime-simul.service';
+import { SupabaseClientService } from '../services/supabase-client.service';
+import { SupabaseSimulService } from '../services/supabase-simul.service';
 
 @Component({
   selector: 'app-simul-lobby',
@@ -27,31 +30,47 @@ import { SimulTableStatus } from '../models/simul.model';
         {{ simulService.error() }}
       </div>
 
-      <div class="grid gap-3 md:grid-cols-2">
-        <div
-          class="border rounded p-3 flex items-center justify-between"
-          *ngFor="let table of simulService.activeSimul()?.simul_tables"
-        >
-          <div>
-            <p class="text-xs font-semibold text-gray-500">Table #{{ table.seat_no }}</p>
-            <p class="font-bold">{{ formatStatus(table.status) }}</p>
-            <p class="text-xs text-gray-500" *ngIf="table.guest_id">Guest : {{ table.guest_id }}</p>
-            <p class="text-xs text-gray-500" *ngIf="table.game_id">Game : {{ table.game_id }}</p>
-          </div>
-          <div class="flex flex-col gap-2 items-end">
-            <span class="text-xs px-2 py-1 rounded-full border" [class.bg-green-100]="table.status === 'reserved'">
-              {{ table.status }}
-            </span>
-            <button
-              class="px-3 py-1 text-sm font-semibold border rounded"
-              [disabled]="!isHost || table.status !== 'reserved'"
-              (click)="startTable(table.id)"
-            >
-              Lancer la partie
-            </button>
+      <div class="grid gap-3 md:grid-cols-3">
+        <div class="md:col-span-2 grid gap-3 md:grid-cols-2">
+          <div
+            class="border rounded p-3 flex items-center justify-between"
+            *ngFor="let table of simulService.activeSimul()?.simul_tables"
+          >
+            <div>
+              <p class="text-xs font-semibold text-gray-500">Table #{{ table.seat_no }}</p>
+              <p class="font-bold">{{ formatStatus(table.status) }}</p>
+              <p class="text-xs text-gray-500" *ngIf="table.guest_id">Guest : {{ table.guest_id }}</p>
+              <p class="text-xs text-gray-500" *ngIf="table.game_id">Game : {{ table.game_id }}</p>
+            </div>
+            <div class="flex flex-col gap-2 items-end">
+              <span class="text-xs px-2 py-1 rounded-full border" [class.bg-green-100]="table.status === 'reserved'">
+                {{ table.status }}
+              </span>
+              <button
+                class="px-3 py-1 text-sm font-semibold border rounded"
+                [disabled]="!isHost || table.status !== 'reserved'"
+                (click)="startTable(table.id)"
+              >
+                Lancer la partie
+              </button>
+            </div>
           </div>
         </div>
+
+        <div class="rounded border p-3 bg-gray-50 dark:bg-gray-900 space-y-2">
+          <p class="text-xs font-semibold uppercase text-gray-500">Présence live</p>
+          <div class="flex items-center gap-2 text-xs text-gray-600" *ngFor="let user of simulPresence$ | async">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span class="font-semibold">{{ user.username || user.user_id }}</span>
+          </div>
+          <p *ngIf="(simulPresence$ | async)?.length === 0" class="text-xs text-gray-500">Personne connectée au lobby.</p>
+        </div>
       </div>
+
+      <div class="p-3 rounded border bg-blue-50 text-blue-700" *ngIf="liveUpdatesSummary">
+        {{ liveUpdatesSummary }}
+      </div>
+
     </div>
 
     <ng-template #loading>
@@ -59,11 +78,17 @@ import { SimulTableStatus } from '../models/simul.model';
     </ng-template>
   `,
 })
-export class SimulLobbyComponent implements OnChanges {
+export class SimulLobbyComponent implements OnChanges, OnDestroy {
   private supabaseAuth = inject(SupabaseClientService);
+  private realtimeSimul = inject(RealtimeSimulService);
   simulService = inject(SupabaseSimulService);
+  private tablesSub?: Subscription;
 
   @Input({ required: true }) simulId!: string;
+
+  liveUpdatesSummary = '';
+
+  simulPresence$ = this.realtimeSimul.presence$;
 
   get currentUserId() {
     return this.supabaseAuth.currentUser()?.id ?? 'inconnu';
@@ -81,8 +106,17 @@ export class SimulLobbyComponent implements OnChanges {
 
   ngOnChanges(): void {
     if (this.simulId) {
-      this.simulService.fetchSimul(this.simulId);
+      this.simulService.fetchSimul(this.simulId).then(() => {
+        const tables = this.simulService.activeSimul()?.simul_tables ?? [];
+        this.realtimeSimul.preloadTables(tables);
+      });
+      this.subscribeRealtime();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.tablesSub?.unsubscribe();
+    void this.realtimeSimul.teardown();
   }
 
   formatStatus(status: SimulTableStatus) {
@@ -101,5 +135,28 @@ export class SimulLobbyComponent implements OnChanges {
     } catch (err) {
       this.simulService.error.set(this.simulService.friendlyError(err));
     }
+  }
+
+  private subscribeRealtime() {
+    this.liveUpdatesSummary = '';
+
+    const user = this.supabaseAuth.currentUser();
+    const presence: PresenceUser | undefined = user
+      ? { user_id: user.id, username: (user.user_metadata as any)?.username || user.email || 'user' }
+      : undefined;
+
+    this.realtimeSimul.subscribe(this.simulId, presence);
+
+    this.tablesSub?.unsubscribe();
+    this.tablesSub = this.realtimeSimul.tables$.subscribe((updates) => {
+      const active = this.simulService.activeSimul();
+      if (!active || updates.length === 0) return;
+
+      const mergedTables = active.simul_tables.map((table) => updates.find((u) => u.id === table.id) ?? table);
+      this.simulService.activeSimul.set({ ...active, simul_tables: mergedTables });
+
+      const lastUpdate = updates[updates.length - 1];
+      this.liveUpdatesSummary = `Table #${lastUpdate.seat_no ?? '?'} -> ${lastUpdate.status ?? 'update'}`;
+    });
   }
 }

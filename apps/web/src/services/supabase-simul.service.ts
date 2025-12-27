@@ -57,12 +57,12 @@ export class SupabaseSimulService {
       this.activeTable.set(null);
       this.activeGame.set(null);
     } else {
-      const simul = (data as SimulWithTables) ?? null;
-      this.activeSimul.set(simul);
-      if (simul && this.supabaseClient.currentUser) {
-        const seat = simul.simul_tables.find((t) => t.guest_id === this.supabaseClient.currentUser?.id) ?? null;
-        if (seat) this.activeTable.set(seat);
-      }
+        const simul = (data as SimulWithTables) ?? null;
+        this.activeSimul.set(simul);
+        if (simul && this.supabaseClient.currentUser()) {
+          const seat = simul.simul_tables.find((t) => t.guest_id === this.supabaseClient.currentUser()?.id) ?? null;
+          if (seat) this.activeTable.set(seat);
+        }
     }
     this.loading.set(false);
   }

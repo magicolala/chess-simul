@@ -1,5 +1,4 @@
-
-import { Component, inject, signal, output, computed } from '@angular/core';
+import { Component, inject, signal, output, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseSocialService } from '../services/supabase-social.service';
@@ -7,15 +6,15 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
 @Component({
   selector: 'app-social-hub',
   standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
+  imports: [CommonModule, FormsModule],
+  template: `
       <div class="max-w-6xl mx-auto p-4 md:p-8 font-sans h-[calc(100vh-100px)] flex flex-col md:flex-row gap-6">
-          
+
           <!-- Left: Friends List & Requests -->
           <div class="w-full md:w-1/3 flex flex-col gap-6">
-              
+
               <!-- Friend Requests -->
-              <!-- @if (social.friendRequests().length > 0) {
+              @if (social.friendRequests().length > 0) {
                   <div class="bg-[#FFF48D] border-2 border-[#1D1C1C] wero-shadow p-4">
                       <h3 class="font-black text-sm uppercase mb-3 flex items-center">
                           <span class="mr-2">👋</span> Demandes d'amis ({{ social.friendRequests().length }})
@@ -28,15 +27,15 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                                       <span class="font-bold text-xs truncate max-w-[80px]">{{ req.name }}</span>
                                   </div>
                                   <div class="flex space-x-1">
-                                      <button (click)="social.acceptRequest(req.id)" class="bg-[#1D1C1C] text-white px-2 py-1 text-[10px] font-bold uppercase hover:bg-green-600">Oui</button>
-                                      <button (click)="social.declineRequest(req.id)" class="bg-white text-[#1D1C1C] border border-[#1D1C1C] px-2 py-1 text-[10px] font-bold uppercase hover:bg-red-50">Non</button>
+                                      <button (click)="acceptRequest(req.id)" class="bg-[#1D1C1C] text-white px-2 py-1 text-[10px] font-bold uppercase hover:bg-green-600">Oui</button>
+                                      <button (click)="declineRequest(req.id)" class="bg-white text-[#1D1C1C] border border-[#1D1C1C] px-2 py-1 text-[10px] font-bold uppercase hover:bg-red-50">Non</button>
                                   </div>
                               </div>
                           }
                       </div>
                   </div>
-              } -->
-  
+              }
+
               <!-- Friends List -->
               <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex-1 flex flex-col overflow-hidden">
                   <div class="p-4 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#121212] flex justify-between items-center">
@@ -45,7 +44,7 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                           + Ajouter
                       </button>
                   </div>
-  
+
                   <!-- Add Input -->
                   @if (showAddInput()) {
                       <div class="p-2 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-100 dark:bg-gray-800 flex">
@@ -53,10 +52,10 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                           <button (click)="addFriend(addInput.value); addInput.value = ''" class="bg-[#1D1C1C] text-white px-3 font-bold uppercase text-xs">OK</button>
                       </div>
                   }
-                  
+
                   <div class="flex-1 overflow-y-auto p-2 space-y-2">
-                      <!-- @for (friend of social.friends(); track friend.id) {
-                          <div (click)="selectFriend(friend.id)" 
+                      @for (friend of social.friends(); track friend.id) {
+                          <div (click)="selectFriend(friend.id)"
                                class="p-3 border-2 cursor-pointer transition-all hover:translate-x-1 flex items-center justify-between group"
                                [class.border-[#1D1C1C]]="selectedFriendId() !== friend.id"
                                [class.bg-white]="selectedFriendId() !== friend.id"
@@ -66,7 +65,7 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                                [class.dark:bg-white]="selectedFriendId() === friend.id"
                                [class.dark:text-black]="selectedFriendId() === friend.id"
                                >
-                              
+
                               <div class="flex items-center space-x-3">
                                   <div class="relative">
                                       <img [src]="friend.avatar" class="w-10 h-10 border border-current rounded-full bg-gray-200">
@@ -82,22 +81,22 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                                       </p>
                                   </div>
                               </div>
-                              
+
                               <div class="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
                                   <button (click)="$event.stopPropagation(); goToProfile.emit(friend.id)" class="text-xs hover:scale-110 transition-transform" title="Profil">👤</button>
                                   <button (click)="$event.stopPropagation(); challenge(friend.id)" class="text-xs hover:scale-110 transition-transform" title="Défier">⚔️</button>
                               </div>
-  
+
                           </div>
-                      } -->
+                      }
                   </div>
               </div>
           </div>
-  
+
           <!-- Right: Chat Area -->
           <div class="flex-1 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col">
-              
-              <!-- @if (selectedFriend(); as friend) {
+
+              @if (selectedFriend(); as friend) {
                   <div class="p-4 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#121212] flex justify-between items-center">
                       <div class="flex items-center space-x-3">
                            <img [src]="friend.avatar" class="w-10 h-10 border-2 border-[#1D1C1C] dark:border-white rounded-full bg-white">
@@ -112,15 +111,15 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                           </button>
                       </div>
                   </div>
-  
+
                   <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100 dark:bg-[#0f0f0f]">
                       @for (msg of currentMessages(); track msg.timestamp) {
-                          <div class="flex flex-col" [class.items-end]="msg.senderId === 'me'" [class.items-start]="msg.senderId !== 'me'">
+                          <div class="flex flex-col" [class.items-end]="msg.senderId !== friend.id" [class.items-start]="msg.senderId === friend.id">
                                <div class="max-w-[70%] p-3 border-2 border-[#1D1C1C] text-sm font-medium shadow-sm"
-                                    [class.bg-[#FFF48D]]="msg.senderId === 'me'"
-                                    [class.bg-white]="msg.senderId !== 'me'"
-                                    [class.rounded-tl-none]="msg.senderId !== 'me'"
-                                    [class.rounded-tr-none]="msg.senderId === 'me'">
+                                    [class.bg-[#FFF48D]]="msg.senderId !== friend.id"
+                                    [class.bg-white]="msg.senderId === friend.id"
+                                    [class.rounded-tl-none]="msg.senderId === friend.id"
+                                    [class.rounded-tr-none]="msg.senderId !== friend.id">
                                    {{ msg.text }}
                                </div>
                                <span class="text-[10px] text-gray-400 mt-1 font-bold">{{ msg.timestamp | date:'shortTime' }}</span>
@@ -132,50 +131,56 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                           </div>
                       }
                   </div>
-  
+
                   <div class="p-4 border-t-2 border-[#1D1C1C] dark:border-white bg-white dark:bg-[#1a1a1a]">
                       <div class="flex space-x-2">
-                          <input [(ngModel)]="messageInput" (keyup.enter)="sendMessage()" type="text" placeholder="Écrire un message..." class="flex-1 px-4 py-3 border-2 border-[#1D1C1C] dark:border-gray-600 bg-gray-50 dark:bg-gray-800 dark:text-white outline-none focus:bg-white dark:focus:bg-black transition-colors">
-                          <button (click)="sendMessage()" [disabled]="!messageInput()" class="bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] px-6 font-black uppercase hover:opacity-90 disabled:opacity-50">
+                          <input [ngModel]="messageInput()" (ngModelChange)="messageInput.set($event)" (keyup.enter)="sendMessage()" type="text" placeholder="Écrire un message..." class="flex-1 px-4 py-3 border-2 border-[#1D1C1C] dark:border-gray-600 bg-gray-50 dark:bg-gray-800 dark:text-white outline-none focus:bg-white dark:focus:bg-black transition-colors">
+                          <button (click)="sendMessage()" [disabled]="!messageInput().trim()" class="bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] px-6 font-black uppercase hover:opacity-90 disabled:opacity-50">
                               Envoyer
                           </button>
                       </div>
                   </div>
-  
-              } @else { -->
+
+              } @else {
                   <div class="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
                       <div class="text-6xl mb-4 opacity-20">💬</div>
-                      <p class="font-bold text-lg uppercase">Le chat et la liste d'amis sont en cours de développement.</p>
+                      <p class="font-bold text-lg uppercase">Sélectionnez un ami ou envoyez une invitation pour chatter.</p>
                   </div>
-              <!-- } -->
-  
+              }
+
           </div>
-  
+
       </div>
     `
-  })
-  export class SocialHubComponent {
+})
+export class SocialHubComponent implements OnInit {
     social = inject(SupabaseSocialService);
     goToProfile = output<string>();
     goToGame = output<string>();
-  
+
     selectedFriendId = signal<string | null>(null);
     showAddInput = signal(false);
     messageInput = signal('');
-  
-    // selectedFriend = computed(() => 
-    //     this.social.friends().find(f => f.id === this.selectedFriendId())
-    // );
-  
-    // currentMessages = computed(() => {
-    //    const id = this.selectedFriendId();
-    //    return id ? this.social.getMessages(id)() : [];
-    // });
-  
-    // selectFriend(id: string) {
-    //     this.selectedFriendId.set(id);
-    // }
-  
+
+    selectedFriend = computed(() =>
+        this.social.friends().find(f => f.id === this.selectedFriendId()) || null
+    );
+
+    currentMessages = computed(() => {
+       const id = this.selectedFriendId();
+       return id ? this.social.getMessages(id)() : [];
+    });
+
+    ngOnInit(): void {
+      this.social.loadFriends();
+      this.social.loadFriendRequests();
+    }
+
+    selectFriend(id: string) {
+        this.selectedFriendId.set(id);
+        this.social.fetchMessages(id);
+    }
+
     async addFriend(name: string) {
         if(name.trim()) {
           try {
@@ -193,16 +198,39 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
           this.showAddInput.set(false);
         }
     }
-  
-    // sendMessage() {
-    //     const id = this.selectedFriendId();
-    //     const text = this.messageInput();
-    //     if (id && text.trim()) {
-    -          this.social.sendMessage(id, text);
-    //         this.messageInput.set('');
-    //     }
-    // }
-  
+
+    async acceptRequest(id: string) {
+      try {
+        await this.social.acceptRequest(id);
+      } catch (error) {
+        console.error(error);
+        alert('Unable to accept friend request.');
+      }
+    }
+
+    async declineRequest(id: string) {
+      try {
+        await this.social.declineRequest(id);
+      } catch (error) {
+        console.error(error);
+        alert('Unable to decline friend request.');
+      }
+    }
+
+    async sendMessage() {
+        const id = this.selectedFriendId();
+        const text = this.messageInput();
+        if (id && text.trim()) {
+            try {
+              await this.social.sendMessage(id, text);
+              this.messageInput.set('');
+            } catch (error) {
+              console.error(error);
+              alert('Unable to send message.');
+            }
+        }
+    }
+
     challenge(id: string) {
         alert(`Défi envoyé à ${id} ! (Redirection vers Lobby Ami...)`);
         // In real app: create friend lobby with specific config and redirect

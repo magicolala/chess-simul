@@ -51,17 +51,18 @@
               <span class="mr-3 text-lg">🌍</span> Multijoueur
             </button>
 
-            <button (click)="switchView('simul-create')" 
+            <!-- SIMUL BUTTON -->
+            <button (click)="switchView('simul-list')" 
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
-              [class.bg-[#FFF48D]]="currentView() === 'simul-create' || currentView() === 'simul-host'"
-              [class.border-[#1D1C1C]]="currentView() === 'simul-create' || currentView() === 'simul-host'"
-              [class.wero-shadow-sm]="currentView() === 'simul-create' || currentView() === 'simul-host'"
+              [class.bg-[#FFF48D]]="currentView().startsWith('simul-')"
+              [class.border-[#1D1C1C]]="currentView().startsWith('simul-')"
+              [class.wero-shadow-sm]="currentView().startsWith('simul-')"
               [class.text-[#1D1C1C]]="true"
-              [class.border-transparent]="!(currentView() === 'simul-create' || currentView() === 'simul-host')"
-              [class.text-gray-600]="!(currentView() === 'simul-create' || currentView() === 'simul-host')"
-              [class.dark:text-gray-300]="!(currentView() === 'simul-create' || currentView() === 'simul-host')"
-              [class.hover:bg-gray-100]="!(currentView() === 'simul-create' || currentView() === 'simul-host')"
-              [class.dark:hover:bg-gray-800]="!(currentView() === 'simul-create' || currentView() === 'simul-host')">
+              [class.border-transparent]="!currentView().startsWith('simul-')"
+              [class.text-gray-600]="!currentView().startsWith('simul-')"
+              [class.dark:text-gray-300]="!currentView().startsWith('simul-')"
+              [class.hover:bg-gray-100]="!currentView().startsWith('simul-')"
+              [class.dark:hover:bg-gray-800]="!currentView().startsWith('simul-')">
               <span class="mr-3 text-lg">⚔️</span> Simultanées
             </button>
             
@@ -143,7 +144,7 @@
             <app-dashboard 
                 (startQuickGame)="handleQuickPlay($event)"
                 (resumeGame)="enterFocusMode($event)"
-                (goToSimul)="switchView('simul-create')"
+                (goToSimul)="switchView('simul-list')"
                 (goToHistory)="switchView('history')">
             </app-dashboard>
         } 
@@ -159,14 +160,21 @@
             <app-online-game (leaveGame)="switchView('dashboard')"></app-online-game>
         }
 
-        <!-- SIMUL CREATE -->
-        @else if (currentView() === 'simul-create') {
-            <app-simul-create (start)="launchSimul($event)"></app-simul-create>
+        <!-- SIMUL VIEWS -->
+        @else if (currentView() === 'simul-list') {
+            <app-simul-list (create)="switchView('simul-create')" (join)="joinSimul($event)"></app-simul-list>
         }
-
-        <!-- SIMUL HOST (Command Center) - No Padding container -->
+        @else if (currentView() === 'simul-create') {
+            <app-simul-create (start)="createSimul($event)"></app-simul-create>
+        }
+        @else if (currentView() === 'simul-lobby') {
+            <app-simul-lobby (start)="startSimulHost()" (leave)="leaveSimulLobby()"></app-simul-lobby>
+        }
         @else if (currentView() === 'simul-host') {
             <app-simul-host></app-simul-host>
+        }
+        @else if (currentView() === 'simul-player') {
+             <app-simul-player (quit)="leaveSimulLobby()"></app-simul-player>
         }
 
         <!-- GAME MODE (Grid of playable games - PvP) -->

@@ -7,6 +7,7 @@ import { AuthService } from './services/auth.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
 import { MultiplayerService } from './services/multiplayer.service';
+import { SimulService } from './services/simul.service';
 
 import { ChessBoardComponent } from './components/chess-board.component';
 import { LoginComponent } from './components/login.component';
@@ -17,6 +18,9 @@ import { FriendLobbyComponent } from './components/friend-lobby.component';
 import { LandingComponent } from './components/landing.component';
 import { SimulCreateComponent } from './components/simul-create.component';
 import { SimulHostComponent } from './components/simul-host.component';
+import { SimulListComponent } from './components/simul-list.component';
+import { SimulLobbyComponent } from './components/simul-lobby.component';
+import { SimulPlayerComponent } from './components/simul-player.component';
 import { VerifyEmailComponent } from './components/verify-email.component';
 import { OnboardingComponent } from './components/onboarding.component';
 import { ForgotPasswordComponent } from './components/forgot-password.component';
@@ -25,7 +29,7 @@ import { MultiplayerLobbyComponent } from './components/multiplayer-lobby.compon
 import { GameRoomComponent } from './components/game-room.component';
 import { OnlineGameComponent } from './components/online-game.component';
 
-type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'multiplayer-lobby' | 'game-room' | 'online-game';
+type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'simul-list' | 'simul-lobby' | 'simul-player' | 'multiplayer-lobby' | 'game-room' | 'online-game';
 
 @Component({
   selector: 'app-root',
@@ -42,6 +46,9 @@ type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-
     LandingComponent,
     SimulCreateComponent,
     SimulHostComponent,
+    SimulListComponent,
+    SimulLobbyComponent,
+    SimulPlayerComponent,
     VerifyEmailComponent,
     OnboardingComponent,
     ForgotPasswordComponent,
@@ -54,11 +61,12 @@ type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-  private simulService = inject(ChessSimulService);
+  private logicService = inject(ChessSimulService);
   auth = inject(AuthService);
   historyService = inject(HistoryService);
   prefs = inject(PreferencesService);
   mpService = inject(MultiplayerService);
+  simulService = inject(SimulService);
 
   currentView = signal<ViewState>('landing');
   
@@ -77,7 +85,7 @@ export class AppComponent {
       difficulty: 'pvp'
   });
 
-  games = this.simulService.games;
+  games = this.logicService.games;
 
   activeGamesCount = computed(() => 
     this.games().filter(g => g.status === 'active').length
@@ -98,7 +106,6 @@ export class AppComponent {
           const user = this.auth.currentUser();
           
           if (!user) {
-              // If we are in an auth view, stay there, otherwise go to landing
               const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
               if (!publicViews.includes(this.currentView())) {
                   this.currentView.set('landing');
@@ -106,13 +113,11 @@ export class AppComponent {
               return;
           }
 
-          // User is authenticated, check progression
           if (!user.emailVerified) {
               this.currentView.set('verify-email');
           } else if (!user.onboardingCompleted) {
               this.currentView.set('onboarding');
           } else {
-              // Only redirect to dashboard if we are currently in an auth/onboarding flow
               const authViews: ViewState[] = ['landing', 'login', 'register', 'verify-email', 'onboarding', 'forgot-password'];
               if (authViews.includes(this.currentView())) {
                   this.currentView.set('dashboard');
@@ -122,10 +127,10 @@ export class AppComponent {
   }
 
   onMove(gameId: number, move: { from: string, to: string }) {
-    this.simulService.makeMove(gameId, move.from, move.to);
+    this.logicService.makeMove(gameId, move.from, move.to);
     
     const game = this.games().find(g => g.id === gameId);
-    if (game && game.status !== 'active' && game.status !== 'waiting' && game.mode !== 'online') {
+    if (game && game.status !== 'active' && game.status !== 'waiting' && game.mode !== 'online' && game.mode !== 'simul-player') {
         setTimeout(() => this.showGameOverModal.set(game), 1000);
     }
   }
@@ -142,7 +147,7 @@ export class AppComponent {
   }
 
   navigateGame(gameId: number, direction: 'start' | 'prev' | 'next' | 'end') {
-      this.simulService.navigateHistory(gameId, direction);
+      this.logicService.navigateHistory(gameId, direction);
   }
 
   isAtLatest(game: GameState): boolean {
@@ -155,7 +160,7 @@ export class AppComponent {
   closeSettings() { this.showSettingsModal.set(false); }
 
   startNewSession() {
-    this.simulService.startPvpSession(this.newGameConfig());
+    this.logicService.startPvpSession(this.newGameConfig());
     this.showNewGameModal.set(false);
     this.currentView.set('game'); 
   }
@@ -172,16 +177,44 @@ export class AppComponent {
 
   startFriendGame(config: { time: number, inc: number, color: 'w' | 'b' | 'random' }) {
       this.newGameConfig.set({ timeMinutes: config.time, incrementSeconds: config.inc, opponentCount: 1, difficulty: 'pvp' });
-      this.simulService.startPvpSession(this.newGameConfig());
+      this.logicService.startPvpSession(this.newGameConfig());
       this.enterFocusMode(0); 
       this.isBoardFlipped.set(config.color === 'b'); 
   }
   
   // Simul Logic
-  launchSimul(config: GameConfig) {
-      this.simulService.startSimulHosting(config);
-      this.currentView.set('simul-host');
+  createSimul(config: GameConfig) {
+      this.simulService.createSimul(config, false); // Default public
+      this.currentView.set('simul-lobby');
   }
+
+  joinSimul(id: string) {
+      this.simulService.joinSimul(id);
+      this.currentView.set('simul-lobby');
+  }
+
+  leaveSimulLobby() {
+      this.simulService.leaveSimul();
+      this.currentView.set('simul-list');
+  }
+
+  startSimulHost() {
+      // 1. Mark simul as started in meta-service
+      this.simulService.startSimul();
+      
+      // 2. Initialize game logic for host
+      const simul = this.simulService.currentSimul();
+      if(simul) {
+          this.logicService.startSimulHosting(simul.config);
+          this.currentView.set('simul-host');
+      }
+  }
+
+  startSimulPlayer() {
+      // Player view logic handles its own initialization based on currentSimul
+      this.currentView.set('simul-player');
+  }
+
 
   enterFocusMode(gameId: number) {
       this.focusedGameId.set(gameId);

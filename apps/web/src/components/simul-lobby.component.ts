@@ -35,16 +35,16 @@ import { SimulTableStatus } from '../models/simul.model';
           <div>
             <p class="text-xs font-semibold text-gray-500">Table #{{ table.seat_no }}</p>
             <p class="font-bold">{{ formatStatus(table.status) }}</p>
-            <p class="text-xs text-gray-500" *ngIf="table.guest_id">Guest : {{ table.guest_id }}</p>
+            <p class="text-xs text-gray-500" *ngIf="table.challenger_id">Challenger : {{ table.challenger_id }}</p>
             <p class="text-xs text-gray-500" *ngIf="table.game_id">Game : {{ table.game_id }}</p>
           </div>
           <div class="flex flex-col gap-2 items-end">
-            <span class="text-xs px-2 py-1 rounded-full border" [class.bg-green-100]="table.status === 'reserved'">
+            <span class="text-xs px-2 py-1 rounded-full border" [class.bg-green-100]="table.status === 'playing'">
               {{ table.status }}
             </span>
             <button
               class="px-3 py-1 text-sm font-semibold border rounded"
-              [disabled]="!isHost || table.status !== 'reserved'"
+              [disabled]="!isHost || table.status === 'open' || !!table.game_id"
               (click)="startTable(table.id)"
             >
               Lancer la partie
@@ -76,7 +76,7 @@ export class SimulLobbyComponent implements OnChanges {
   get reservedCount() {
     const simul = this.simulService.activeSimul();
     if (!simul) return 0;
-    return simul.simul_tables.filter((t) => t.status === 'reserved' || t.status === 'playing').length;
+    return simul.simul_tables.filter((t) => t.status !== 'open').length;
   }
 
   ngOnChanges(): void {
@@ -87,8 +87,7 @@ export class SimulLobbyComponent implements OnChanges {
 
   formatStatus(status: SimulTableStatus) {
     const map: Record<SimulTableStatus, string> = {
-      free: 'Disponible',
-      reserved: 'Réservé',
+      open: 'Disponible',
       playing: 'En cours',
       done: 'Terminé',
     };

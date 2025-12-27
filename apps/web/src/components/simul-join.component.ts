@@ -51,7 +51,7 @@ export class SimulJoinComponent implements OnChanges {
   get freeSeats() {
     const simul = this.simulService.activeSimul();
     if (!simul) return 0;
-    return simul.simul_tables.filter((t) => t.status === 'free').length;
+    return simul.simul_tables.filter((t) => t.status === 'open').length;
   }
 
   ngOnChanges(): void {

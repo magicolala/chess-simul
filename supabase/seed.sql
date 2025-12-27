@@ -31,13 +31,13 @@ with host_user as (
   on conflict do nothing
   returning id as simul_id
 ), game_seed as (
-  insert into public.games (mode, simul_id, host_id, white_id, black_id, status, turn_color, fen, pgn, last_move_at)
-  select 'simul', simul_id, h.id, h.id, g1.id, 'playing', 'black', 'rnbqkbnr/pppp1ppp/8/4p3/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1', '1. e3 e5', now()
+  insert into public.games (simul_id, white_id, black_id, status, turn, fen, move_count, last_move_uci)
+  select simul_id, h.id, g1.id, 'active', 'b', 'rnbqkbnr/pppp1ppp/8/4p3/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1', 2, 'e7e5'
   from simul_seed s
   join host_user h on true
   join guest1 g1 on true
   union all
-  select 'simul', simul_id, h.id, h.id, g2.id, 'waiting', 'white', 'startpos', null, null
+  select simul_id, h.id, g2.id, 'waiting', 'w', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 0, null
   from simul_seed s
   join host_user h on true
   join guest2 g2 on true
@@ -53,7 +53,7 @@ with host_user as (
   on conflict do nothing
   returning game_id
 )
-insert into public.moves (game_id, ply, san, uci, fen, player_id)
+insert into public.moves (game_id, ply, san, uci, fen_after, played_by)
 select game_id, 1, 'e3', 'e2e3', 'rnbqkbnr/pppp1ppp/8/4p3/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1', h.id
 from table_seed ts
 join host_user h on true

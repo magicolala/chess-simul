@@ -88,10 +88,10 @@ export class SupabaseSocialService {
     }
   }
 
-  async loadFriendRequests(): Promise<void> {
+  async getFriendRequests(): Promise<void> {
     if (!this.currentUserId) return;
 
-    const { data, error } = await this.supabase.rpc('list_friend_requests');
+    const { data, error } = await this.supabase.rpc('get_friend_requests');
 
     if (error) {
       console.error('Error listing friend requests:', error);
@@ -108,10 +108,10 @@ export class SupabaseSocialService {
     this.friendRequests.set(requests);
   }
 
-  async loadFriends(): Promise<void> {
+  async getFriends(): Promise<void> {
     if (!this.currentUserId) return;
 
-    const { data, error } = await this.supabase.rpc('list_friends');
+    const { data, error } = await this.supabase.rpc('get_friends');
 
     if (error) {
       console.error('Error listing friends:', error);
@@ -136,7 +136,7 @@ export class SupabaseSocialService {
     await this.ensureRealtime();
   }
 
-  async acceptRequest(friendId: string): Promise<void> {
+  async acceptFriendRequest(friendId: string): Promise<void> {
     const { error } = await this.supabase.rpc('accept_friend_request', { friend_id: friendId });
 
     if (error) {
@@ -144,10 +144,10 @@ export class SupabaseSocialService {
       throw error;
     }
 
-    await Promise.all([this.loadFriends(), this.loadFriendRequests()]);
+    await Promise.all([this.getFriends(), this.getFriendRequests()]);
   }
 
-  async declineRequest(friendId: string): Promise<void> {
+  async declineFriendRequest(friendId: string): Promise<void> {
     const { error } = await this.supabase.rpc('decline_friend_request', { friend_id: friendId });
 
     if (error) {
@@ -155,23 +155,17 @@ export class SupabaseSocialService {
       throw error;
     }
 
-    await this.loadFriendRequests();
+    await this.getFriendRequests();
   }
 
-  getMessages(friendId: string) {
+  messagesFor(friendId: string) {
     return computed(() => this.messages().get(friendId) || []);
   }
 
-  async fetchMessages(friendId: string): Promise<void> {
+  async getMessages(friendId: string): Promise<void> {
     if (!this.currentUserId) return;
 
-    const { data, error } = await this.supabase
-      .from('direct_messages')
-      .select('sender_id, receiver_id, content, created_at')
-      .or(
-        `and(sender_id.eq.${this.currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${this.currentUserId})`
-      )
-      .order('created_at', { ascending: true });
+    const { data, error } = await this.supabase.rpc('get_messages', { friend_id: friendId });
 
     if (error) {
       console.error('Error loading messages:', error);
@@ -203,18 +197,18 @@ export class SupabaseSocialService {
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    const { data, error } = await this.supabase
-      .from('direct_messages')
-      .insert({ sender_id: senderId, receiver_id: friendId, content: trimmed })
-      .select('created_at')
-      .single();
+    const { data, error } = await this.supabase.rpc('send_message', {
+      receiver_id: friendId,
+      content: trimmed
+    });
 
     if (error) {
       console.error('Error sending message:', error);
       throw error;
     }
 
-    const timestamp = data?.created_at ? new Date(data.created_at).getTime() : Date.now();
+    const response = Array.isArray(data) ? data[0] : data;
+    const timestamp = response?.created_at ? new Date(response.created_at).getTime() : Date.now();
     this.appendMessage(friendId, { senderId, text: trimmed, timestamp });
   }
 

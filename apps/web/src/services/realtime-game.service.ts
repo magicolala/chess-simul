@@ -66,7 +66,7 @@ export class RealtimeGameService implements OnDestroy {
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'games', filter: `id=eq.${gameId}` },
       (payload: RealtimePostgresChangesPayload<GameRow>) => {
-        this.gameSubject.next(payload.new ?? null);
+        this.gameSubject.next(this.coerceGameRow(payload.new));
       }
     );
 
@@ -108,9 +108,12 @@ export class RealtimeGameService implements OnDestroy {
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'games', filter: `simul_id=eq.${simulId}` },
       (payload: RealtimePostgresChangesPayload<GameRow>) => {
-        const gameId = (payload.new?.id ?? payload.old?.id) as string;
+        const newGame = this.coerceGameRow(payload.new);
+        const oldGame = this.coerceGameRow(payload.old as Partial<GameRow> | null | undefined);
+        const gameId = newGame?.id ?? oldGame?.id;
+        if (!gameId) return;
         const next = this.simulTablesSubject.value.filter((g) => g.gameId !== gameId);
-        this.simulTablesSubject.next([...next, { gameId, data: payload.new ?? null }]);
+        this.simulTablesSubject.next([...next, { gameId, data: newGame }]);
       }
     );
 
@@ -158,5 +161,12 @@ export class RealtimeGameService implements OnDestroy {
     const state = channel.presenceState<PresenceUser>();
     const flattened = Object.values(state).flat();
     this.onlinePlayersSubject.next(flattened);
+  }
+
+  private coerceGameRow(row: Partial<GameRow> | null | undefined): GameRow | null {
+    if (row && typeof row === 'object' && 'id' in row && typeof row.id === 'string') {
+      return row as GameRow;
+    }
+    return null;
   }
 }

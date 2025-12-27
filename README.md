@@ -27,6 +27,7 @@ The Angular dev server runs on http://localhost:3000 by default.
 ```bash
 npm run build
 ```
+Le build injecte les variables Supabase via `scripts/generate-env.mjs` (voir `DEPLOY.md`).
 
 ## Lint, format, and type-check
 ```bash
@@ -34,6 +35,10 @@ npm run lint
 npm run format:check
 npm run typecheck
 ```
+
+## CI et déploiement
+- GitHub Actions exécute `npm run lint`, `npm test` et `npm run build` sur chaque push/PR.
+- Le guide complet pour Netlify/Vercel/Cloudflare Pages + Supabase est dans `DEPLOY.md`.
 
 ## Environment variables
 Create a `.env.local` at the repo root for web-only secrets (e.g., `GEMINI_API_KEY`).

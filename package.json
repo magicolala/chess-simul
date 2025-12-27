@@ -9,11 +9,13 @@
   ],
   "scripts": {
     "dev": "npm run dev -w web",
-    "build": "npm run build -w web",
+    "build": "node scripts/generate-env.mjs && npm run build -w web",
     "lint": "eslint apps packages --ext .ts,.tsx",
+    "test": "npm run typecheck -w web",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "npm run typecheck -w web"
+    "typecheck": "npm run typecheck -w web",
+    "generate:env": "node scripts/generate-env.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

@@ -20,6 +20,8 @@ export interface MultiplayerRoom {
   isPrivate: boolean;
 }
 
+export type ConnectionStatus = 'excellent' | 'good' | 'poor' | 'offline';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -28,6 +30,16 @@ export class MultiplayerService {
   rooms = signal<MultiplayerRoom[]>([]);
   currentRoom = signal<MultiplayerRoom | null>(null);
   isMatchmaking = signal(false);
+  
+  // Connection Simulation
+  latency = signal<number>(25); // ms
+  connectionStatus = computed<ConnectionStatus>(() => {
+      const lat = this.latency();
+      if (lat < 0) return 'offline';
+      if (lat < 100) return 'excellent';
+      if (lat < 300) return 'good';
+      return 'poor';
+  });
 
   constructor() {
       // Mock initial rooms
@@ -36,15 +48,34 @@ export class MultiplayerService {
           this.createMockRoom('Bob_The_Master', 1500, 3, 2),
           this.createMockRoom('ChessViking', 900, 10, 0),
       ]);
+
+      // Simulate Ping variation
+      setInterval(() => {
+          // Fluctuate latency
+          const variation = Math.random() * 50 - 25;
+          let newLat = Math.max(10, this.latency() + variation);
+          
+          // Random spikes
+          if (Math.random() > 0.95) newLat += 300; 
+          
+          this.latency.set(Math.floor(newLat));
+      }, 2000);
   }
 
   // --- ACTIONS ---
 
   startMatchmaking(config: { mode: string }) {
       this.isMatchmaking.set(true);
-      return new Promise<void>((resolve) => {
+      return new Promise<void>((resolve, reject) => {
           setTimeout(() => {
               this.isMatchmaking.set(false);
+              
+              // 10% chance of timeout error
+              if (Math.random() > 0.9) {
+                  reject(new Error("Aucun adversaire trouvé. Réessayez."));
+                  return;
+              }
+
               // Create a room with a "found" opponent
               const room = this.createMockRoom('Online_Opponent', 1300, 5, 0);
               room.players.push({
@@ -125,12 +156,7 @@ export class MultiplayerService {
       const room = this.currentRoom();
       if (!room) return;
       
-      // Toggle "Me" (assuming last player added is local for this demo context, or identify by auth)
-      // In a real app, check ID. Here we assume we are the one interacting.
-      // We'll update the 'guest' if we are guest, or 'host' if we are host.
-      // Simplified: Just toggle everyone for demo reactivity or find by context.
-      
-      // Let's assume we are always the last joined in this simulation context
+      // Toggle "Me" (assuming last player added is local for this demo context)
       const myIndex = room.players.length - 1; 
       const updatedPlayers = [...room.players];
       updatedPlayers[myIndex] = { ...updatedPlayers[myIndex], isReady: !updatedPlayers[myIndex].isReady };

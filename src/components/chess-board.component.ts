@@ -22,6 +22,10 @@ import { PreferencesService } from '../services/preferences.service';
             @let isLastMove = lastMove()?.from === squareId || lastMove()?.to === squareId;
             @let isCheck = isKingInCheck(piece);
             
+            <!-- Analysis Highlights -->
+            @let isBestMoveSource = bestMove()?.substring(0, 2) === squareId;
+            @let isBestMoveDest = bestMove()?.substring(2, 4) === squareId;
+
             <!-- Logic for interaction -->
             @let canInteract = isInteractive() && (allowedColor() === 'both' ? piece?.color === chess().turn() : piece?.color === allowedColor());
             
@@ -33,7 +37,7 @@ import { PreferencesService } from '../services/preferences.service';
               (drop)="handleDrop($event, squareId)"
               class="relative w-full h-full flex items-center justify-center transition-colors duration-75"
               [class.cursor-pointer]="canInteract || isLegal"
-              [style.backgroundColor]="getSquareColor(isLight, isLastMove, isSelected)"
+              [style.backgroundColor]="getSquareColor(isLight, isLastMove, isSelected, isBestMoveSource, isBestMoveDest)"
             >
               
               <!-- Rank/File Labels -->
@@ -90,7 +94,7 @@ import { PreferencesService } from '../services/preferences.service';
       
       <!-- Interaction Blocker if not active -->
       @if (!isInteractive()) {
-        <div class="absolute inset-0 bg-white/20 backdrop-grayscale-[30%] z-30 cursor-not-allowed"></div>
+        <div class="absolute inset-0 z-30"></div>
       }
     </div>
   `
@@ -100,9 +104,10 @@ export class ChessBoardComponent {
 
   fen = input.required<string>();
   lastMove = input<{ from: string, to: string } | null>(null);
+  bestMove = input<string | null>(null); // e.g. "e2e4"
   isInteractive = input<boolean>(false);
   orientation = input<'w' | 'b'>('w');
-  allowedColor = input<'w' | 'b' | 'both'>('w'); // New input to control who can move
+  allowedColor = input<'w' | 'b' | 'both'>('w'); 
   
   move = output<{ from: string, to: string }>();
 
@@ -119,13 +124,13 @@ export class ChessBoardComponent {
     try {
       c.load(this.fen());
     } catch (e) {
-      // Silent catch or simple log to avoid console spam
+      // Silent catch
     }
     return c;
   });
 
   selectedSquare = signal<string | null>(null);
-  draggingSquare = signal<string | null>(null); // Visual state for drag source
+  draggingSquare = signal<string | null>(null); 
   legalMoves = signal<string[]>([]);
 
   constructor() {
@@ -145,17 +150,17 @@ export class ChessBoardComponent {
     return (fileIdx + rankIdx) % 2 !== 0;
   }
 
-  getSquareColor(isLight: boolean, isLastMove: boolean, isSelected: boolean): string {
+  getSquareColor(isLight: boolean, isLastMove: boolean, isSelected: boolean, isBestFrom: boolean, isBestTo: boolean): string {
     const theme = this.prefs.currentTheme;
     const CYAN = '#7AF7F7';
+    const ENGINE_BLUE = 'rgba(60, 100, 255, 0.5)';
 
-    if (isSelected) {
-       return CYAN; 
-    }
+    if (isSelected) return CYAN; 
+    
+    // Engine Suggestion Overlay
+    if (isBestTo || isBestFrom) return isLight ? '#a5b4fc' : '#818cf8'; // Indigo-ish
 
-    if (isLastMove) {
-       return isLight ? '#d4fdfd' : '#aefbfb';
-    }
+    if (isLastMove) return isLight ? '#d4fdfd' : '#aefbfb';
 
     return isLight ? theme.light : theme.dark;
   }
@@ -179,7 +184,6 @@ export class ChessBoardComponent {
     const turn = game.turn();
     const allowed = this.allowedColor();
     
-    // Check if player is allowed to move current side
     if (allowed !== 'both' && allowed !== turn) return;
 
     const piece = game.get(square as any);
@@ -191,19 +195,16 @@ export class ChessBoardComponent {
             return;
         }
 
-        // Try to move
         if (this.attemptMove(selected, square)) {
             return;
         }
 
-        // If clicking another friendly piece, select it instead
         if (piece && piece.color === turn) {
             this.selectSquare(square, game);
         } else {
             this.deselect();
         }
     } else {
-        // First click
         if (piece && piece.color === turn) {
             this.selectSquare(square, game);
         }
@@ -228,7 +229,6 @@ export class ChessBoardComponent {
           return;
       }
 
-      // Setup Drag Data
       if (e.dataTransfer) {
           e.dataTransfer.setData('text/plain', square);
           e.dataTransfer.effectAllowed = 'move';
@@ -285,9 +285,7 @@ export class ChessBoardComponent {
               this.deselect();
               return true;
           }
-      } catch (e) {
-          // invalid move
-      }
+      } catch (e) { }
       return false;
   }
 

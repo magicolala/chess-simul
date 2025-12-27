@@ -66,18 +66,19 @@
               <span class="mr-3 text-lg">⚔️</span> Simultanées
             </button>
             
-            <button (click)="switchView('friend-lobby')" 
+            <!-- ANALYSIS BUTTON -->
+            <button (click)="switchView('analysis')" 
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
-              [class.bg-[#FFF48D]]="currentView() === 'friend-lobby'"
-              [class.border-[#1D1C1C]]="currentView() === 'friend-lobby'"
-              [class.wero-shadow-sm]="currentView() === 'friend-lobby'"
+              [class.bg-[#FFF48D]]="currentView() === 'analysis'"
+              [class.border-[#1D1C1C]]="currentView() === 'analysis'"
+              [class.wero-shadow-sm]="currentView() === 'analysis'"
               [class.text-[#1D1C1C]]="true"
-              [class.border-transparent]="currentView() !== 'friend-lobby'"
-              [class.text-gray-600]="currentView() !== 'friend-lobby'"
-              [class.dark:text-gray-300]="currentView() !== 'friend-lobby'"
-              [class.hover:bg-gray-100]="currentView() !== 'friend-lobby'"
-              [class.dark:hover:bg-gray-800]="currentView() !== 'friend-lobby'">
-              <span class="mr-3 text-lg">🤝</span> Jouer un ami
+              [class.border-transparent]="currentView() !== 'analysis'"
+              [class.text-gray-600]="currentView() !== 'analysis'"
+              [class.dark:text-gray-300]="currentView() !== 'analysis'"
+              [class.hover:bg-gray-100]="currentView() !== 'analysis'"
+              [class.dark:hover:bg-gray-800]="currentView() !== 'analysis'">
+              <span class="mr-3 text-lg">🔬</span> Analyse
             </button>
 
             <!-- Social / Communauté -->
@@ -153,7 +154,7 @@
       </header>
 
       <!-- Content Scrollable Area -->
-      <main class="flex-1 overflow-y-auto transition-colors duration-300" [class.p-4]="currentView() !== 'simul-host'" [class.md:p-8]="currentView() !== 'simul-host'">
+      <main class="flex-1 overflow-y-auto transition-colors duration-300" [class.p-4]="currentView() !== 'simul-host' && currentView() !== 'analysis'" [class.md:p-8]="currentView() !== 'simul-host' && currentView() !== 'analysis'">
         
         @if (currentView() === 'dashboard') {
             <app-dashboard 
@@ -199,6 +200,11 @@
         }
         @else if (currentView() === 'public-profile') {
             <app-public-profile [userId]="viewParam()"></app-public-profile>
+        }
+
+        <!-- ANALYSIS -->
+        @else if (currentView() === 'analysis') {
+            <app-analysis [initialPgn]="viewParam()"></app-analysis>
         }
 
         <!-- GAME MODE (Grid of playable games - PvP) -->
@@ -254,7 +260,7 @@
         }
 
         @else if (currentView() === 'history') {
-           <app-history></app-history>
+           <app-history (review)="startAnalysis($event)"></app-history>
         } 
         
 

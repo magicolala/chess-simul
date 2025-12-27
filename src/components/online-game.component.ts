@@ -1,5 +1,5 @@
 
-import { Component, inject, computed, signal, output } from '@angular/core';
+import { Component, inject, computed, signal, output, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -13,8 +13,15 @@ import { AuthService } from '../services/auth.service';
   imports: [CommonModule, ChessBoardComponent, FormsModule],
   template: `
     @if (game()) {
-        <div class="h-full flex flex-col md:flex-row max-w-7xl mx-auto md:p-4 gap-4 font-sans">
+        <div class="h-full flex flex-col md:flex-row max-w-7xl mx-auto md:p-4 gap-4 font-sans relative">
             
+            <!-- Connection Status Banner -->
+            @if (mpService.connectionStatus() === 'poor' || mpService.connectionStatus() === 'offline') {
+                <div class="absolute top-0 left-0 w-full z-30 bg-red-500 text-white text-xs font-bold uppercase text-center py-1 animate-pulse">
+                    ⚠️ Connexion Instable ({{ mpService.latency() }}ms) - Tentative de reconnexion...
+                </div>
+            }
+
             <!-- LEFT: Board Area -->
             <div class="flex-1 flex flex-col">
                 <!-- Top Player (Opponent) -->
@@ -22,7 +29,15 @@ import { AuthService } from '../services/auth.service';
                     <div class="flex items-center space-x-3">
                         <img [src]="game()!.opponentAvatar" class="w-10 h-10 border border-[#1D1C1C] dark:border-white rounded-full">
                         <div>
-                            <p class="font-bold text-sm text-[#1D1C1C] dark:text-white leading-none">{{ game()!.opponentName }}</p>
+                            <div class="flex items-center space-x-2">
+                                <p class="font-bold text-sm text-[#1D1C1C] dark:text-white leading-none">{{ game()!.opponentName }}</p>
+                                <!-- Ping Dot -->
+                                <div class="w-2 h-2 rounded-full" 
+                                     [class.bg-green-500]="mpService.connectionStatus() === 'excellent'"
+                                     [class.bg-yellow-500]="mpService.connectionStatus() === 'good'"
+                                     [class.bg-red-500]="mpService.connectionStatus() === 'poor' || mpService.connectionStatus() === 'offline'">
+                                </div>
+                            </div>
                             <p class="text-[10px] font-mono text-gray-500">{{ game()!.opponentRating }}</p>
                         </div>
                     </div>
@@ -129,6 +144,12 @@ import { AuthService } from '../services/auth.service';
                         🏳 Abandon
                     </button>
                 </div>
+                
+                <!-- Report/Block (Bottom) -->
+                <div class="p-2 flex justify-between bg-white dark:bg-[#1a1a1a] border-t-2 border-[#1D1C1C] dark:border-gray-800">
+                    <button (click)="report()" class="text-[10px] text-gray-400 hover:text-red-500 uppercase font-bold">Signaler</button>
+                    <button (click)="block()" class="text-[10px] text-gray-400 hover:text-red-500 uppercase font-bold">Bloquer</button>
+                </div>
 
             </div>
 
@@ -179,6 +200,7 @@ export class OnlineGameComponent {
 
   resign() {
       if (this.game()) {
+          if(!confirm("Êtes-vous sûr de vouloir abandonner ?")) return;
           this.logic.resign(this.game()!.id);
       }
   }
@@ -191,6 +213,16 @@ export class OnlineGameComponent {
 
   leave() {
       this.leaveGame.emit();
+  }
+
+  report() {
+      alert("Signalement envoyé à la modération.");
+  }
+
+  block() {
+      if(confirm(`Bloquer ${this.game()!.opponentName} ? Vous ne serez plus jumelés.`)) {
+          alert("Joueur bloqué.");
+      }
   }
 
   formatTime(ms: number): string {

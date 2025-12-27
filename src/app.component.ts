@@ -9,6 +9,7 @@ import { PreferencesService } from './services/preferences.service';
 import { MultiplayerService } from './services/multiplayer.service';
 import { SimulService } from './services/simul.service';
 import { SocialService } from './services/social.service';
+import { AnalysisService } from './services/analysis.service';
 
 import { ChessBoardComponent } from './components/chess-board.component';
 import { LoginComponent } from './components/login.component';
@@ -31,8 +32,9 @@ import { GameRoomComponent } from './components/game-room.component';
 import { OnlineGameComponent } from './components/online-game.component';
 import { SocialHubComponent } from './components/social-hub.component';
 import { PublicProfileComponent } from './components/public-profile.component';
+import { AnalysisComponent } from './components/analysis.component';
 
-type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'simul-list' | 'simul-lobby' | 'simul-player' | 'multiplayer-lobby' | 'game-room' | 'online-game' | 'social-hub' | 'public-profile';
+type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'simul-list' | 'simul-lobby' | 'simul-player' | 'multiplayer-lobby' | 'game-room' | 'online-game' | 'social-hub' | 'public-profile' | 'analysis';
 
 @Component({
   selector: 'app-root',
@@ -60,7 +62,8 @@ type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-
     GameRoomComponent,
     OnlineGameComponent,
     SocialHubComponent,
-    PublicProfileComponent
+    PublicProfileComponent,
+    AnalysisComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -73,6 +76,7 @@ export class AppComponent {
   mpService = inject(MultiplayerService);
   simulService = inject(SimulService);
   socialService = inject(SocialService);
+  analysisService = inject(AnalysisService);
 
   currentView = signal<ViewState>('landing');
   viewParam = signal<string>(''); // For profile ID, room ID etc
@@ -206,10 +210,7 @@ export class AppComponent {
   }
 
   startSimulHost() {
-      // 1. Mark simul as started in meta-service
       this.simulService.startSimul();
-      
-      // 2. Initialize game logic for host
       const simul = this.simulService.currentSimul();
       if(simul) {
           this.logicService.startSimulHosting(simul.config);
@@ -218,10 +219,8 @@ export class AppComponent {
   }
 
   startSimulPlayer() {
-      // Player view logic handles its own initialization based on currentSimul
       this.currentView.set('simul-player');
   }
-
 
   enterFocusMode(gameId: number) {
       this.focusedGameId.set(gameId);
@@ -236,6 +235,23 @@ export class AppComponent {
   analyzeOnLichess(fen: string) {
       const url = `https://lichess.org/analysis/standard/${fen.replace(/\s/g, '_')}`;
       window.open(url, '_blank');
+  }
+
+  // --- ANALYSIS ---
+  startAnalysis(gameId?: string) {
+      if (gameId) {
+          // Find game in history to get PGN/FEN sequence (Mocking PGN retrieval)
+          // Since our history only stores end FEN, we can't fully replay unless we stored moves.
+          // For this demo, let's assume we pass the FEN as "PGN" simply to load the board, 
+          // or ideally, HistoryService should store the PGN string.
+          // Let's create a fake PGN for the demo if not available.
+          
+          // In a real app, HistoryService would store the full PGN.
+          // We will just pass an empty string to open the board, user can paste PGN.
+          this.switchView('analysis', '');
+      } else {
+          this.switchView('analysis');
+      }
   }
 
   formatTime(ms: number): string {
@@ -261,7 +277,6 @@ export class AppComponent {
 
   handleLogout() {
     this.auth.logout();
-    // Handled by effect
   }
 
   updateTimeConfig(minutes: number) {

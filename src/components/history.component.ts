@@ -1,5 +1,5 @@
 
-import { Component, inject, ElementRef, viewChild, effect } from '@angular/core';
+import { Component, inject, ElementRef, viewChild, effect, output } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HistoryService } from '../services/history.service';
 import * as d3 from 'd3';
@@ -79,6 +79,9 @@ import * as d3 from 'd3';
                            <span class="px-4 py-1 bg-gray-200 text-gray-600 text-sm font-black uppercase border-2 border-gray-400">Nulle</span>
                        }
                    }
+                   <button (click)="review.emit(game.id)" class="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 border-2 border-[#1D1C1C] text-[10px] font-black uppercase hover:bg-[#7AF7F7]">
+                       Analyser
+                   </button>
                </div>
 
             </div>
@@ -91,6 +94,8 @@ import * as d3 from 'd3';
 export class HistoryComponent {
   historyService = inject(HistoryService);
   chartContainer = viewChild<ElementRef>('chartContainer');
+  
+  review = output<string>();
 
   stats = this.historyService.getStats.bind(this.historyService);
 

@@ -24,13 +24,15 @@ export class SupabaseSocialService {
   async getProfile(userId: string): Promise<UserProfile | null> {
     const { data, error } = await this.supabase
       .from('profiles')
-      .select(`
+      .select(
+        `
         id,
         username,
         avatar_url,
         bio,
         created_at
-      `)
+      `
+      )
       .eq('id', userId)
       .single();
 
@@ -38,9 +40,9 @@ export class SupabaseSocialService {
       console.error('Error fetching profile:', error);
       return null;
     }
-    
+
     if (!data) {
-        return null;
+      return null;
     }
 
     // Adapt the data to the UserProfile interface
@@ -50,21 +52,24 @@ export class SupabaseSocialService {
       avatar: data.avatar_url,
       bio: data.bio,
       joinedAt: new Date(data.created_at).getTime(),
-      stats: { // Stats are not in the database, so we use default values
+      stats: {
+        // Stats are not in the database, so we use default values
         bullet: 1200,
         blitz: 1200,
         rapid: 1200,
-        classical: 1200,
+        classical: 1200
       },
       badges: [], // Badges are not in the database yet
-      recentGames: [], // Recent games are not in the database yet
+      recentGames: [] // Recent games are not in the database yet
     };
 
     return profile;
   }
 
   async getUserIdByUsername(username: string): Promise<string | null> {
-    const { data, error } = await this.supabase.rpc('get_user_id_by_username', { p_username: username });
+    const { data, error } = await this.supabase.rpc('get_user_id_by_username', {
+      p_username: username
+    });
 
     if (error) {
       console.error('Error getting user ID by username:', error);
@@ -113,14 +118,18 @@ export class SupabaseSocialService {
       return;
     }
 
-    const friends = (data ?? []).map((friend: any) => ({
-      id: friend.friend_id,
-      name: friend.username ?? 'Unknown player',
-      avatar: friend.avatar_url ?? 'https://api.dicebear.com/7.x/notionists/svg?seed=chess-friend',
-      status: 'online' as const,
-      activity: 'Disponible',
-      elo: 1200
-    } satisfies Friend));
+    const friends = (data ?? []).map(
+      (friend: any) =>
+        ({
+          id: friend.friend_id,
+          name: friend.username ?? 'Unknown player',
+          avatar:
+            friend.avatar_url ?? 'https://api.dicebear.com/7.x/notionists/svg?seed=chess-friend',
+          status: 'online' as const,
+          activity: 'Disponible',
+          elo: 1200
+        }) satisfies Friend
+    );
 
     this.friends.set(friends);
 
@@ -169,11 +178,14 @@ export class SupabaseSocialService {
       return;
     }
 
-    const chat = (data ?? []).map((msg: any) => ({
-      senderId: msg.sender_id,
-      text: msg.content,
-      timestamp: msg.created_at ? new Date(msg.created_at).getTime() : Date.now()
-    } satisfies ChatMessage));
+    const chat = (data ?? []).map(
+      (msg: any) =>
+        ({
+          senderId: msg.sender_id,
+          text: msg.content,
+          timestamp: msg.created_at ? new Date(msg.created_at).getTime() : Date.now()
+        }) satisfies ChatMessage
+    );
 
     this.messages.update((current) => {
       const next = new Map(current);
@@ -223,25 +235,39 @@ export class SupabaseSocialService {
       .channel('direct-messages')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `receiver_id=eq.${userId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'direct_messages',
+          filter: `receiver_id=eq.${userId}`
+        },
         (payload) => {
           const newMessage = payload.new as any;
           this.appendMessage(newMessage.sender_id, {
             senderId: newMessage.sender_id,
             text: newMessage.content,
-            timestamp: newMessage.created_at ? new Date(newMessage.created_at).getTime() : Date.now()
+            timestamp: newMessage.created_at
+              ? new Date(newMessage.created_at).getTime()
+              : Date.now()
           });
         }
       )
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `sender_id=eq.${userId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'direct_messages',
+          filter: `sender_id=eq.${userId}`
+        },
         (payload) => {
           const newMessage = payload.new as any;
           this.appendMessage(newMessage.receiver_id, {
             senderId: newMessage.sender_id,
             text: newMessage.content,
-            timestamp: newMessage.created_at ? new Date(newMessage.created_at).getTime() : Date.now()
+            timestamp: newMessage.created_at
+              ? new Date(newMessage.created_at).getTime()
+              : Date.now()
           });
         }
       )

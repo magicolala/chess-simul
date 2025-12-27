@@ -15,7 +15,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck -w web",
-    "generate:env": "node scripts/generate-env.mjs"
+    "generate:env": "node scripts/generate-env.mjs",
+    "supabase:start": "npm run start -w @chess-simul/supabase",
+    "supabase:stop": "npm run stop -w @chess-simul/supabase",
+    "supabase:reset": "npm run reset -w @chess-simul/supabase",
+    "supabase:db:push": "npm run db:push -w @chess-simul/supabase",
+    "supabase:gen:types": "npm run gen:types -w @chess-simul/supabase"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

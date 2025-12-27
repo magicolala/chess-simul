@@ -10,3 +10,6 @@ export function formatPlayerProfile(profile: PlayerProfile): string {
   const title = profile.title ? `${profile.title} ` : '';
   return `${title}${profile.name} (${profile.rating})`;
 }
+
+export type { Database } from '../../supabase/types/database.types';
+export * from '../../supabase/types/database.types';

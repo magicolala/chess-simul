@@ -10,8 +10,14 @@ This directory holds database migrations, seed data, and generated types for the
 ## Quick start
 1. Install the Supabase CLI: https://supabase.com/docs/guides/cli
 2. Log in and link your project: `supabase login` then `supabase link --project-ref <ref>`.
-3. Start the local stack: `supabase start` (requires Docker).
-4. Apply migrations: `supabase migration up`.
-5. (Optional) Load seed data: `supabase db reset --use-migra --seed supabase/seed.sql`.
+3. Start the local stack: `npm run supabase:start` (requires Docker).
+4. Apply migrations: `npm run supabase:db:push` (or `supabase migration up` if you prefer raw CLI commands).
+5. Load seed data and reset local state: `npm run supabase:reset`.
+6. Generate TypeScript types from the linked project: `npm run supabase:gen:types`.
+
+The migration `20250223000007_initial_conventions.sql` enables `pgcrypto`/`uuid-ossp` and provides the `default_uuid` and `handle_timestamps` helpers. Future tables should:
+- Use `public` schema with `uuid` primary keys defaulting to `default_uuid()`.
+- Add `created_at timestamptz not null default timezone('utc', now())` and `updated_at timestamptz not null default timezone('utc', now())` columns.
+- Attach `before insert or update` triggers to call `handle_timestamps`.
 
 Keep database credentials in environment variables (e.g., `.env.local` at the repo root) rather than committing them.

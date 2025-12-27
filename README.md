@@ -53,9 +53,10 @@ Only ever expose the public `anon` key in these files. Never ship or commit the 
 ## Supabase quick start
 1. Install and authenticate the Supabase CLI: `supabase login`.
 2. Link to your project: `supabase link --project-ref <ref>`.
-3. Start local stack: `supabase start` (requires Docker).
-4. Apply migrations: `supabase migration up`.
-5. Seed local data (optional): `supabase db reset --use-migra --seed supabase/seed.sql`.
+3. Start local stack: `npm run supabase:start` (requires Docker).
+4. Apply migrations: `npm run supabase:db:push`.
+5. Seed local data (optional): `npm run supabase:reset`.
+6. Generate TypeScript types: `npm run supabase:gen:types` (writes `supabase/types/database.types.ts`).
 
 ## Next steps for Supabase
 - Model chess simul entities (players, sessions, games) and add first migration in `supabase/migrations`.

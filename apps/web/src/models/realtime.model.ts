@@ -6,7 +6,7 @@ import type {
 
 export type GameRow = DbGameRow & { turn_color?: 'white' | 'black' };
 export type MoveRow = DbMoveRow & { fen?: string };
-export type SimulTableRow = DbSimulTableRow;
+export type SimulTableRow = DbSimulTableRow & { guest_id?: string | null };
 
 export interface PresenceUser {
   user_id: string;

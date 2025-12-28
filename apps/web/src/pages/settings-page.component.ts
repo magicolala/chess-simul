@@ -82,6 +82,7 @@ export class SettingsPageComponent {
         id: user.id,
         username: user.email ?? 'user',
         avatar_url: user.user_metadata?.avatar_url ?? null,
+        bio: user.user_metadata?.bio ?? null,
         created_at: user.created_at
       };
       return profile;

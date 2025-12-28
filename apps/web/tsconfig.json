@@ -15,7 +15,8 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["./*"],
-      "@shared/*": ["../packages/shared/src/*"]
+      "@shared/*": ["../packages/shared/src/*"],
+      "@chess-simul/shared": ["../packages/shared/src/index.ts"]
     }
   },
   "files": ["./index.tsx"],

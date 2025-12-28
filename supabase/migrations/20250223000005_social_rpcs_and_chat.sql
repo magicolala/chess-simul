@@ -88,13 +88,15 @@ CREATE INDEX IF NOT EXISTS idx_direct_messages_receiver_created
 ALTER TABLE public.direct_messages ENABLE ROW LEVEL SECURITY;
 
 -- Only participants can read their conversations
-CREATE POLICY IF NOT EXISTS "Direct messages are visible to participants"
+DROP POLICY IF EXISTS "Direct messages are visible to participants" ON public.direct_messages;
+CREATE POLICY "Direct messages are visible to participants"
     ON public.direct_messages
     FOR SELECT
     USING (sender_id = auth.uid() OR receiver_id = auth.uid());
 
 -- Users can send messages on their behalf
-CREATE POLICY IF NOT EXISTS "Users can insert their own direct messages"
+DROP POLICY IF EXISTS "Users can insert their own direct messages" ON public.direct_messages;
+CREATE POLICY "Users can insert their own direct messages"
     ON public.direct_messages
     FOR INSERT
     WITH CHECK (sender_id = auth.uid());

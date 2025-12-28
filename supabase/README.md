@@ -15,6 +15,8 @@ This directory holds database migrations, seed data, and generated types for the
 5. Load seed data and reset local state: `npm run supabase:reset`.
 6. Generate TypeScript types from the linked project: `npm run supabase:gen:types`.
 
+If you want to start the stack and automatically run all pending migrations in one step, use `npm run supabase:migrate:up`. It calls `supabase start` followed by `supabase migration up --all`, and will reuse `supabase/.env` automatically when it exists.
+
 ## Edge functions
 - `functions/submit-move`: applies and validates a chess move server-side. It reads the current FEN, checks that the caller owns the turn, rejects illegal UCI coordinates, and persists the resulting FEN + move metadata atomically. The frontend should call it with `supabase.functions.invoke('submit-move', { body: { game_id, uci } })` instead of writing to `games`/`moves` directly.
 

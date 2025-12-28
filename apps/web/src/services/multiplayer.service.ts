@@ -49,17 +49,29 @@ export class MultiplayerService {
           this.createMockRoom('ChessViking', 900, 10, 0),
       ]);
 
-      // Simulate Ping variation
-      setInterval(() => {
-          // Fluctuate latency
-          const variation = Math.random() * 50 - 25;
-          let newLat = Math.max(10, this.latency() + variation);
-          
-          // Random spikes
-          if (Math.random() > 0.95) newLat += 300; 
-          
-          this.latency.set(Math.floor(newLat));
-      }, 2000);
+      this.startLatencySimulation();
+  }
+
+  private latencySimulationTimer: any;
+
+  private startLatencySimulation() {
+    this.latencySimulationTimer = setTimeout(() => {
+        // Fluctuate latency
+        const variation = Math.random() * 50 - 25;
+        let newLat = Math.max(10, this.latency() + variation);
+        
+        // Random spikes
+        if (Math.random() > 0.95) newLat += 300; 
+        
+        this.latency.set(Math.floor(newLat));
+
+        // Continue simulation
+        this.startLatencySimulation();
+    }, 2000);
+  }
+
+  ngOnDestroy() {
+    clearTimeout(this.latencySimulationTimer);
   }
 
   // --- ACTIONS ---

@@ -65,8 +65,8 @@ import { PreferencesService, BOARD_THEMES } from '../services/preferences.servic
                 </div>
 
                 <button (click)="finish()" [disabled]="auth.isLoading()" 
-                    class="w-full py-4 bg-[#7AF7F7] text-[#1D1C1C] text-lg font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow-sm hover:bg-[#FFF48D] transition-all disabled:opacity-50 mt-4">
-                    {{ auth.isLoading() ? 'Finalisation...' : 'C\'est parti !' }}
+                    class="w-full py-4 bg-[#7AF7F7] text-[#1D1C1C] text-lg font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow-sm hover:bg-[#FFF48D] transition-all disabled:opacity-50 mt-4"
+                    [innerText]="auth.isLoading() ? 'Finalisation...' : 'C\\'est parti !'">
                 </button>
 
             </div>

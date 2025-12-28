@@ -177,13 +177,19 @@ export class OnlineGameComponent {
       const user = this.auth.currentUser();
       
       if (room && user) {
-          const opponent = room.players.find(p => p.name !== user.name); // Simple match
-          
+          const opponent = room.players.find(p => p.id !== user.id); // Find opponent by ID, not name, for robustness
+          const playerInRoom = room.players.find(p => p.id === user.id); // Find current player in room
+
+          const playerColor = playerInRoom ? playerInRoom.side : 'w'; // Default to 'w' if not found
+          const opponentColor = playerColor === 'w' ? 'b' : 'w';
+
           this.logic.startPvpSession(room.config, 'online', {
               opponentName: opponent ? opponent.name : 'Adversaire',
               opponentAvatar: opponent ? opponent.avatar : '',
               playerName: user.name,
-              systemMessage: 'Partie classée commencée.'
+              systemMessage: 'Partie classée commencée.',
+              playerColor: playerColor,
+              opponentColor: opponentColor
           });
       }
   }
@@ -239,15 +245,26 @@ export class OnlineGameComponent {
   getResultTitle() {
       const g = this.game();
       if (!g) return '';
+      const isPlayerWhite = g.playerColor === 'w';
+
       if (g.status === 'checkmate') {
-          return g.turn === 'b' ? 'Victoire !' : 'Défaite'; // Assuming Player is White
+          // If it's black's turn to move and they are checkmated, white won.
+          // If it's white's turn to move and they are checkmated, black won.
+          const winnerColor = g.turn === 'b' ? 'w' : 'b';
+          return winnerColor === g.playerColor ? 'Victoire !' : 'Défaite';
       }
       if (g.status === 'resigned') {
-           // Did I resign?
-           return g.systemMessage.includes('Vous') ? 'Défaite' : 'Victoire !';
+           // If the player's color matches the resignedBy color, it's a defeat.
+           return g.resignedBy === g.playerColor ? 'Défaite' : 'Victoire !';
       }
       if (g.status === 'timeout') {
-          return g.whiteTime === 0 ? 'Temps écoulé (Déf)' : 'Temps écoulé (Vic)';
+          // If whiteTime is 0 and player is white, it's a defeat.
+          // If blackTime is 0 and player is black, it's a defeat.
+          if ((isPlayerWhite && g.whiteTime === 0) || (!isPlayerWhite && g.blackTime === 0)) {
+              return 'Temps écoulé (Déf)';
+          } else {
+              return 'Temps écoulé (Vic)';
+          }
       }
       return 'Match Nul';
   }

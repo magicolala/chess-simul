@@ -70,7 +70,7 @@ type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-
 })
 export class AppComponent {
   private logicService = inject(ChessSimulService);
-  auth = inject(SupabaseClientService);
+  auth = inject(AuthService);
   historyService = inject(HistoryService);
   prefs = inject(PreferencesService);
   mpService = inject(MultiplayerService);

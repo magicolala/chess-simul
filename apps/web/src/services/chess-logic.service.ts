@@ -150,6 +150,12 @@ export class ChessSimulService {
     // Override defaults with online metadata if provided
     if (mode === 'online' && onlineMetadata) {
         Object.assign(game, onlineMetadata);
+        // Determine playerColor and opponentColor explicitly if not already set by metadata
+        if (!game.playerColor) {
+            // Default to white if not specified in metadata for online games
+            game.playerColor = 'w'; 
+            game.opponentColor = 'b';
+        }
     }
 
     newGames.push(this.gamesMap.get(0)!);
@@ -310,8 +316,9 @@ export class ChessSimulService {
       if(!game || game.status !== 'active') return;
       
       game.status = 'resigned';
-      game.systemMessage = "Vous avez abandonné.";
-      this.recordGame(game, 'loss');
+      game.resignedBy = game.playerColor; // Set the color of the player who resigned
+      game.systemMessage = game.playerColor === 'w' ? 'Les Blancs ont abandonné.' : 'Les Noirs ont abandonné.'; // More generic message
+      this.recordGame(game, 'loss'); // This 'loss' is from the perspective of the player resigning
       this.gamesMap.set(gameId, { ...game });
       this.games.set([...this.gamesMap.values()]);
   }
@@ -388,7 +395,12 @@ export class ChessSimulService {
           this.gamesMap.set(id, updatedGame);
 
           if (gameEndedInLoop) {
-               const result = (game.turn === 'w') ? 'loss' : 'win'; 
+               let result: 'win' | 'loss' = 'loss'; // Default to loss
+               if (game.playerColor === 'w' && newBlackTime <= 0) { // White player, black ran out of time
+                   result = 'win';
+               } else if (game.playerColor === 'b' && newWhiteTime <= 0) { // Black player, white ran out of time
+                   result = 'win';
+               }
                this.recordGame(updatedGame, result);
                shouldUpdateSignal = true;
           } else if (currentWhiteSeconds !== oldWhiteSeconds || currentBlackSeconds !== oldBlackSeconds) {
@@ -440,18 +452,12 @@ export class ChessSimulService {
 
       if (game.chess.isCheckmate()) {
           game.status = 'checkmate';
-          const winner = game.turn === 'w' ? 'Black' : 'White';
-          game.systemMessage = `Échec et mat ! ${winner === 'White' ? 'Les Blancs gagnent' : 'Les Noirs gagnent'}.`;
+          const winnerColor = game.turn === 'w' ? 'b' : 'w'; // The color of the player who delivered checkmate
+          game.systemMessage = `Échec et mat ! ${winnerColor === 'w' ? 'Les Blancs gagnent' : 'Les Noirs gagnent'}.`;
           
-          // Determine local player win/loss based on mode
           let isWin = false;
-          if (game.mode === 'online') {
-              // Assume player is always White for this demo simplicity
-              isWin = winner === 'White';
-          } else if (game.mode === 'local') {
-              isWin = winner === 'White';
-          } else {
-               isWin = (game.mode === 'simul-host' && winner === 'White');
+          if (game.playerColor === winnerColor) {
+              isWin = true;
           }
 
           this.recordGame(game, isWin ? 'win' : 'loss');
@@ -460,6 +466,11 @@ export class ChessSimulService {
           game.status = 'draw';
           game.systemMessage = "Match nul.";
           this.recordGame(game, 'draw');
+      } else if (game.status === 'resigned') {
+          // This case should be handled by the resign() method directly setting resignedBy.
+          // However, if it reaches here (e.g., from an external event), we ensure consistency.
+          // For now, we assume resign() sets it. No changes needed here for `resignedBy` if resign() is called first.
+          // The recordGame (loss) is handled by the resign() call itself.
       }
       this.gamesMap.set(game.id, { ...game });
   }

@@ -37,10 +37,9 @@ export class AuthService {
           isPremium: session.user.user_metadata['is_premium'] || false,
           emailVerified: session.user.email_confirmed_at !== undefined && session.user.email_confirmed_at !== null,
           onboardingCompleted: session.user.user_metadata['onboarding_completed'] || false,
-          twoFactorEnabled: session.user.two_factor_enabled || false,
+          twoFactorEnabled: (session.user as any).two_factor_enabled || false,
         };
-        this.currentUser.set(user);
-        localStorage.setItem('simul_user', JSON.stringify(user));
+        this.finishAuth(user);
       } else {
         this.currentUser.set(null);
         localStorage.removeItem('simul_user');
@@ -77,6 +76,11 @@ export class AuthService {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  finishAuth(user: User) {
+    this.currentUser.set(user);
+    localStorage.setItem('simul_user', JSON.stringify(user));
   }
 
   async register(name: string, email: string, password: string): Promise<boolean> {
@@ -213,6 +217,10 @@ export class AuthService {
     } finally {
         this.isLoading.set(false);
     }
+  }
+
+  async signOut() {
+    await this.logout();
   }
 
   async logout() {

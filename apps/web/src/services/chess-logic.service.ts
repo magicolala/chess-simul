@@ -34,10 +34,14 @@ export interface GameState {
   lastMove: { from: string; to: string } | null;
   
   // Players Info
-  playerName: string; 
+  playerName: string;
+  playerColor?: 'w' | 'b';
   opponentName: string;
+  opponentColor?: 'w' | 'b';
   opponentRating: number;
   opponentAvatar: string;
+
+  resignedBy?: 'w' | 'b';
   
   systemMessage: string;
   chat: ChatMessage[]; 
@@ -116,7 +120,9 @@ export class ChessSimulService {
               turn: 'w',
               lastMove: null,
               playerName: "Hôte (Vous)",
+              playerColor: 'w',
               opponentName: `Challenger #${i + 1}`,
+              opponentColor: 'b',
               opponentRating: 1200 + Math.floor(Math.random() * 800),
               opponentAvatar: `https://api.dicebear.com/7.x/notionists/svg?seed=challenger${i}`,
               systemMessage: "En attente du coup...",
@@ -180,7 +186,9 @@ export class ChessSimulService {
         turn: 'w',
         lastMove: null,
         playerName: "Joueur 1",
+        playerColor: 'w',
         opponentName: mode === 'local' ? "Joueur 2" : "Adversaire",
+        opponentColor: 'b',
         opponentRating: 1200,
         opponentAvatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${internalId}`,
         isProcessing: false,

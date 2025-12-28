@@ -3,6 +3,7 @@ import { Component, inject, computed, signal, ChangeDetectionStrategy, effect } 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessSimulService, GameState, GameConfig } from './services/chess-logic.service';
+import { AuthService } from './services/auth.service';
 import { SupabaseClientService } from './services/supabase-client.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
@@ -124,8 +125,8 @@ export class AppComponent {
             return;
         }
 
-        const emailVerified = !!user.email_confirmed_at;
-        const onboardingCompleted = user.user_metadata?.['onboardingCompleted'] === true;
+        const emailVerified = user.emailVerified;
+        const onboardingCompleted = user.onboardingCompleted;
 
         if (!emailVerified) {
             this.currentView.set('verify-email');

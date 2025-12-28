@@ -165,7 +165,10 @@ export class OnlineGameComponent {
   leaveGame = output<void>();
 
   // Assuming only 1 game active in logic service for this view
-  game = computed(() => this.logic.games()[0]);
+  game = computed(() => {
+    const allGames = this.logic.games();
+    return allGames.length > 0 ? allGames[0] : null;
+  });
   chatInput = signal('');
 
   constructor() {

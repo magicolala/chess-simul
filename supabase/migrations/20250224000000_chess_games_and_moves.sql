@@ -14,7 +14,10 @@ alter table public.games add constraint games_turn_check check (turn in ('w','b'
 alter table public.games alter column fen set default 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 alter table public.games alter column status set default 'waiting';
 
+drop policy if exists "Games selectable by participants" on public.games;
 alter table public.games drop column if exists mode;
+drop policy if exists "Games insert by participants" on public.games;
+drop policy if exists "Games update by host or current player" on public.games;
 alter table public.games drop column if exists host_id;
 alter table public.games drop column if exists pgn;
 alter table public.games drop column if exists last_move_at;

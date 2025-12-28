@@ -19,6 +19,7 @@
     "supabase:start": "npm run start -w @chess-simul/supabase",
     "supabase:stop": "npm run stop -w @chess-simul/supabase",
     "supabase:reset": "npm run reset -w @chess-simul/supabase",
+    "supabase:migrate:up": "node scripts/supabase-auto-migrate.mjs",
     "supabase:db:push": "npm run db:push -w @chess-simul/supabase",
     "supabase:gen:types": "npm run gen:types -w @chess-simul/supabase"
   },

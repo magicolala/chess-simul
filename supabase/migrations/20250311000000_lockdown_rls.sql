@@ -101,6 +101,7 @@ drop policy if exists "Simul tables selectable by host or guest" on public.simul
 drop policy if exists "Simul tables insert by host" on public.simul_tables;
 drop policy if exists "Simul tables update by host" on public.simul_tables;
 drop policy if exists "Simul tables delete by host" on public.simul_tables;
+drop policy if exists "Simul tables joinable by challenger" on public.simul_tables;
 
 create policy "Simul tables visible to host or open simuls" on public.simul_tables
   for select
@@ -128,16 +129,10 @@ create policy "Simul tables deletable by host" on public.simul_tables
 create policy "Simul tables join or leave by challenger" on public.simul_tables
   for update
   using (
-    (simul_tables.guest_id is null or simul_tables.guest_id = auth.uid())
-    and simul_tables.status in ('free', 'reserved')
+    simul_tables.status = 'open' and simul_tables.challenger_id is null
   )
   with check (
-    exists (
-      select 1 from public.simuls s
-      where s.id = simul_tables.simul_id and s.status in ('open', 'running')
-    )
-    and simul_tables.status in ('free', 'reserved')
-    and (simul_tables.guest_id is null or simul_tables.guest_id = auth.uid())
+    simul_tables.challenger_id = auth.uid() and simul_tables.status = 'playing'
   );
 
 -- Games policies

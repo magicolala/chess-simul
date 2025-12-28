@@ -44,7 +44,7 @@ with host_user as (
   on conflict do nothing
   returning id, simul_id
 ), table_seed as (
-  insert into public.simul_tables (simul_id, guest_id, game_id, seat_no, status)
+  insert into public.simul_tables (simul_id, challenger_id, game_id, seat_no, status)
   select g.simul_id, g1.id, g.id, 1, 'playing' from game_seed g
   join guest1 g1 on true
   union all

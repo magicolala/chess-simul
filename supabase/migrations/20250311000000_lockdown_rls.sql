@@ -29,12 +29,14 @@ as $$
       and (
         g.white_id = auth.uid()
         or g.black_id = auth.uid()
-        or g.host_id = auth.uid()
         or (s.id is not null and s.host_id = auth.uid())
       )
   );
 $$;
 
+drop policy if exists "Games selectable by participants" on public.games;
+drop policy if exists "Games updatable by participants" on public.games;
+drop policy if exists "Moves selectable by participants" on public.moves;
 drop function if exists public.is_game_participant(uuid);
 
 -- Ensure RLS is enabled
@@ -96,6 +98,7 @@ create policy "Simuls deletable by host" on public.simuls
   using (host_id = auth.uid());
 
 -- Simul tables policies
+alter publication supabase_realtime drop table public.simul_tables;
 alter publication supabase_realtime add table public.simul_tables;
 drop policy if exists "Simul tables selectable by host or guest" on public.simul_tables;
 drop policy if exists "Simul tables insert by host" on public.simul_tables;
@@ -136,6 +139,7 @@ create policy "Simul tables join or leave by challenger" on public.simul_tables
   );
 
 -- Games policies
+alter publication supabase_realtime drop table public.games;
 alter publication supabase_realtime add table public.games;
 drop policy if exists "Games selectable by participants" on public.games;
 drop policy if exists "Games insert by participants" on public.games;
@@ -149,7 +153,7 @@ create policy "Games visible to participants or simul host" on public.games
 
 create policy "Games insertable by host" on public.games
   for insert
-  with check (host_id = auth.uid());
+  with check (public.is_host(simul_id));
 
 create policy "Games updatable by participants" on public.games
   for update
@@ -158,9 +162,10 @@ create policy "Games updatable by participants" on public.games
 
 create policy "Games deletable by host" on public.games
   for delete
-  using (host_id = auth.uid());
+  using (public.is_host(simul_id));
 
 -- Moves policies
+alter publication supabase_realtime drop table public.moves;
 alter publication supabase_realtime add table public.moves;
 drop policy if exists "Moves selectable by participants" on public.moves;
 drop policy if exists "Moves insertable by participants" on public.moves;

@@ -26,14 +26,26 @@ function runStep(title, command, args) {
 }
 
 async function main() {
-  const migrationArgs = ['migration', 'up', '--all'];
+  if (process.env.SUPABASE_DB_URL) {
+    // Run migrations on cloud
+    const dbPushArgs = ['db', 'push'];
 
-  if (envFile && existsSync(envFile)) {
-    migrationArgs.push('--env-file', envFile);
+    if (envFile && existsSync(envFile)) {
+      dbPushArgs.push('--env-file', envFile);
+    }
+
+    await runStep('Push migrations to cloud database', 'supabase', dbPushArgs);
+  } else {
+    // Run local setup and migrations
+    const migrationArgs = ['migration', 'up', '--all'];
+
+    if (envFile && existsSync(envFile)) {
+      migrationArgs.push('--env-file', envFile);
+    }
+
+    await runStep('Start the local Supabase stack (idempotent)', 'supabase', ['start']);
+    await runStep('Apply latest migrations', 'supabase', migrationArgs);
   }
-
-  await runStep('Start the local Supabase stack (idempotent)', 'supabase', ['start']);
-  await runStep('Apply latest migrations', 'supabase', migrationArgs);
 }
 
 main().catch((error) => {

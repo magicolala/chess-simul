@@ -28,11 +28,7 @@ function runStep(title, command, args) {
 async function main() {
   if (process.env.SUPABASE_DB_URL) {
     // Run migrations on cloud
-    const dbPushArgs = ['db', 'push'];
-
-    if (envFile && existsSync(envFile)) {
-      dbPushArgs.push('--env-file', envFile);
-    }
+    const dbPushArgs = ['db', 'push', '--db-url', process.env.SUPABASE_DB_URL];
 
     await runStep('Push migrations to cloud database', 'supabase', dbPushArgs);
   } else {

@@ -168,7 +168,8 @@ end;
 $$;
 
 -- RLS adjustments: reinforce host-only updates and keep guests read access
-create policy if not exists "Simuls selectable by host or guest" on public.simuls
+drop policy if exists "Simuls selectable by host or guest" on public.simuls;
+create policy "Simuls selectable by host or guest" on public.simuls
   for select using (
     host_id = auth.uid()
     or exists (
@@ -186,7 +187,8 @@ create or replace policy "Simuls update by host" on public.simuls
 create or replace policy "Simuls delete by host" on public.simuls
   for delete using (host_id = auth.uid());
 
-create policy if not exists "Simul tables selectable by host or guest" on public.simul_tables
+drop policy if exists "Simul tables selectable by host or guest" on public.simul_tables;
+create policy "Simul tables selectable by host or guest" on public.simul_tables
   for select using (
     exists (
       select 1 from public.simuls s

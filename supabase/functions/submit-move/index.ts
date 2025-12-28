@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.210.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Chess } from 'npm:chess.js@1.0.0';
+import { corsHeaders } from '../_shared/cors.ts';
 
 type SubmitMoveBody = {
   game_id?: string;
@@ -15,6 +16,10 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
 }
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -159,6 +164,6 @@ serve(async (req) => {
 function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }

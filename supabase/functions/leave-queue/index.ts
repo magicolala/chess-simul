@@ -4,7 +4,7 @@ import { createSupabaseClient } from '../_shared/supabase-client.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {

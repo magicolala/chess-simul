@@ -145,7 +145,7 @@ export class RealtimeGameService implements OnDestroy {
   private mergeMoves(incoming: MoveRow[]) {
     if (!incoming || incoming.length === 0) return;
 
-    const existingById = new Map<string, MoveRow>();
+    const existingById = new Map<number, MoveRow>();
     for (const move of this.movesSubject.value) {
       existingById.set(move.id, move);
     }

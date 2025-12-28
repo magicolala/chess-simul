@@ -167,7 +167,7 @@ export class SupabaseMatchmakingService {
 
     const { data, error } = await this.supabase
       .from('invites')
-      .select('id, from_user, to_user, time_control, status, created_at')
+      .select('id, from_user, to_user, time_control, status, created_at, updated_at')
       .or(`from_user.eq.${user.id},to_user.eq.${user.id}`)
       .order('created_at', { ascending: false });
 

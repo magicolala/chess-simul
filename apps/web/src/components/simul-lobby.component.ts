@@ -167,12 +167,12 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
       const mergedTables = active.simul_tables.map((table) => {
         const updatedTable = updates.find((u) => u.id === table.id);
         if (updatedTable) {
-            return {
-                ...table,
-                ...updatedTable,
-                challenger_id: updatedTable.guest_id,
-                status: updatedTable.status as SimulTableStatus
-            };
+          return {
+            ...table,
+            ...updatedTable,
+            challenger_id: updatedTable.guest_id ?? updatedTable.challenger_id,
+            status: updatedTable.status as SimulTableStatus
+          };
         }
         return table;
       });

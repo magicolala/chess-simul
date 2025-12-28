@@ -1,4 +1,4 @@
-import type { Database as SupabaseDatabase } from '../../supabase/types/database.types';
+import type { Database as SupabaseDatabase } from '@supabase/types/database.types';
 
 export type Database = SupabaseDatabase;
 
@@ -36,4 +36,4 @@ export function formatPlayerProfile(profile: PlayerProfile): string {
   return `${title}${profile.name} (${profile.rating})`;
 }
 
-export * from '../../supabase/types/database.types';
+export * from '@supabase/types/database.types';

@@ -1,6 +1,3 @@
-export interface Profile {
-  id: string;
-  username: string;
-  avatar_url?: string | null;
-  created_at?: string | null;
-}
+import type { ProfileRow } from '@chess-simul/shared';
+
+export type Profile = ProfileRow;

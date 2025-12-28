@@ -1,14 +1,6 @@
 import { Injectable, effect, inject, signal } from '@angular/core';
 import { SupabaseClientService } from './supabase-client.service';
-
-export interface InviteRow {
-  id: string;
-  from_user: string;
-  to_user: string;
-  time_control: string;
-  status: string;
-  created_at?: string;
-}
+import type { InviteRow } from '@chess-simul/shared';
 
 @Injectable({
   providedIn: 'root',

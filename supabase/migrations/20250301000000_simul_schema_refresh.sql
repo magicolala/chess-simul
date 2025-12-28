@@ -23,8 +23,13 @@ alter table public.simuls add constraint simuls_status_check check (status in ('
 alter table public.simuls alter column status set default 'draft';
 
 -- Rename guest column to challenger for clarity
-alter table public.simul_tables
-  rename column if exists guest_id to challenger_id;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name='simul_tables' AND column_name='guest_id') AND
+       NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name='simul_tables' AND column_name='challenger_id') THEN
+        ALTER TABLE public.simul_tables RENAME COLUMN guest_id TO challenger_id;
+    END IF;
+END $$;
 
 -- Normalize table statuses
 update public.simul_tables set status = 'open' where status in ('free', 'open');

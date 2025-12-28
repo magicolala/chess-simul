@@ -178,13 +178,16 @@ create policy "Simuls selectable by host or guest" on public.simuls
     )
   );
 
-create or replace policy "Simuls insert by host" on public.simuls
+drop policy if exists "Simuls insert by host" on public.simuls;
+create policy "Simuls insert by host" on public.simuls
   for insert with check (host_id = auth.uid());
 
-create or replace policy "Simuls update by host" on public.simuls
+drop policy if exists "Simuls update by host" on public.simuls;
+create policy "Simuls update by host" on public.simuls
   for update using (host_id = auth.uid()) with check (host_id = auth.uid());
 
-create or replace policy "Simuls delete by host" on public.simuls
+drop policy if exists "Simuls delete by host" on public.simuls;
+create policy "Simuls delete by host" on public.simuls
   for delete using (host_id = auth.uid());
 
 drop policy if exists "Simul tables selectable by host or guest" on public.simul_tables;
@@ -197,7 +200,8 @@ create policy "Simul tables selectable by host or guest" on public.simul_tables
     or guest_id = auth.uid()
   );
 
-create or replace policy "Simul tables insert by host" on public.simul_tables
+drop policy if exists "Simul tables insert by host" on public.simul_tables;
+create policy "Simul tables insert by host" on public.simul_tables
   for insert with check (
     exists (
       select 1 from public.simuls s
@@ -205,7 +209,8 @@ create or replace policy "Simul tables insert by host" on public.simul_tables
     )
   );
 
-create or replace policy "Simul tables update by host" on public.simul_tables
+drop policy if exists "Simul tables update by host" on public.simul_tables;
+create policy "Simul tables update by host" on public.simul_tables
   for update using (
     exists (
       select 1 from public.simuls s
@@ -218,7 +223,8 @@ create or replace policy "Simul tables update by host" on public.simul_tables
     )
   );
 
-create or replace policy "Simul tables delete by host" on public.simul_tables
+drop policy if exists "Simul tables delete by host" on public.simul_tables;
+create policy "Simul tables delete by host" on public.simul_tables
   for delete using (
     exists (
       select 1 from public.simuls s

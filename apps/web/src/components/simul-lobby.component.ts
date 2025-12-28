@@ -114,7 +114,11 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
       .fetchSimul(this.simulId)
       .then(() => {
         const tables = this.simulService.activeSimul()?.simul_tables ?? [];
-        this.realtimeSimul.preloadTables(tables);
+        const mappedTables = tables.map(table => ({
+            ...table,
+            guest_id: table.challenger_id
+        }));
+        this.realtimeSimul.preloadTables(mappedTables);
       })
       .catch((err) => {
         this.simulService.error.set(this.simulService.friendlyError(err));
@@ -160,7 +164,18 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
       const active = this.simulService.activeSimul();
       if (!active || updates.length === 0) return;
 
-      const mergedTables = active.simul_tables.map((table) => updates.find((u) => u.id === table.id) ?? table);
+      const mergedTables = active.simul_tables.map((table) => {
+        const updatedTable = updates.find((u) => u.id === table.id);
+        if (updatedTable) {
+            return {
+                ...table,
+                ...updatedTable,
+                challenger_id: updatedTable.guest_id,
+                status: updatedTable.status as SimulTableStatus
+            };
+        }
+        return table;
+      });
       this.simulService.activeSimul.set({ ...active, simul_tables: mergedTables });
 
       const lastUpdate = updates[updates.length - 1];

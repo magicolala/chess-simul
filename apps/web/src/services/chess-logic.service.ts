@@ -72,9 +72,21 @@ export class ChessSimulService {
   private config: GameConfig = { timeMinutes: 10, incrementSeconds: 0, opponentCount: 1, difficulty: 'pvp' };
 
   constructor() {
-    this.timerInterval = setInterval(() => {
-        this.updateTimers();
+    this.startTimer();
+  }
+
+  private startTimer() {
+    this.timerInterval = setTimeout(() => {
+      this.updateTimers();
+      // Only continue the timer if there are active games
+      if (Array.from(this.gamesMap.values()).some(game => game.status === 'active')) {
+        this.startTimer();
+      }
     }, 100);
+  }
+
+  ngOnDestroy() {
+    clearTimeout(this.timerInterval);
   }
 
   /**

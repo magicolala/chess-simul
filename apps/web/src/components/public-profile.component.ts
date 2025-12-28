@@ -1,5 +1,5 @@
 
-import { Component, inject, input, effect } from '@angular/core';
+import { Component, inject, input, effect, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseSocialService } from '../services/supabase-social.service';
 import { SupabaseClientService } from '../services/supabase-client.service';

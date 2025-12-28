@@ -198,6 +198,8 @@ import { ChessBoardComponent } from './chess-board.component';
 export class DashboardComponent {
     auth = inject(AuthService);
     socialService = inject(SocialService);
+    simulService = inject(ChessSimulService);
+    historyService = inject(HistoryService);
 
     startQuickGame = output<{ time: number, inc: number }>();
     resumeGame = output<number>();

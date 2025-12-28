@@ -1,12 +1,12 @@
 
 import { Component, inject, output, signal, computed } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { SimulService } from '../services/simul.service';
 
 @Component({
   selector: 'app-simul-list',
   standalone: true,
-  imports: [CommonModule, DatePipe],
+  imports: [CommonModule],
   template: `
     <div class="max-w-7xl mx-auto p-4 md:p-8 font-sans h-full flex flex-col">
         

@@ -1,50 +1,76 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: N/A (template) -> 1.0.0
+- Modified principles: [PRINCIPLE_1_NAME] -> I. Workspace Ownership; [PRINCIPLE_2_NAME] -> II. Security & Privileged Operations; [PRINCIPLE_3_NAME] -> III. Quality Gates (Non-Negotiable); [PRINCIPLE_4_NAME] -> IV. Spec-Driven Delivery; [PRINCIPLE_5_NAME] -> V. Realtime & Performance Discipline
+- Added sections: Environment & Deployment Constraints; Development Workflow & Review
+- Removed sections: None
+- Templates requiring updates: ✅ .specify/templates/plan-template.md; ✅ .specify/templates/spec-template.md (no changes needed); ✅ .specify/templates/tasks-template.md (no changes needed); ⚠ .specify/templates/commands/*.md (directory missing)
+- Follow-up TODOs: TODO(RATIFICATION_DATE)
+-->
+# Chess Simul Monorepo Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Workspace Ownership
+- All UI code lives in `apps/web`, shared types/utilities in `packages/shared`, and
+  database work (migrations, seed data, generated types) in `supabase`.
+- Cross-workspace dependencies MUST go through package boundaries; do not import
+  files directly across workspaces.
+- Repository tooling and shared scripts live at the root or in `scripts`.
+Rationale: Clear boundaries prevent circular dependencies and keep ownership explicit.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Security & Privileged Operations
+- Only the public `anon` key may appear in `apps/web/src/environments/`.
+- Never commit Supabase `.env` files; web-only secrets belong in root `.env.local`.
+- Privileged database writes MUST go through Edge Functions or server-only code,
+  with RLS policies enforced and validated.
+Rationale: Client bundles must remain safe, and database access must be auditable.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Quality Gates (Non-Negotiable)
+- Before review or merge, changes MUST pass `npm run lint`, `npm run format:check`,
+  and `npm test` (TypeScript typecheck).
+- Code MUST follow `.editorconfig` and Prettier formatting; do not bypass tooling.
+Rationale: Automated checks keep the monorepo consistent and prevent regressions.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Spec-Driven Delivery
+- Feature work MUST include a spec (`/specs/.../spec.md`), plan, and tasks aligned
+  to user stories, with acceptance scenarios defined up front.
+- If a feature requires tests, they MUST be listed and written to fail before
+  implementation.
+- Changes that alter environments, schemas, or workflows MUST update docs.
+Rationale: Specs keep scope aligned and make delivery measurable and reviewable.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Realtime & Performance Discipline
+- Realtime subscriptions MUST filter early and keep payloads lean (select only the
+  columns needed).
+- Prefer incremental updates and paginated history over full-table streams.
+- Avoid heavy computed fields in realtime payloads unless justified.
+Rationale: Realtime features must remain fast and scalable for live play.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Environment & Deployment Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Build and deploy MUST use the generated environment wiring (`npm run generate:env`).
+- Schema changes MUST be captured in `supabase/migrations` and accompanied by
+  regenerated types under `supabase/types`.
+- CI is authoritative; do not merge when lint, typecheck, or build fails.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow & Review
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Angular files MUST use kebab-case names; types/classes are PascalCase and
+  variables/functions are camelCase.
+- Reviews MUST verify constitution compliance and document any approved exception
+  in the plan's "Complexity Tracking" section.
+- Use conventional, imperative commit prefixes when possible (`feat:`, `chore:`).
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution supersedes other practices; conflicts MUST be resolved in favor
+  of this document.
+- Amendments require a documented rationale, review by maintainers, and an updated
+  Sync Impact Report.
+- Versioning follows semantic intent: MAJOR for incompatible governance changes,
+  MINOR for new or expanded principles/sections, PATCH for clarifications.
+- Reviews MUST include a constitution check; violations require explicit approval
+  and a mitigation plan.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date not found in repo. | **Last Amended**: 2025-12-29

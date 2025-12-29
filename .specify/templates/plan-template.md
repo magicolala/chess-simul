@@ -31,7 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Workspace Ownership: changes stay within correct workspace; no cross-workspace
+  direct file imports.
+- Security & Privileged Ops: no `service_role` keys in web envs; Supabase `.env`
+  files untracked; privileged writes use Edge Functions or server-only paths.
+- Quality Gates: plan includes lint, format check, and typecheck before review.
+- Spec-Driven Delivery: spec/plan/tasks align to user stories; doc updates planned
+  for env/schema/workflow changes.
+- Realtime & Performance Discipline: subscriptions filter early and keep payloads
+  lean when realtime is in scope.
 
 ## Project Structure
 

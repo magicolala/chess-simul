@@ -145,7 +145,7 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           <p class="text-gray-500 text-sm font-bold">Aucune notification pour l'instant.</p>
         } @else {
           <ul class="space-y-1 text-sm font-bold">
-            @for (message of matchmaking.notifications(); track message) {
+            @for (message of matchmaking.notifications(); track $index) {
               <li class="flex items-center space-x-2"><span>•</span> <span>{{ message }}</span></li>
             }
           </ul>

@@ -1,7 +1,7 @@
 <!--
 Sync Impact Report
 - Version change: N/A (template) -> 1.0.0
-- Modified principles: [PRINCIPLE_1_NAME] -> I. Workspace Ownership; [PRINCIPLE_2_NAME] -> II. Security & Privileged Operations; [PRINCIPLE_3_NAME] -> III. Quality Gates (Non-Negotiable); [PRINCIPLE_4_NAME] -> IV. Spec-Driven Delivery; [PRINCIPLE_5_NAME] -> V. Realtime & Performance Discipline
+- Modified principles: template principle 1 -> I. Workspace Ownership; template principle 2 -> II. Security & Privileged Operations; template principle 3 -> III. Quality Gates (Non-Negotiable); template principle 4 -> IV. Spec-Driven Delivery; template principle 5 -> V. Realtime & Performance Discipline
 - Added sections: Environment & Deployment Constraints; Development Workflow & Review
 - Removed sections: None
 - Templates requiring updates: ✅ .specify/templates/plan-template.md; ✅ .specify/templates/spec-template.md (no changes needed); ✅ .specify/templates/tasks-template.md (no changes needed); ⚠ .specify/templates/commands/*.md (directory missing)

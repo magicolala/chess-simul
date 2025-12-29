@@ -296,6 +296,255 @@ export type Database = {
         };
         Relationships: [];
       };
+      hydra_match_queue: {
+        Row: {
+          id: string;
+          user_id: string;
+          created_at: string;
+          elo: number | null;
+          max_games: number;
+          time_control_initial: number;
+          time_control_increment: number;
+          status: string;
+          elo_min: number | null;
+          elo_max: number | null;
+          last_range_update_at: string | null;
+          tournament_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          created_at?: string;
+          elo?: number | null;
+          max_games?: number;
+          time_control_initial: number;
+          time_control_increment: number;
+          status?: string;
+          elo_min?: number | null;
+          elo_max?: number | null;
+          last_range_update_at?: string | null;
+          tournament_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          created_at?: string;
+          elo?: number | null;
+          max_games?: number;
+          time_control_initial?: number;
+          time_control_increment?: number;
+          status?: string;
+          elo_min?: number | null;
+          elo_max?: number | null;
+          last_range_update_at?: string | null;
+          tournament_id?: string | null;
+        };
+        Relationships: [];
+      };
+      hydra_tournaments: {
+        Row: {
+          id: string;
+          name: string;
+          type: 'arena' | 'survival';
+          start_time: string;
+          duration_minutes: number | null;
+          capital_lives: number | null;
+          status: 'pending' | 'active' | 'completed' | 'cancelled';
+          created_at: string;
+          updated_at: string;
+          end_time: string | null;
+          survival_lives_default: number | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          type: 'arena' | 'survival';
+          start_time?: string;
+          duration_minutes?: number | null;
+          capital_lives?: number | null;
+          status?: 'pending' | 'active' | 'completed' | 'cancelled';
+          created_at?: string;
+          updated_at?: string;
+          end_time?: string | null;
+          survival_lives_default?: number | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          type?: 'arena' | 'survival';
+          start_time?: string;
+          duration_minutes?: number | null;
+          capital_lives?: number | null;
+          status?: 'pending' | 'active' | 'completed' | 'cancelled';
+          created_at?: string;
+          updated_at?: string;
+          end_time?: string | null;
+          survival_lives_default?: number | null;
+        };
+        Relationships: [];
+      };
+      hydra_tournament_participants: {
+        Row: {
+          id: string;
+          tournament_id: string;
+          user_id: string;
+          score: number;
+          lives_remaining: number | null;
+          joined_at: string;
+          eliminated_at: string | null;
+          active_game_count: number;
+        };
+        Insert: {
+          id?: string;
+          tournament_id: string;
+          user_id: string;
+          score?: number;
+          lives_remaining?: number | null;
+          joined_at?: string;
+          eliminated_at?: string | null;
+          active_game_count?: number;
+        };
+        Update: {
+          id?: string;
+          tournament_id?: string;
+          user_id?: string;
+          score?: number;
+          lives_remaining?: number | null;
+          joined_at?: string;
+          eliminated_at?: string | null;
+          active_game_count?: number;
+        };
+        Relationships: [];
+      };
+      hydra_games: {
+        Row: {
+          id: string;
+          tournament_id: string;
+          white_player_id: string;
+          black_player_id: string;
+          status: 'pending' | 'active' | 'finished' | 'forfeited';
+          result: 'white_win' | 'black_win' | 'draw' | 'forfeit' | null;
+          time_control: string;
+          start_time: string;
+          end_time: string | null;
+          last_move_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tournament_id: string;
+          white_player_id: string;
+          black_player_id: string;
+          status?: 'pending' | 'active' | 'finished' | 'forfeited';
+          result?: 'white_win' | 'black_win' | 'draw' | 'forfeit' | null;
+          time_control?: string;
+          start_time?: string;
+          end_time?: string | null;
+          last_move_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tournament_id?: string;
+          white_player_id?: string;
+          black_player_id?: string;
+          status?: 'pending' | 'active' | 'finished' | 'forfeited';
+          result?: 'white_win' | 'black_win' | 'draw' | 'forfeit' | null;
+          time_control?: string;
+          start_time?: string;
+          end_time?: string | null;
+          last_move_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      hydra_game_pgn: {
+        Row: {
+          id: string;
+          game_id: string;
+          pgn_text: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          game_id: string;
+          pgn_text: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          game_id?: string;
+          pgn_text?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      hydra_score_events: {
+        Row: {
+          id: string;
+          tournament_id: string;
+          participant_id: string;
+          game_id: string;
+          delta: number;
+          reason: 'win' | 'draw' | 'loss' | 'forfeit';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tournament_id: string;
+          participant_id: string;
+          game_id: string;
+          delta: number;
+          reason: 'win' | 'draw' | 'loss' | 'forfeit';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tournament_id?: string;
+          participant_id?: string;
+          game_id?: string;
+          delta?: number;
+          reason?: 'win' | 'draw' | 'loss' | 'forfeit';
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      hydra_matchmaking_events: {
+        Row: {
+          id: string;
+          tournament_id: string;
+          player_id: string;
+          queue_action: 'join' | 'leave' | 'match';
+          elo_min: number | null;
+          elo_max: number | null;
+          matched_game_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tournament_id: string;
+          player_id: string;
+          queue_action: 'join' | 'leave' | 'match';
+          elo_min?: number | null;
+          elo_max?: number | null;
+          matched_game_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tournament_id?: string;
+          player_id?: string;
+          queue_action?: 'join' | 'leave' | 'match';
+          elo_min?: number | null;
+          elo_max?: number | null;
+          matched_game_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       invites: {
         Row: {
           id: string;

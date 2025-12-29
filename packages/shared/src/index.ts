@@ -36,4 +36,5 @@ export function formatPlayerProfile(profile: PlayerProfile): string {
   return `${title}${profile.name} (${profile.rating})`;
 }
 
+export * from './types/hydra.types';
 export * from '@supabase/types/database.types';

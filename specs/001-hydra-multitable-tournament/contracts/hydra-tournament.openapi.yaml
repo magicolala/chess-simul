@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Hydra Tournament API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /tournaments/{tournamentId}:
+    get:
+      summary: Get tournament details
+      parameters:
+        - in: path
+          name: tournamentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tournament details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tournament'
+  /tournaments/{tournamentId}/join:
+    post:
+      summary: Join a tournament
+      parameters:
+        - in: path
+          name: tournamentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Participant entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Participant'
+  /tournaments/{tournamentId}/leaderboard:
+    get:
+      summary: Get current leaderboard
+      parameters:
+        - in: path
+          name: tournamentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeaderboardEntry'
+  /tournaments/{tournamentId}/games/active:
+    get:
+      summary: Get active games for the current player
+      parameters:
+        - in: path
+          name: tournamentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Active games list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+  /queue/join:
+    post:
+      summary: Enter global matchmaking queue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueueJoinRequest'
+      responses:
+        '200':
+          description: Queue status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueStatus'
+  /queue/leave:
+    post:
+      summary: Leave global matchmaking queue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueueLeaveRequest'
+      responses:
+        '204':
+          description: Left queue
+components:
+  schemas:
+    Tournament:
+      type: object
+      required: [id, type, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [arena, survival]
+        status:
+          type: string
+          enum: [scheduled, active, ended]
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        survivalLivesDefault:
+          type: integer
+    Participant:
+      type: object
+      required: [id, tournamentId, playerId, scoreTotal]
+      properties:
+        id:
+          type: string
+        tournamentId:
+          type: string
+        playerId:
+          type: string
+        scoreTotal:
+          type: integer
+        livesRemaining:
+          type: integer
+        eliminatedAt:
+          type: string
+          format: date-time
+        activeGameCount:
+          type: integer
+    Game:
+      type: object
+      required: [id, tournamentId, status, timeControl]
+      properties:
+        id:
+          type: string
+        tournamentId:
+          type: string
+        whitePlayerId:
+          type: string
+        blackPlayerId:
+          type: string
+        status:
+          type: string
+          enum: [pending, active, finished, forfeited]
+        result:
+          type: string
+          enum: [whiteWin, blackWin, draw, forfeit]
+        timeControl:
+          type: string
+          example: 5+3
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    LeaderboardEntry:
+      type: object
+      required: [playerId, scoreTotal, rank]
+      properties:
+        playerId:
+          type: string
+        scoreTotal:
+          type: integer
+        rank:
+          type: integer
+        eliminatedAt:
+          type: string
+          format: date-time
+    QueueJoinRequest:
+      type: object
+      required: [tournamentId]
+      properties:
+        tournamentId:
+          type: string
+    QueueLeaveRequest:
+      type: object
+      required: [tournamentId]
+      properties:
+        tournamentId:
+          type: string
+    QueueStatus:
+      type: object
+      required: [tournamentId, inQueue]
+      properties:
+        tournamentId:
+          type: string
+        inQueue:
+          type: boolean
+        eloMin:
+          type: integer
+        eloMax:
+          type: integer

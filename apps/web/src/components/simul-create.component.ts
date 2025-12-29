@@ -53,6 +53,14 @@ import { GameConfig } from '../services/chess-logic.service';
                     </div>
                 </div>
 
+                <div class="p-4 bg-[#FFF48D] border-2 border-[#1D1C1C] wero-shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-black uppercase text-[#1D1C1C]">Preset Hydra</p>
+                        <p class="text-xs font-bold text-gray-700">Cadence recommandée 5 min + 3s, scoring +3 / +1 / -1.</p>
+                    </div>
+                    <button (click)="useHydraPreset()" class="px-4 py-2 bg-[#1D1C1C] text-[#FFF48D] font-black uppercase border-2 border-[#1D1C1C] hover:bg-black">Appliquer 5+3</button>
+                </div>
+
                 <!-- Theme / Options -->
                 <div>
                      <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Visibilité</label>
@@ -84,6 +92,11 @@ export class SimulCreateComponent {
   opponentCount = signal(5);
   timeMinutes = signal(20);
   incrementSeconds = signal(10);
+
+  useHydraPreset() {
+      this.timeMinutes.set(5);
+      this.incrementSeconds.set(3);
+  }
 
   launchSimul() {
       this.start.emit({

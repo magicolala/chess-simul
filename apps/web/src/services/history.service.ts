@@ -9,6 +9,7 @@ export interface GameResult {
   result: 'win' | 'loss' | 'draw'; // from player perspective
   date: number;
   fen: string;
+  hydraPoints: number;
 }
 
 @Injectable({
@@ -20,7 +21,13 @@ export class HistoryService {
   constructor() {
     const stored = localStorage.getItem('simul_history');
     if (stored) {
-      this.history.set(JSON.parse(stored));
+      const parsed: GameResult[] = JSON.parse(stored);
+      this.history.set(
+        parsed.map(result => ({
+          hydraPoints: 0,
+          ...result
+        }))
+      );
     }
 
     effect(() => {
@@ -50,6 +57,21 @@ export class HistoryService {
       losses,
       draws,
       winRate: Math.round((wins / total) * 100)
+    };
+  }
+
+  getHydraStats() {
+    const games = this.history();
+    const wins = games.filter(g => g.result === 'win').length;
+    const draws = games.filter(g => g.result === 'draw').length;
+    const losses = games.filter(g => g.result === 'loss').length;
+    const totalPoints = games.reduce((sum, g) => sum + (g.hydraPoints ?? 0), 0);
+
+    return {
+      totalPoints,
+      wins,
+      draws,
+      losses
     };
   }
 }

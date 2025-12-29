@@ -75,15 +75,35 @@ import { ChessBoardComponent } from './chess-board.component';
 
         <!-- Main Area -->
         <main class="flex-1 flex flex-col relative overflow-hidden bg-gray-200 dark:bg-[#000]">
-            
+
+            <div class="bg-white dark:bg-[#0f0f0f] border-b-2 border-[#1D1C1C] dark:border-white p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
+                <div>
+                    <p class="text-xs font-black uppercase text-gray-500">Score Hydra</p>
+                    <div class="flex items-end space-x-3">
+                        <span class="text-4xl md:text-5xl font-black text-[#1D1C1C] dark:text-white">{{ simulService.hydraScoreboard().totalPoints }}</span>
+                        <div class="flex space-x-2 text-xs font-bold uppercase text-gray-500">
+                            <span class="px-2 py-1 bg-green-100 text-green-700 border border-green-200">+3 Win</span>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 border border-gray-200">+1 Draw</span>
+                            <span class="px-2 py-1 bg-red-100 text-red-600 border border-red-200">-1 Loss</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 font-medium mt-1">{{ simulService.hydraScoreboard().activeBoards }} tables actives • potentiel restant {{ simulService.hydraScoreboard().potential }} pts</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="bg-[#FFF48D] border-2 border-[#1D1C1C] px-4 py-3 font-black">{{ simulService.hydraScoreboard().wins }} victoires</div>
+                    <div class="bg-white border-2 border-[#1D1C1C] px-4 py-3 font-black">{{ simulService.hydraScoreboard().draws }} nulles</div>
+                    <div class="bg-white border-2 border-[#1D1C1C] px-4 py-3 font-black text-red-600">{{ simulService.hydraScoreboard().losses }} défaites</div>
+                </div>
+            </div>
+
             <!-- Grid View (Zoomed Out) -->
             @if (!isFocusedMode()) {
                 <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-nano-banana">
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
                         @for (game of games(); track game.id) {
                             <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-2 wero-shadow hover:scale-[1.02] transition-transform relative flex flex-col group"
-                                [class.ring-4]="game.isHostTurn"
-                                [class.ring-red-500]="game.isHostTurn"
+                                [class.ring-4]="game.requiresAttention"
+                                [class.ring-green-400]="game.requiresAttention"
                                 (click)="focusGame(game.id)">
                                 
                                 <!-- Header -->
@@ -91,7 +111,7 @@ import { ChessBoardComponent } from './chess-board.component';
                                     <span class="font-black font-display text-sm">#{{ game.id + 1 }}</span>
                                     <div class="flex items-center space-x-1">
                                         <span class="text-[10px] font-bold truncate max-w-[80px]">{{ game.opponentName }}</span>
-                                        <div class="w-2 h-2 rounded-full" [class.bg-green-500]="game.isHostTurn" [class.bg-gray-300]="!game.isHostTurn"></div>
+                                        <div class="w-2 h-2 rounded-full" [class.bg-green-500]="game.requiresAttention" [class.bg-gray-300]="!game.requiresAttention"></div>
                                     </div>
                                 </div>
                                 
@@ -192,16 +212,18 @@ import { ChessBoardComponent } from './chess-board.component';
   `
 })
 export class SimulHostComponent {
-  private simulService = inject(ChessSimulService);
-  
+  simulService = inject(ChessSimulService);
+
   games = this.simulService.games;
   
   focusedGameId = signal<number | null>(null);
 
   // Computed helpers
   activeCount = computed(() => this.games().filter(g => g.status === 'active').length);
-  actionRequiredGames = computed(() => this.games().filter(g => g.status === 'active' && g.isHostTurn));
-  waitingGames = computed(() => this.games().filter(g => g.status === 'active' && !g.isHostTurn));
+  actionRequiredGames = computed(() =>
+    this.games().filter(g => g.status === 'active' && (g.requiresAttention || g.history.length === 0))
+  );
+  waitingGames = computed(() => this.games().filter(g => g.status === 'active' && !g.requiresAttention));
   actionRequiredCount = computed(() => this.actionRequiredGames().length);
   waitingCount = computed(() => this.waitingGames().length);
 

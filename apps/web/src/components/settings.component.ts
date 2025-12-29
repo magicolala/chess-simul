@@ -1,8 +1,8 @@
 
-import { Component, inject, signal, OnInit, output, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
-import { PreferencesService, BOARD_THEMES, PIECE_SETS } from '../services/preferences.service';
+import { PreferencesService, BOARD_THEMES } from '../services/preferences.service';
 import { AuthService } from '../services/auth.service';
 
 type SettingsTab = 'profile' | 'security' | 'appearance' | 'game' | 'notifications' | 'privacy' | 'premium';

@@ -1,7 +1,7 @@
 
 import { Injectable, signal, inject } from '@angular/core';
 import { GameConfig } from './chess-logic.service';
-import { AuthService, User } from './auth.service';
+import { AuthService } from './auth.service';
 
 export interface SimulEvent {
   id: string;
@@ -76,7 +76,7 @@ export class SimulService {
     if (!user) return;
 
     // Find in list or use current if we are just looking at it
-    let simul = this.simuls().find(s => s.id === simulId) || this.currentSimul();
+    const simul = this.simuls().find(s => s.id === simulId) || this.currentSimul();
     
     if (!simul) throw new Error("Simultanée introuvable");
     if (simul.status !== 'open') throw new Error("Cette simultanée a déjà commencé");

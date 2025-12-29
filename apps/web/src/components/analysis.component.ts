@@ -215,7 +215,9 @@ export class AnalysisComponent {
               this.currentMoveIndex.update(i => i + 1);
               this.updateBoardState();
           }
-      } catch {}
+      } catch (error) {
+          console.error('Invalid move in analysis board', error);
+      }
   }
 
   loadPgn() {

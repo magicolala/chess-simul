@@ -132,7 +132,7 @@ export class AuthService {
     this.error.set(null);
 
     try {
-      const { data, error } = await this.supabase.client.auth.updateUser({
+      const { error } = await this.supabase.client.auth.updateUser({
         data: {
           user_name: updates.name || current.name,
           avatar_url: updates.avatar || current.avatar,

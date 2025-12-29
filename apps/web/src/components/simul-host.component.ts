@@ -2,7 +2,7 @@
 import { Component, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChessSimulService, GameState } from '../services/chess-logic.service';
+import { ChessSimulService } from '../services/chess-logic.service';
 import { ChessBoardComponent } from './chess-board.component';
 
 @Component({

@@ -66,7 +66,7 @@ export class ApiService {
     // MOCK IMPLEMENTATION (Validation happens in Logic Service for now in Pass & Play)
     return of({
         success: true,
-        fen: '', // Backend would calculate this
+        fen: `${req.from}${req.to}`, // Backend would calculate this
         isCheckmate: false
     }).pipe(delay(200));
   }

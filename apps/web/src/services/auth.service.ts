@@ -12,6 +12,7 @@ export interface User {
   emailVerified: boolean;
   onboardingCompleted: boolean;
   twoFactorEnabled?: boolean;
+  elo: number;
 }
 
 @Injectable({
@@ -38,8 +39,23 @@ export class AuthService {
           emailVerified: session.user.email_confirmed_at !== undefined && session.user.email_confirmed_at !== null,
           onboardingCompleted: session.user.user_metadata['onboarding_completed'] || false,
           twoFactorEnabled: (session.user as any).two_factor_enabled || false,
+          elo: 1200 // Default value, will be updated by profile fetch
         };
-        this.finishAuth(user);
+
+        // Fetch ELO from profiles table
+        this.supabase.client
+          .from('profiles')
+          .select('elo')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('Error fetching user ELO:', error);
+            } else if (data) {
+              user.elo = data.elo;
+            }
+            this.finishAuth(user);
+          });
       } else {
         this.currentUser.set(null);
         localStorage.removeItem('simul_user');

@@ -31,15 +31,16 @@ import { PreferencesService } from '../services/preferences.service';
 
             @let isLegal = isLegalMove(squareId);
 
-            <div
-              (click)="handleSquareClick(squareId)"
-              (dragover)="handleDragOver($event)"
-              (drop)="handleDrop($event, squareId)"
-              class="relative w-full h-full flex items-center justify-center transition-colors duration-75"
-              [class.cursor-pointer]="canInteract || isLegal"
-              [style.backgroundColor]="getSquareColor(isLight, isLastMove, isSelected, isBestMoveSource, isBestMoveDest)"
-            >
-
+                          <div
+                          (click)="handleSquareClick(squareId)"
+                          (dragover)="handleDragOver($event)"
+                          (drop)="handleDrop($event, squareId)"
+                          class="relative w-full h-full flex items-center justify-center"
+                          [class.cursor-pointer]="canInteract || isLegal"
+                          [class.transition-colors]="isFocused()"
+                          [class.duration-75]="isFocused()"
+                          [style.backgroundColor]="getSquareColor(isLight, isLastMove, isSelected, isBestMoveSource, isBestMoveDest)"
+                        >
               <!-- Rank/File Labels -->
               @if ((file === 'a' && orientation() === 'w') || (file === 'h' && orientation() === 'b')) {
                 <span class="absolute top-0.5 left-1 text-[10px] font-bold z-0"
@@ -79,7 +80,9 @@ import { PreferencesService } from '../services/preferences.service';
                   [draggable]="canInteract"
                   (dragstart)="handleDragStart($event, squareId)"
                   (dragend)="handleDragEnd()"
-                  class="w-[85%] h-[85%] z-20 select-none transition-transform duration-200"
+                  class="w-[85%] h-[85%] z-20 select-none"
+                  [class.transition-transform]="isFocused()"
+                  [class.duration-200]="isFocused()"
                   [class.cursor-grab]="canInteract"
                   [class.active:cursor-grabbing]="canInteract"
                   [class.opacity-50]="draggingSquare() === squareId"
@@ -108,6 +111,7 @@ export class ChessBoardComponent {
   isInteractive = input<boolean>(false);
   orientation = input<'w' | 'b'>('w');
   allowedColor = input<'w' | 'b' | 'both'>('w');
+  isFocused = input<boolean>(false);
 
   move = output<{ from: string, to: string }>();
 

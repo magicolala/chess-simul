@@ -146,3 +146,9 @@ Design focus:
 6. **Documentation + Checks**
    - Update docs if schema/workflow changes require it.
    - Run `npm run lint`, `npm run format:check`, and `npm test`.
+
+## Checks
+
+- `npm run lint`: Failed (ESLint error: `Object.hasOwn is not a function` in espree).
+- `npm run format:check`: Failed (repo-wide formatting warnings).
+- `npm test`: Timed out (repeated `npm run typecheck -w web` invocation).

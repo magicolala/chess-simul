@@ -39,12 +39,8 @@ as $$
     where s.id = p_simul_id
       and (
         s.status in ('open', 'running')
-        or s.host_id = coalesce(p_user_id, auth.uid())
-        or exists (
-          select 1 from public.simul_tables st
-          where st.simul_id = s.id
-            and st.challenger_id = coalesce(p_user_id, auth.uid())
-        )
+        or public.is_simul_host(s.id, p_user_id)
+        or public.is_simul_challenger(s.id, p_user_id)
       )
   );
 $$;
@@ -78,7 +74,7 @@ create policy "Simuls selectable when visible or by host" on public.simuls
 
 create policy "Simuls insertable by host" on public.simuls
   for insert
-  with check (public.is_simul_host(id));
+  with check (host_id = auth.uid());
 
 create policy "Simuls updatable by host" on public.simuls
   for update

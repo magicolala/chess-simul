@@ -49,7 +49,7 @@ serve(async (req) => {
 
     const { data: game, error: gameError } = await supabaseClient
       .from('games')
-      .select('id, fen, turn_color, white_id, black_id, status, move_count')
+      .select('id, fen, turn, white_id, black_id, status, move_count')
       .eq('id', gameId)
       .single();
 
@@ -57,11 +57,11 @@ serve(async (req) => {
       return respond(404, { error: 'game_not_found', message: gameError?.message ?? 'Game not found.' });
     }
 
-    if (game.status !== 'playing' && game.status !== 'waiting') {
+    if (game.status !== 'active' && game.status !== 'waiting') {
       return respond(400, { error: 'game_not_active', message: 'Game is not accepting moves.' });
     }
 
-    const expectedPlayerId = game.turn_color === 'white' ? game.white_id : game.black_id;
+    const expectedPlayerId = game.turn === 'w' ? game.white_id : game.black_id;
     if (user.id !== expectedPlayerId) {
       return respond(403, { error: 'not_players_turn', message: 'It is not your turn to move.' });
     }
@@ -78,8 +78,8 @@ serve(async (req) => {
       return respond(500, { error: 'invalid_fen', message: 'Stored game FEN could not be loaded.' });
     }
 
-    const fenTurn = chess.turn() === 'w' ? 'white' : 'black';
-    if (fenTurn !== game.turn_color) {
+    const fenTurn = chess.turn();
+    if (fenTurn !== game.turn) {
       return respond(409, { error: 'turn_mismatch', message: 'Game state is out of sync; please retry.' });
     }
 
@@ -94,7 +94,8 @@ serve(async (req) => {
     }
 
     const newFen = chess.fen();
-    const nextTurnColor = chess.turn() === 'w' ? 'white' : 'black';
+    const nextTurn = chess.turn();
+    const isCheckmate = chess.isCheckmate();
 
     const { data: latestMove, error: lastMoveError } = await supabaseClient
       .from('moves')
@@ -117,8 +118,8 @@ serve(async (req) => {
       ply: nextPly,
       uci: normalizedUci,
       san: move.san,
-      fen: newFen,
-      player_id: user.id
+      fen_after: newFen,
+      played_by: user.id
     });
 
     if (insertError) {
@@ -129,11 +130,11 @@ serve(async (req) => {
       .from('games')
       .update({
         fen: newFen,
-        turn_color: nextTurnColor,
+        turn: nextTurn,
         last_move_uci: normalizedUci,
         move_count: nextPly,
-        last_move_at: now,
-        updated_at: now
+        updated_at: now,
+        status: isCheckmate ? 'checkmate' : 'active'
       })
       .eq('id', gameId)
       .eq('move_count', currentMoveCount)
@@ -151,9 +152,10 @@ serve(async (req) => {
     return respond(200, {
       success: true,
       fen: newFen,
-      turn: nextTurnColor,
+      turn: nextTurn,
       ply: nextPly,
-      san: move.san
+      san: move.san,
+      isCheckmate
     });
   } catch (error) {
     console.error('submit-move unexpected error', error);

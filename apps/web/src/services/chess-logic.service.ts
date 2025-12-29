@@ -45,7 +45,7 @@ export interface GameState {
   
   systemMessage: string;
   chat: ChatMessage[]; 
-  isProcessing: boolean; 
+  isProcessing: boolean;
 
   // Time management (ms)
   initialTime: number;
@@ -54,11 +54,13 @@ export interface GameState {
   lastMoveTime: number;
   
   // Simul specific
-  isHostTurn: boolean; 
+  isHostTurn: boolean;
+  requiresAttention?: boolean;
 
   // Online Specific
   eloChange?: number;
   rematchOfferedBy?: 'me' | 'opponent';
+  hydraPoints?: number;
 }
 
 @Injectable({
@@ -74,6 +76,15 @@ export class ChessSimulService {
   private historyService = inject(HistoryService);
   private timerInterval: any;
   private config: GameConfig = { timeMinutes: 10, incrementSeconds: 0, opponentCount: 1, difficulty: 'pvp' };
+
+  hydraScoreboard = signal({
+      totalPoints: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      activeBoards: 0,
+      potential: 0
+  });
 
   constructor() {
     this.startTimer();
@@ -101,6 +112,15 @@ export class ChessSimulService {
       this.gamesMap.clear();
       const newGames: GameState[] = [];
       const baseTimeMs = config.timeMinutes * 60 * 1000;
+
+      this.hydraScoreboard.set({
+          totalPoints: 0,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          activeBoards: config.opponentCount,
+          potential: config.opponentCount * 3
+      });
 
       for (let i = 0; i < config.opponentCount; i++) {
           const chess = new Chess();
@@ -134,7 +154,8 @@ export class ChessSimulService {
               whiteTime: baseTimeMs,
               blackTime: baseTimeMs,
               lastMoveTime: Date.now(),
-              isHostTurn: hostIsWhite 
+              isHostTurn: hostIsWhite,
+              requiresAttention: false
           };
           
           this.gamesMap.set(i, game);
@@ -198,7 +219,8 @@ export class ChessSimulService {
         whiteTime: baseTimeMs,
         blackTime: baseTimeMs,
         lastMoveTime: Date.now(),
-        isHostTurn: true
+        isHostTurn: true,
+        requiresAttention: false
       };
 
       this.gamesMap.set(internalId, game);
@@ -208,6 +230,10 @@ export class ChessSimulService {
   makeMove(gameId: number, from: string, to: string, promotion: string = 'q') {
     const game = this.gamesMap.get(gameId);
     if (!game || game.status !== 'active') return;
+
+    if (game.mode === 'simul-host') {
+        game.requiresAttention = false;
+    }
 
     if (game.turn === 'w') game.whiteTime += this.config.incrementSeconds * 1000;
     else game.blackTime += this.config.incrementSeconds * 1000;
@@ -232,6 +258,7 @@ export class ChessSimulService {
                         this.updateGameState(gameId, m);
                         game.systemMessage = "À vous de jouer !";
                         game.isHostTurn = true;
+                        game.requiresAttention = true;
                         this.games.set([...this.gamesMap.values()]);
                     }
                 }
@@ -491,6 +518,13 @@ export class ChessSimulService {
           if (result === 'draw') game.eloChange = 0;
       }
 
+      const hydraPoints = this.calculateHydraPoints(result);
+      game.hydraPoints = hydraPoints;
+
+      if (game.mode === 'simul-host') {
+          this.applyHydraProgress(result, hydraPoints);
+      }
+
       this.historyService.addResult({
           id: Date.now().toString() + Math.random(),
           opponentName: game.opponentName,
@@ -498,7 +532,32 @@ export class ChessSimulService {
           opponentAvatar: game.opponentAvatar,
           result: result,
           date: Date.now(),
-          fen: game.fen
+          fen: game.fen,
+          hydraPoints
       });
+  }
+
+  private applyHydraProgress(result: 'win' | 'loss' | 'draw', hydraPoints: number) {
+      this.hydraScoreboard.update(score => {
+          const wins = score.wins + (result === 'win' ? 1 : 0);
+          const draws = score.draws + (result === 'draw' ? 1 : 0);
+          const losses = score.losses + (result === 'loss' ? 1 : 0);
+          const activeBoards = Math.max(score.activeBoards - 1, 0);
+
+          return {
+              totalPoints: score.totalPoints + hydraPoints,
+              wins,
+              draws,
+              losses,
+              activeBoards,
+              potential: activeBoards * 3
+          };
+      });
+  }
+
+  private calculateHydraPoints(result: 'win' | 'loss' | 'draw') {
+      if (result === 'win') return 3;
+      if (result === 'draw') return 1;
+      return -1;
   }
 }

@@ -23,7 +23,7 @@ import * as d3 from 'd3';
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
          <div class="bg-white p-6 border-2 border-[#1D1C1C] wero-shadow relative">
             <h3 class="text-xs font-bold text-[#1D1C1C] uppercase tracking-wider mb-2 bg-[#FFF48D] inline-block px-1">Total Parties</h3>
             <p class="text-5xl font-black text-[#1D1C1C] mt-2">{{ stats().wins + stats().losses + stats().draws }}</p>
@@ -40,6 +40,18 @@ import * as d3 from 'd3';
          <div class="bg-white p-6 border-2 border-[#1D1C1C] wero-shadow flex flex-col items-center justify-center">
              <h3 class="text-xs font-bold text-[#1D1C1C] uppercase tracking-wider mb-2 w-full text-left">Répartition</h3>
              <div #chartContainer class="w-full h-32 flex items-center justify-center"></div>
+         </div>
+
+         <div class="bg-white p-6 border-2 border-[#1D1C1C] wero-shadow flex flex-col justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-[#1D1C1C] uppercase tracking-wider mb-2 w-full text-left">Hydra (+3 / +1 / -1)</h3>
+                <p class="text-4xl font-black text-[#1D1C1C]">{{ hydraStats().totalPoints }}</p>
+            </div>
+            <div class="flex justify-between text-xs font-bold text-gray-500 mt-4">
+                <span class="px-2 py-1 bg-green-100 border border-green-200 text-green-700">{{ hydraStats().wins }} V</span>
+                <span class="px-2 py-1 bg-gray-100 border border-gray-200 text-gray-700">{{ hydraStats().draws }} N</span>
+                <span class="px-2 py-1 bg-red-100 border border-red-200 text-red-700">{{ hydraStats().losses }} D</span>
+            </div>
          </div>
       </div>
 
@@ -79,6 +91,7 @@ import * as d3 from 'd3';
                            <span class="px-4 py-1 bg-gray-200 text-gray-600 text-sm font-black uppercase border-2 border-gray-400">Nulle</span>
                        }
                    }
+                   <span class="px-2 py-1 border-2 border-[#1D1C1C] text-xs font-black" [class.bg-green-100]="game.hydraPoints > 0" [class.bg-red-100]="game.hydraPoints < 0" [class.bg-gray-100]="game.hydraPoints === 0">{{ game.hydraPoints > 0 ? '+' : ''}}{{ game.hydraPoints }} pts</span>
                    <button (click)="review.emit(game.id)" class="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 border-2 border-[#1D1C1C] text-[10px] font-black uppercase hover:bg-[#7AF7F7]">
                        Analyser
                    </button>
@@ -98,6 +111,7 @@ export class HistoryComponent {
   review = output<string>();
 
   stats = this.historyService.getStats.bind(this.historyService);
+  hydraStats = this.historyService.getHydraStats.bind(this.historyService);
 
   constructor() {
     effect(() => {

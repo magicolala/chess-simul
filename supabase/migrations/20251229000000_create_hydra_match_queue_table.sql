@@ -1,5 +1,7 @@
 
 -- 20251229000000_create_hydra_match_queue_table.sql
+-- NOTE: Keep this file to match remote migration history; the idempotent follow-up
+-- migration is 20251229000005_create_hydra_match_queue_table.sql.
 
 -- Create the hydra_match_queue table
 CREATE TABLE public.hydra_match_queue (

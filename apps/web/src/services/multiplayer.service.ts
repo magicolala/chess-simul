@@ -78,6 +78,13 @@ export class MultiplayerService {
 
   startMatchmaking(config: { mode: string }) {
       this.isMatchmaking.set(true);
+      const timePresets: Record<string, { minutes: number; increment: number }> = {
+          bullet: { minutes: 3, increment: 2 },
+          blitz: { minutes: 5, increment: 0 },
+          rapid: { minutes: 10, increment: 5 }
+      };
+      const timeConfig = timePresets[config.mode] || timePresets.blitz;
+
       return new Promise<void>((resolve, reject) => {
           setTimeout(() => {
               this.isMatchmaking.set(false);
@@ -89,7 +96,7 @@ export class MultiplayerService {
               }
 
               // Create a room with a "found" opponent
-              const room = this.createMockRoom('Online_Opponent', 1300, 5, 0);
+              const room = this.createMockRoom('Online_Opponent', 1300, timeConfig.minutes, timeConfig.increment);
               room.players.push({
                   id: 'me',
                   name: 'Moi',

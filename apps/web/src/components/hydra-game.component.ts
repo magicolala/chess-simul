@@ -1,7 +1,7 @@
 
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HydraGameEngineService, HydraGame } from '../services/hydra-game-engine.service';
+import { HydraGameEngineService } from '../services/hydra-game-engine.service';
 import { ChessBoardComponent } from './chess-board.component'; // Reuse existing component
 import { FormsModule } from '@angular/forms'; // For input fields
 import { AuthService } from '../services/auth.service'; // Import AuthService

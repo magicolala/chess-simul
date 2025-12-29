@@ -288,7 +288,9 @@ export class ChessBoardComponent {
               this.deselect();
               return true;
           }
-      } catch {}
+      } catch (error) {
+          console.error('Move validation failed', error);
+      }
       return false;
   }
 

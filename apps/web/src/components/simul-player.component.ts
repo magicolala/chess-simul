@@ -1,5 +1,5 @@
 
-import { Component, inject, computed, signal, output } from '@angular/core';
+import { Component, inject, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';

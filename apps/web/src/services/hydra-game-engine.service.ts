@@ -1,7 +1,7 @@
 
 import { Injectable, signal, computed } from '@angular/core';
 import { Chess } from 'chess.js';
-import { BehaviorSubject, Observable, interval, map, takeWhile, Subject } from 'rxjs';
+import { Observable, interval, map, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 export interface HydraGame {
@@ -54,8 +54,8 @@ export class HydraGameEngineService {
                 // and update player Elo accordingly.
             }
 
-            let elapsedTime = currentTime - game.lastMoveTime;
-            let newTimeRemaining = { ...game.timeRemaining };
+            const elapsedTime = currentTime - game.lastMoveTime;
+            const newTimeRemaining = { ...game.timeRemaining };
 
             if (game.turn === 'w') {
               newTimeRemaining.white -= elapsedTime;

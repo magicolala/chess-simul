@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessSimulService, GameState, GameConfig } from './services/chess-logic.service';
 import { AuthService } from './services/auth.service';
-import { SupabaseClientService } from './services/supabase-client.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
 import { MultiplayerService } from './services/multiplayer.service';

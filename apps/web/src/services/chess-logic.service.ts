@@ -2,7 +2,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { Chess, Move } from 'chess.js';
 import { HistoryService } from './history.service';
-import { ApiService, CreateGameRequest } from './api.service';
+import { ApiService } from './api.service';
 
 export interface GameConfig {
   timeMinutes: number;

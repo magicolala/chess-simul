@@ -1,5 +1,5 @@
 
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Chess } from 'chess.js';
 
 export interface AnalysisNode {
@@ -37,8 +37,8 @@ export class AnalysisService {
         // We use a simple material count + random noise to simulate eval
         let score = 0;
         const board = chess.board();
-        for(let row of board) {
-            for(let piece of row) {
+        for (const row of board) {
+            for (const piece of row) {
                 if(!piece) continue;
                 const val = piece.type === 'p' ? 1 : piece.type === 'n' ? 3 : piece.type === 'b' ? 3 : piece.type === 'r' ? 5 : piece.type === 'q' ? 9 : 0;
                 score += piece.color === 'w' ? val : -val;

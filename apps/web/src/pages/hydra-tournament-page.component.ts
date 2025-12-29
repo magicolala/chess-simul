@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { BehaviorSubject, Subject, distinctUntilChanged, map, takeUntil } from 'rxjs';
+import { Subject, distinctUntilChanged, map, takeUntil } from 'rxjs';
 import { HydraBoardMosaicComponent, HydraBoardSortMode } from '../components/hydra-board-mosaic.component';
 import { HydraLeaderboardComponent } from '../components/hydra-leaderboard.component';
 import { HydraMatchmakingService } from '../services/hydra-matchmaking.service';

@@ -1,9 +1,9 @@
 
-import { Component, inject, computed, signal, output, effect } from '@angular/core';
+import { Component, inject, computed, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
-import { ChessSimulService, GameState } from '../services/chess-logic.service';
+import { ChessSimulService } from '../services/chess-logic.service';
 import { MultiplayerService } from '../services/multiplayer.service';
 import { AuthService } from '../services/auth.service';
 

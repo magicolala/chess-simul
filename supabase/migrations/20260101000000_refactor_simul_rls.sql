@@ -56,7 +56,18 @@ as $$
 $$;
 
 -- Recreate simul policies using helper functions
-alter publication supabase_realtime add table public.simuls;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'simuls'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.simuls;
+  END IF;
+END $$;
 
 drop policy if exists "Simuls selectable when visible or by host" on public.simuls;
 drop policy if exists "Simuls insertable by host" on public.simuls;
@@ -86,7 +97,18 @@ create policy "Simuls deletable by host" on public.simuls
   using (public.is_simul_host(id));
 
 -- Recreate simul_tables policies without cross-table RLS queries
-alter publication supabase_realtime add table public.simul_tables;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'simul_tables'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.simul_tables;
+  END IF;
+END $$;
 
 drop policy if exists "Simul tables visible to host or open simuls" on public.simul_tables;
 drop policy if exists "Simul tables insertable by host" on public.simul_tables;

@@ -76,7 +76,7 @@ import { AuthService } from '../services/auth.service';
                                  </div>
                              }
                          </div>
-                         <input type="text" (keyup.enter)="sendChat($event)" placeholder="Message..." class="ui-input text-xs border-t-2 border-[#1D1C1C]">
+                         <input type="text" (keyup.enter)="sendChat($event)" placeholder="Message..." class="w-full px-2 py-2 text-xs bg-white dark:bg-[#0f0f0f] border-t-2 border-[#1D1C1C] outline-none">
                     </div>
 
                     <button (click)="resign()" class="ui-btn ui-btn-ghost w-full py-3 text-sm text-red-600">Abandonner</button>

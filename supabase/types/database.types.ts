@@ -429,6 +429,7 @@ export type Database = {
           end_time: string | null;
           last_move_at: string | null;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -442,6 +443,7 @@ export type Database = {
           end_time?: string | null;
           last_move_at?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -455,6 +457,7 @@ export type Database = {
           end_time?: string | null;
           last_move_at?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -491,6 +494,7 @@ export type Database = {
           delta: number;
           reason: 'win' | 'draw' | 'loss' | 'forfeit';
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -500,6 +504,7 @@ export type Database = {
           delta: number;
           reason: 'win' | 'draw' | 'loss' | 'forfeit';
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -509,6 +514,7 @@ export type Database = {
           delta?: number;
           reason?: 'win' | 'draw' | 'loss' | 'forfeit';
           created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -522,6 +528,7 @@ export type Database = {
           elo_max: number | null;
           matched_game_id: string | null;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -532,6 +539,7 @@ export type Database = {
           elo_max?: number | null;
           matched_game_id?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -542,6 +550,7 @@ export type Database = {
           elo_max?: number | null;
           matched_game_id?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

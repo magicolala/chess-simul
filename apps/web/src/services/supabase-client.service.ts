@@ -10,6 +10,7 @@ export class SupabaseClientService {
   private sessionSubject = new BehaviorSubject<Session | null>(null);
   private userSubject = new BehaviorSubject<User | null>(null);
   private sessionReadySubject = new BehaviorSubject<boolean>(false);
+  private profileEnsureInFlight: Promise<void> | null = null;
 
   readonly session$: Observable<Session | null> = this.sessionSubject.asObservable();
   readonly user$: Observable<User | null> = this.userSubject.asObservable();
@@ -41,15 +42,56 @@ export class SupabaseClientService {
     await this.supabase.auth.signOut();
   }
 
+  async ensureCurrentUserProfile() {
+    const user = this.userSubject.value;
+    if (!user) return;
+
+    this.profileEnsureInFlight ??= this.ensureProfileExists(user).finally(() => {
+      this.profileEnsureInFlight = null;
+    });
+
+    await this.profileEnsureInFlight;
+  }
+
   private async initAuthListeners() {
     const { data } = await this.supabase.auth.getSession();
     this.sessionSubject.next(data.session ?? null);
     this.userSubject.next(data.session?.user ?? null);
     this.sessionReadySubject.next(true);
+    if (data.session?.user) {
+      await this.ensureCurrentUserProfile();
+    }
 
     this.supabase.auth.onAuthStateChange((_, session) => {
       this.sessionSubject.next(session);
       this.userSubject.next(session?.user ?? null);
+      if (session?.user) {
+        void this.ensureCurrentUserProfile();
+      }
     });
+  }
+
+  private async ensureProfileExists(user: User) {
+    const username =
+      (user.user_metadata?.user_name as string | undefined) ??
+      user.email?.split('@')[0] ??
+      `player-${user.id.slice(0, 8)}`;
+
+    const avatarUrl = (user.user_metadata?.avatar_url as string | undefined | null) ?? null;
+
+    const { error } = await this.supabase
+      .from('profiles')
+      .upsert(
+        {
+          id: user.id,
+          username,
+          avatar_url: avatarUrl,
+        },
+        { onConflict: 'id' }
+      );
+
+    if (error) {
+      console.error('Error ensuring profile exists:', error);
+    }
   }
 }

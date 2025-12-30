@@ -18,8 +18,8 @@ import { CommonModule } from '@angular/common';
             <h1 class="text-xl font-black font-display tracking-tighter uppercase hidden md:block">Chess Master</h1>
          </div>
          <div class="flex items-center space-x-4">
-            <button (click)="goToLogin.emit()" class="text-sm font-bold font-display uppercase hover:underline underline-offset-4 decoration-2 bg-white px-3 py-1 border-2 border-transparent hover:border-[#1D1C1C]">Connexion</button>
-            <button (click)="goToRegister.emit()" class="px-6 py-2 bg-[#1D1C1C] text-white font-black font-display uppercase border-2 border-[#1D1C1C] hover:bg-[#FFF48D] hover:text-[#1D1C1C] transition-colors wero-shadow-sm">
+            <button (click)="goToLogin.emit()" class="ui-btn ui-btn-ghost text-sm px-3 py-1">Connexion</button>
+            <button (click)="goToRegister.emit()" class="ui-btn ui-btn-dark px-6 py-2 font-black font-display">
                Rejoindre
             </button>
          </div>
@@ -31,7 +31,7 @@ import { CommonModule } from '@angular/common';
          <div class="absolute top-20 left-10 text-9xl opacity-5 pointer-events-none rotate-12 font-display">♟</div>
          <div class="absolute bottom-20 right-10 text-9xl opacity-5 pointer-events-none -rotate-12 font-display">♞</div>
 
-         <div class="max-w-4xl relative z-10 animate-in fade-in zoom-in duration-700 bg-white/80 p-8 border-2 border-[#1D1C1C] wero-shadow backdrop-blur-sm">
+         <div class="ui-card max-w-4xl relative z-10 animate-in fade-in zoom-in duration-700 bg-white/80 p-8 backdrop-blur-sm">
             <span class="inline-block py-1 px-3 bg-[#E0F7FA] text-[#006064] border border-[#006064] text-xs font-black font-display uppercase tracking-widest rounded-full mb-6">
                Multijoueur Premium
             </span>
@@ -44,10 +44,10 @@ import { CommonModule } from '@angular/common';
             </p>
             
             <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
-               <button (click)="goToRegister.emit()" class="w-full md:w-auto px-10 py-5 bg-[#7AF7F7] hover:bg-[#FFF48D] text-[#1D1C1C] text-xl font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow transition-all hover:-translate-y-1 active:translate-y-0 active:shadow-none">
+               <button (click)="goToRegister.emit()" class="ui-btn ui-btn-secondary w-full md:w-auto px-10 py-5 text-xl font-black font-display">
                   Commencer Gratuitement
                </button>
-               <button (click)="goToLogin.emit()" class="w-full md:w-auto px-10 py-5 bg-white hover:bg-gray-50 text-[#1D1C1C] text-xl font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow transition-all hover:-translate-y-1 active:translate-y-0 active:shadow-none">
+               <button (click)="goToLogin.emit()" class="ui-btn ui-btn-ghost w-full md:w-auto px-10 py-5 text-xl font-black font-display">
                   J'ai un compte
                </button>
             </div>
@@ -59,7 +59,7 @@ import { CommonModule } from '@angular/common';
          <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
             
             <!-- Card 1 -->
-            <div class="bg-white p-8 border-2 border-[#1D1C1C] wero-shadow hover:wero-shadow-hover transition-all">
+            <div class="ui-card p-8 hover:wero-shadow-hover transition-all">
                <div class="w-16 h-16 bg-[#FFF48D] border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mb-6 rounded-full">
                   🤝
                </div>
@@ -68,7 +68,7 @@ import { CommonModule } from '@angular/common';
             </div>
 
             <!-- Card 2 -->
-            <div class="bg-white p-8 border-2 border-[#1D1C1C] wero-shadow hover:wero-shadow-hover transition-all">
+            <div class="ui-card p-8 hover:wero-shadow-hover transition-all">
                <div class="w-16 h-16 bg-[#7AF7F7] border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mb-6 rounded-full">
                   ⚡
                </div>
@@ -77,7 +77,7 @@ import { CommonModule } from '@angular/common';
             </div>
 
             <!-- Card 3 -->
-            <div class="bg-white p-8 border-2 border-[#1D1C1C] wero-shadow hover:wero-shadow-hover transition-all">
+            <div class="ui-card p-8 hover:wero-shadow-hover transition-all">
                <div class="w-16 h-16 bg-[#1D1C1C] text-white border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mb-6 rounded-full">
                   📈
                </div>

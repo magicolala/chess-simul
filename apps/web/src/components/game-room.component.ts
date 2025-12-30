@@ -16,10 +16,10 @@ import { MultiplayerService } from '../services/multiplayer.service';
             <div class="flex-1 space-y-8">
                 
                 <!-- Room Info Header -->
-                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-6 wero-shadow">
+                <div class="ui-card p-6">
                     <div class="flex justify-between items-start mb-4">
                         <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-tighter">Salon de jeu</h2>
-                        <button (click)="leave()" class="text-xs font-bold text-red-500 hover:bg-red-50 px-2 py-1 uppercase border border-transparent hover:border-red-500">Quitter</button>
+                        <button (click)="leave()" class="ui-btn ui-btn-ghost text-xs px-2 py-1 text-red-500">Quitter</button>
                     </div>
                     
                     <div class="flex items-center space-x-4 mb-4">
@@ -45,7 +45,7 @@ import { MultiplayerService } from '../services/multiplayer.service';
                 <!-- Players List -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     @for (player of room.players; track player.id) {
-                        <div class="bg-white dark:bg-[#1a1a1a] border-2 p-6 flex flex-col items-center justify-center relative wero-shadow transition-all"
+                        <div class="ui-card p-6 flex flex-col items-center justify-center relative transition-all"
                              [class.border-[#1D1C1C]]="!player.isReady"
                              [class.border-green-500]="player.isReady"
                              [class.dark:border-green-400]="player.isReady"
@@ -78,7 +78,7 @@ import { MultiplayerService } from '../services/multiplayer.service';
                 </div>
 
                 <!-- Ready Button -->
-                <button (click)="mpService.toggleReady()" class="w-full py-4 text-xl font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow-sm transition-all hover:-translate-y-1"
+                <button (click)="mpService.toggleReady()" class="ui-btn w-full py-4 text-xl font-black font-display"
                     [class.bg-[#1D1C1C]]="isMeReady()"
                     [class.text-white]="isMeReady()"
                     [class.bg-[#7AF7F7]]="!isMeReady()"
@@ -88,8 +88,8 @@ import { MultiplayerService } from '../services/multiplayer.service';
             </div>
 
             <!-- RIGHT: Chat -->
-            <div class="w-full md:w-80 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col">
-                <div class="p-3 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#121212]">
+            <div class="ui-card w-full md:w-80 flex flex-col">
+                <div class="ui-card-header p-3">
                     <h3 class="text-xs font-black uppercase text-gray-500">Chat du salon</h3>
                 </div>
                 
@@ -107,10 +107,10 @@ import { MultiplayerService } from '../services/multiplayer.service';
                      }
                 </div>
 
-                <div class="p-2 border-t-2 border-[#1D1C1C] dark:border-white">
+                <div class="ui-card-footer p-2">
                     <div class="flex space-x-2">
-                        <input [(ngModel)]="chatMsg" (keyup.enter)="send()" type="text" placeholder="..." class="flex-1 px-2 py-1 text-sm border-2 border-gray-300 focus:border-[#1D1C1C] outline-none">
-                        <button (click)="send()" class="bg-[#1D1C1C] text-white px-3 font-bold uppercase text-xs">></button>
+                        <input [(ngModel)]="chatMsg" (keyup.enter)="send()" type="text" placeholder="..." class="ui-input text-sm">
+                        <button (click)="send()" class="ui-btn ui-btn-dark px-3 text-xs">></button>
                     </div>
                 </div>
             </div>

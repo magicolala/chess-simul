@@ -7,16 +7,16 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="p-4 border rounded bg-white dark:bg-black" *ngIf="simulService.activeTable(); else empty">
+    <div class="ui-card p-4" *ngIf="simulService.activeTable(); else empty">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-xs uppercase font-semibold text-gray-500">Table #{{ simulService.activeTable()?.seat_no }}</p>
+          <p class="ui-label">Table #{{ simulService.activeTable()?.seat_no }}</p>
           <p class="font-bold">Statut : {{ simulService.tableStatus() }}</p>
           <p class="text-sm text-gray-500" *ngIf="simulService.activeTable()?.challenger_id">
             Adversaire : {{ simulService.activeTable()?.challenger_id }}
           </p>
         </div>
-        <button class="px-3 py-1 border rounded" (click)="refresh()">Actualiser</button>
+        <button class="ui-btn ui-btn-ghost px-3 py-1" (click)="refresh()">Actualiser</button>
       </div>
 
       <div class="mt-4" *ngIf="simulService.activeGame(); else waiting">
@@ -31,7 +31,7 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
     </ng-template>
 
     <ng-template #empty>
-      <div class="p-4 border rounded">Aucune table réservée pour l'instant.</div>
+      <div class="ui-card p-4">Aucune table réservée pour l'instant.</div>
     </ng-template>
   `,
 })

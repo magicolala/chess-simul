@@ -16,7 +16,7 @@ import { AuthService } from '../services/auth.service';
         <div class="h-full flex flex-col items-center justify-center p-4 font-sans max-w-5xl mx-auto">
             
             <!-- Banner -->
-            <div class="w-full bg-[#1D1C1C] text-white p-4 mb-4 border-2 border-[#1D1C1C] flex justify-between items-center wero-shadow">
+            <div class="ui-card bg-[#1D1C1C] text-white p-4 mb-4 flex justify-between items-center">
                 <div class="flex items-center space-x-4">
                     <img [src]="simulService.currentSimul()?.host?.avatar" class="w-12 h-12 rounded-full border-2 border-white bg-white">
                     <div>
@@ -30,12 +30,12 @@ import { AuthService } from '../services/auth.service';
             </div>
 
             <!-- Main Game Area -->
-            <div class="flex flex-col md:flex-row w-full gap-8 bg-white dark:bg-[#1a1a1a] p-6 border-2 border-[#1D1C1C] dark:border-white wero-shadow relative">
+            <div class="ui-card p-6 w-full gap-8 flex flex-col md:flex-row relative">
                 
                 <!-- Status Overlay (When host turn) -->
                 @if (game()!.turn === 'w' && game()!.status === 'active') {
                     <div class="absolute inset-0 z-20 bg-white/50 dark:bg-black/50 backdrop-blur-[2px] flex flex-col items-center justify-center pointer-events-none">
-                        <div class="bg-[#1D1C1C] text-white px-6 py-3 border-2 border-white wero-shadow animate-pulse">
+                        <div class="ui-card bg-[#1D1C1C] text-white px-6 py-3 border-2 border-white animate-pulse">
                             <p class="font-black uppercase text-lg">Tour de l'hôte...</p>
                         </div>
                     </div>
@@ -59,7 +59,7 @@ import { AuthService } from '../services/auth.service';
                 <div class="w-full md:w-64 flex flex-col space-y-4">
                     
                     <!-- Last Move -->
-                    <div class="p-4 bg-gray-50 dark:bg-[#121212] border-2 border-gray-200 dark:border-gray-700">
+                    <div class="ui-card p-4 bg-gray-50 dark:bg-[#121212]">
                         <p class="text-xs font-bold text-gray-500 uppercase mb-1">Dernier coup</p>
                         <p class="text-xl font-mono font-black text-[#1D1C1C] dark:text-white">
                             {{ game()!.history[game()!.history.length - 1] || '-' }}
@@ -67,8 +67,8 @@ import { AuthService } from '../services/auth.service';
                     </div>
 
                     <!-- Chat (Read only mostly for simuls usually, but let's allow send) -->
-                    <div class="flex-1 border-2 border-[#1D1C1C] dark:border-white flex flex-col h-64">
-                         <div class="bg-[#1D1C1C] text-white text-xs font-bold uppercase p-2">Chat avec l'hôte</div>
+                    <div class="ui-card flex-1 flex flex-col h-64">
+                         <div class="ui-card-header bg-[#1D1C1C] text-white text-xs font-bold uppercase p-2">Chat avec l'hôte</div>
                          <div class="flex-1 p-2 overflow-y-auto space-y-2 bg-white dark:bg-[#0f0f0f]">
                              @for (msg of game()!.chat; track msg.id) {
                                  <div class="text-xs">
@@ -76,11 +76,11 @@ import { AuthService } from '../services/auth.service';
                                  </div>
                              }
                          </div>
-                         <input type="text" (keyup.enter)="sendChat($event)" placeholder="Message..." class="p-2 border-t-2 border-[#1D1C1C] dark:border-white text-xs outline-none">
+                         <input type="text" (keyup.enter)="sendChat($event)" placeholder="Message..." class="ui-input text-xs border-t-2 border-[#1D1C1C]">
                     </div>
 
-                    <button (click)="resign()" class="w-full py-3 border-2 border-red-500 text-red-600 font-bold uppercase hover:bg-red-50 text-sm">Abandonner</button>
-                    <button (click)="quit.emit()" class="w-full py-3 border-2 border-gray-300 text-gray-500 font-bold uppercase hover:bg-gray-100 text-sm">Quitter</button>
+                    <button (click)="resign()" class="ui-btn ui-btn-ghost w-full py-3 text-sm text-red-600">Abandonner</button>
+                    <button (click)="quit.emit()" class="ui-btn ui-btn-ghost w-full py-3 text-sm text-gray-500">Quitter</button>
 
                 </div>
 

@@ -76,7 +76,7 @@ import { ChessBoardComponent } from './chess-board.component';
         <!-- Main Area -->
         <main class="flex-1 flex flex-col relative overflow-hidden bg-gray-200 dark:bg-[#000]">
 
-            <div class="bg-white dark:bg-[#0f0f0f] border-b-2 border-[#1D1C1C] dark:border-white p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
+            <div class="ui-card p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
                 <div>
                     <p class="text-xs font-black uppercase text-gray-500">Score Hydra</p>
                     <div class="flex items-end space-x-3">
@@ -101,7 +101,7 @@ import { ChessBoardComponent } from './chess-board.component';
                 <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-nano-banana">
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
                         @for (game of games(); track game.id) {
-                            <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-2 wero-shadow hover:scale-[1.02] transition-transform relative flex flex-col group"
+                            <div class="ui-card p-2 hover:scale-[1.02] transition-transform relative flex flex-col group"
                                 [class.ring-4]="game.requiresAttention"
                                 [class.ring-green-400]="game.requiresAttention"
                                 (click)="focusGame(game.id)">
@@ -128,7 +128,7 @@ import { ChessBoardComponent } from './chess-board.component';
                                 <!-- Overlay Action Button -->
                                 @if (game.isHostTurn) {
                                     <div class="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button class="bg-red-500 text-white font-black uppercase text-xs px-3 py-1 shadow-lg transform scale-110">JOUER</button>
+                                        <button class="ui-btn ui-btn-dark text-xs px-3 py-1 transform scale-110">JOUER</button>
                                     </div>
                                 }
                             </div>
@@ -143,13 +143,13 @@ import { ChessBoardComponent } from './chess-board.component';
                      
                      <!-- Game Board Area -->
                      <div class="flex-1 flex items-center justify-center p-4 md:p-8 bg-nano-banana relative">
-                         <button (click)="exitFocus()" class="absolute top-4 left-4 bg-white border-2 border-[#1D1C1C] px-3 py-1 font-bold text-sm hover:bg-[#FFF48D] z-20 wero-shadow-sm flex items-center">
+                         <button (click)="exitFocus()" class="ui-btn ui-btn-ghost absolute top-4 left-4 px-3 py-1 text-sm z-20 flex items-center">
                              <span class="text-lg mr-1">⊞</span> GRILLE (ESC)
                          </button>
                          
                          <!-- Navigation Arrows -->
-                         <button (click)="cycleGame(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white border-2 border-[#1D1C1C] w-12 h-12 flex items-center justify-center hover:bg-gray-100 z-20 wero-shadow-sm font-black text-xl">←</button>
-                         <button (click)="cycleGame(1)" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white border-2 border-[#1D1C1C] w-12 h-12 flex items-center justify-center hover:bg-gray-100 z-20 wero-shadow-sm font-black text-xl">→</button>
+                         <button (click)="cycleGame(-1)" class="ui-btn ui-btn-ghost absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 font-black text-xl z-20">←</button>
+                         <button (click)="cycleGame(1)" class="ui-btn ui-btn-ghost absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 font-black text-xl z-20">→</button>
 
                          <div class="w-full max-w-[85vh] aspect-square bg-white dark:bg-black border-4 border-[#1D1C1C] dark:border-white shadow-2xl relative">
                              <!-- Action Indicator inside board -->
@@ -168,10 +168,10 @@ import { ChessBoardComponent } from './chess-board.component';
                      </div>
 
                      <!-- Info Panel (Right) -->
-                     <div class="w-full md:w-80 bg-white dark:bg-[#1a1a1a] border-l-2 border-[#1D1C1C] dark:border-white flex flex-col z-20 shadow-xl">
+                     <div class="ui-card w-full md:w-80 flex flex-col z-20 shadow-xl border-l-2 border-[#1D1C1C] dark:border-white">
                          
                          <!-- Challenger Profile -->
-                         <div class="p-6 border-b-2 border-[#1D1C1C] dark:border-white text-center bg-gray-50 dark:bg-[#0f0f0f]">
+                         <div class="ui-card-header p-6 text-center bg-gray-50 dark:bg-[#0f0f0f]">
                              <img [src]="game.opponentAvatar" class="w-20 h-20 mx-auto border-4 border-[#1D1C1C] bg-white rounded-full mb-3 shadow-sm">
                              <h3 class="text-xl font-black font-display uppercase truncate">{{ game.opponentName }}</h3>
                              <p class="text-sm text-gray-500 font-mono font-bold">{{ game.opponentRating }} ELO</p>
@@ -197,8 +197,8 @@ import { ChessBoardComponent } from './chess-board.component';
                          </div>
 
                          <!-- Footer -->
-                         <div class="p-4 border-t-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#0f0f0f]">
-                             <button class="w-full py-3 bg-white border-2 border-red-500 text-red-600 font-black uppercase hover:bg-red-50 text-sm shadow-sm">
+                         <div class="ui-card-footer p-4 bg-gray-50 dark:bg-[#0f0f0f]">
+                             <button class="ui-btn ui-btn-ghost w-full py-3 text-sm text-red-600">
                                  Déclarer Victoire / Nulle
                              </button>
                          </div>

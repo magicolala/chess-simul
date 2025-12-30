@@ -8,10 +8,10 @@ import { SimulTable } from '../models/simul.model';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="p-4 border rounded bg-white dark:bg-black" *ngIf="simulService.activeSimul(); else loader">
+    <div class="ui-card p-4" *ngIf="simulService.activeSimul(); else loader">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-xs uppercase font-semibold text-gray-500">Simultanée</p>
+          <p class="ui-label">Simultanée</p>
           <h2 class="text-2xl font-black">{{ simulService.activeSimul()?.name }}</h2>
           <p class="text-sm text-gray-500">Status : {{ simulService.simulStatus() }}</p>
         </div>
@@ -21,13 +21,13 @@ import { SimulTable } from '../models/simul.model';
         </div>
       </div>
 
-      <div class="p-3 rounded border bg-gray-50 dark:bg-gray-900" *ngIf="simulService.error()" role="alert">
+      <div class="p-3 border-2 border-[#1D1C1C] bg-gray-50 dark:bg-gray-900" *ngIf="simulService.error()" role="alert">
         {{ simulService.error() }}
       </div>
 
       <div class="mt-4 flex items-center gap-3">
         <button
-          class="px-4 py-2 border rounded font-semibold"
+          class="ui-btn ui-btn-primary px-4 py-2 font-semibold"
           [disabled]="simulService.loading() || simulService.simulStatus() !== 'open'"
           (click)="join()"
         >
@@ -38,7 +38,7 @@ import { SimulTable } from '../models/simul.model';
     </div>
 
     <ng-template #loader>
-      <div class="p-4 border rounded">Chargement du lobby invité...</div>
+      <div class="ui-card p-4">Chargement du lobby invité...</div>
     </ng-template>
   `,
 })

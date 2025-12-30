@@ -15,20 +15,20 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
 
               <!-- Friend Requests -->
               @if (social.friendRequests().length > 0) {
-                  <div class="bg-[#FFF48D] border-2 border-[#1D1C1C] wero-shadow p-4">
+                  <div class="ui-card ui-card-header p-4">
                       <h3 class="font-black text-sm uppercase mb-3 flex items-center">
                           <span class="mr-2">👋</span> Demandes d'amis ({{ social.friendRequests().length }})
                       </h3>
                       <div class="space-y-2">
                           @for (req of social.friendRequests(); track req.id) {
-                              <div class="bg-white border-2 border-[#1D1C1C] p-2 flex items-center justify-between">
+                              <div class="ui-card p-2 flex items-center justify-between">
                                   <div class="flex items-center space-x-2">
                                       <img [src]="req.avatar" class="w-8 h-8 border border-black rounded-full">
                                       <span class="font-bold text-xs truncate max-w-[80px]">{{ req.name }}</span>
                                   </div>
                                   <div class="flex space-x-1">
-                                      <button (click)="acceptRequest(req.id)" class="bg-[#1D1C1C] text-white px-2 py-1 text-[10px] font-bold uppercase hover:bg-green-600">Oui</button>
-                                      <button (click)="declineRequest(req.id)" class="bg-white text-[#1D1C1C] border border-[#1D1C1C] px-2 py-1 text-[10px] font-bold uppercase hover:bg-red-50">Non</button>
+                                      <button (click)="acceptRequest(req.id)" class="ui-btn ui-btn-dark px-2 py-1 text-[10px]">Oui</button>
+                                      <button (click)="declineRequest(req.id)" class="ui-btn ui-btn-ghost px-2 py-1 text-[10px]">Non</button>
                                   </div>
                               </div>
                           }
@@ -37,19 +37,19 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
               }
 
               <!-- Friends List -->
-              <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex-1 flex flex-col overflow-hidden">
-                  <div class="p-4 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#121212] flex justify-between items-center">
+              <div class="ui-card flex-1 flex flex-col overflow-hidden">
+                  <div class="ui-card-header p-4 flex justify-between items-center">
                       <h3 class="font-black text-lg uppercase text-[#1D1C1C] dark:text-white">Mes Amis</h3>
-                      <button (click)="showAddInput.set(!showAddInput())" class="text-xs font-bold uppercase bg-[#1D1C1C] text-white px-2 py-1 hover:bg-[#7AF7F7] hover:text-[#1D1C1C] transition-colors">
+                      <button (click)="showAddInput.set(!showAddInput())" class="ui-btn ui-btn-dark text-xs px-2 py-1">
                           + Ajouter
                       </button>
                   </div>
 
                   <!-- Add Input -->
                   @if (showAddInput()) {
-                      <div class="p-2 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-100 dark:bg-gray-800 flex">
-                          <input #addInput type="text" placeholder="Pseudo..." class="flex-1 px-2 py-1 text-sm border-2 border-[#1D1C1C] outline-none">
-                          <button (click)="addFriend(addInput.value); addInput.value = ''" class="bg-[#1D1C1C] text-white px-3 font-bold uppercase text-xs">OK</button>
+                      <div class="ui-card-footer p-2 flex gap-2 bg-gray-100 dark:bg-gray-800">
+                          <input #addInput type="text" placeholder="Pseudo..." class="ui-input text-sm">
+                          <button (click)="addFriend(addInput.value); addInput.value = ''" class="ui-btn ui-btn-dark px-3 text-xs">OK</button>
                       </div>
                   }
 
@@ -94,10 +94,10 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
           </div>
 
           <!-- Right: Chat Area -->
-          <div class="flex-1 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col">
+          <div class="ui-card flex-1 flex flex-col">
 
               @if (selectedFriend(); as friend) {
-                  <div class="p-4 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#121212] flex justify-between items-center">
+                  <div class="ui-card-header p-4 flex justify-between items-center">
                       <div class="flex items-center space-x-3">
                            <img [src]="friend.avatar" class="w-10 h-10 border-2 border-[#1D1C1C] dark:border-white rounded-full bg-white">
                            <div>
@@ -106,7 +106,7 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                            </div>
                       </div>
                       <div class="flex space-x-2">
-                          <button (click)="challenge(friend.id)" class="px-4 py-2 bg-[#7AF7F7] border-2 border-[#1D1C1C] text-[#1D1C1C] font-black uppercase text-xs hover:bg-[#FFF48D] wero-shadow-sm">
+                          <button (click)="challenge(friend.id)" class="ui-btn ui-btn-secondary px-4 py-2 text-xs font-black">
                               Défier
                           </button>
                       </div>
@@ -132,10 +132,10 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                       }
                   </div>
 
-                  <div class="p-4 border-t-2 border-[#1D1C1C] dark:border-white bg-white dark:bg-[#1a1a1a]">
+                  <div class="ui-card-footer p-4 bg-white dark:bg-[#1a1a1a]">
                       <div class="flex space-x-2">
-                          <input [ngModel]="messageInput()" (ngModelChange)="messageInput.set($event)" (keyup.enter)="sendMessage()" type="text" placeholder="Écrire un message..." class="flex-1 px-4 py-3 border-2 border-[#1D1C1C] dark:border-gray-600 bg-gray-50 dark:bg-gray-800 dark:text-white outline-none focus:bg-white dark:focus:bg-black transition-colors">
-                          <button (click)="sendMessage()" [disabled]="!messageInput().trim()" class="bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] px-6 font-black uppercase hover:opacity-90 disabled:opacity-50">
+                          <input [ngModel]="messageInput()" (ngModelChange)="messageInput.set($event)" (keyup.enter)="sendMessage()" type="text" placeholder="Écrire un message..." class="ui-input flex-1">
+                          <button (click)="sendMessage()" [disabled]="!messageInput().trim()" class="ui-btn ui-btn-dark px-6">
                               Envoyer
                           </button>
                       </div>

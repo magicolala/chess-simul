@@ -25,7 +25,7 @@ import { AuthService } from '../services/auth.service';
             <!-- LEFT: Board Area -->
             <div class="flex-1 flex flex-col">
                 <!-- Top Player (Opponent) -->
-                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-2 mb-2 flex justify-between items-center wero-shadow">
+                <div class="ui-card p-2 mb-2 flex justify-between items-center">
                     <div class="flex items-center space-x-3">
                         <img [src]="game()!.opponentAvatar" class="w-10 h-10 border border-[#1D1C1C] dark:border-white rounded-full">
                         <div>
@@ -88,7 +88,7 @@ import { AuthService } from '../services/auth.service';
                 </div>
 
                 <!-- Bottom Player (Me) -->
-                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white p-2 mt-2 flex justify-between items-center wero-shadow">
+                <div class="ui-card p-2 mt-2 flex justify-between items-center">
                     <div class="flex items-center space-x-3">
                         <img [src]="game()!.playerName === 'Joueur 1' ? auth.currentUser()?.avatar : '...'" class="w-10 h-10 border border-[#1D1C1C] dark:border-white rounded-full">
                         <div>
@@ -105,7 +105,7 @@ import { AuthService } from '../services/auth.service';
             </div>
 
             <!-- RIGHT: Controls & Chat -->
-            <div class="w-full md:w-80 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col">
+            <div class="ui-card w-full md:w-80 flex flex-col">
                 
                 <!-- Chat History -->
                 <div class="flex-1 bg-gray-50 dark:bg-[#121212] p-4 overflow-y-auto space-y-2 min-h-[200px]">
@@ -125,11 +125,11 @@ import { AuthService } from '../services/auth.service';
                 </div>
 
                 <!-- Chat Input -->
-                <div class="p-2 border-t border-b border-gray-200 dark:border-gray-700">
+                <div class="ui-card-footer p-2">
                      <div class="flex space-x-2">
                          <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendChat()" placeholder="Message..." 
-                            class="flex-1 border-2 border-gray-300 dark:border-gray-600 px-2 py-1 text-xs focus:border-[#1D1C1C] dark:focus:border-white outline-none bg-transparent">
-                         <button (click)="sendChat()" class="px-3 py-1 bg-[#1D1C1C] text-white text-xs font-bold uppercase hover:bg-[#7AF7F7] hover:text-[#1D1C1C]">
+                            class="ui-input text-xs">
+                         <button (click)="sendChat()" class="ui-btn ui-btn-dark px-3 text-xs">
                              >
                          </button>
                      </div>
@@ -137,10 +137,10 @@ import { AuthService } from '../services/auth.service';
 
                 <!-- Game Actions -->
                 <div class="p-4 grid grid-cols-2 gap-3 bg-gray-100 dark:bg-[#0f0f0f]">
-                    <button (click)="offerDraw()" class="py-3 bg-white border-2 border-gray-300 text-xs font-black uppercase hover:bg-gray-200 text-gray-700 wero-shadow-sm">
+                    <button (click)="offerDraw()" class="ui-btn ui-btn-ghost py-3 text-xs text-gray-700">
                         ½ Nulle
                     </button>
-                    <button (click)="resign()" class="py-3 bg-white border-2 border-gray-300 text-xs font-black uppercase hover:bg-red-50 text-red-600 wero-shadow-sm">
+                    <button (click)="resign()" class="ui-btn ui-btn-ghost py-3 text-xs text-red-600">
                         🏳 Abandon
                     </button>
                 </div>

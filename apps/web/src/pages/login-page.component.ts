@@ -9,35 +9,35 @@ import { SupabaseClientService } from '../services/supabase-client.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
-    <section class="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-      <div class="w-full max-w-md space-y-6 bg-white border rounded-xl shadow-sm p-8">
+    <section class="min-h-screen flex items-center justify-center bg-nano-banana p-6 font-sans">
+      <div class="ui-card w-full max-w-md space-y-6 p-8">
         <header class="space-y-2 text-center">
-          <p class="text-xs font-semibold text-indigo-600">Supabase Auth</p>
-          <h1 class="text-2xl font-bold">Connexion</h1>
-          <p class="text-sm text-slate-600">Identifiez-vous avec votre compte Supabase.</p>
+          <p class="ui-label text-[#1D1C1C]">Supabase Auth</p>
+          <h1 class="text-2xl font-black font-display uppercase">Connexion</h1>
+          <p class="text-sm text-gray-600">Identifiez-vous avec votre compte Supabase.</p>
         </header>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
           <label class="block space-y-1 text-sm">
-            <span class="font-semibold">Email</span>
-            <input formControlName="email" type="email" class="w-full rounded-md border px-3 py-2" placeholder="you@example.com" />
+            <span class="ui-label">Email</span>
+            <input formControlName="email" type="email" class="ui-input" placeholder="you@example.com" />
           </label>
 
           <label class="block space-y-1 text-sm">
-            <span class="font-semibold">Mot de passe</span>
-            <input formControlName="password" type="password" class="w-full rounded-md border px-3 py-2" placeholder="••••••••" />
+            <span class="ui-label">Mot de passe</span>
+            <input formControlName="password" type="password" class="ui-input" placeholder="••••••••" />
           </label>
 
           <p *ngIf="error()" class="text-sm text-red-600">{{ error() }}</p>
 
-          <button type="submit" [disabled]="form.invalid || loading()" class="w-full rounded-md bg-indigo-600 px-3 py-2 font-semibold text-white disabled:opacity-60">
+          <button type="submit" [disabled]="form.invalid || loading()" class="ui-btn ui-btn-primary w-full px-3 py-2 disabled:opacity-60">
             {{ loading() ? 'Connexion…' : 'Se connecter' }}
           </button>
         </form>
 
-        <p class="text-center text-sm text-slate-600">
+        <p class="text-center text-sm text-gray-600">
           Pas encore de compte ?
-          <a routerLink="/register" class="font-semibold text-indigo-600">Créer un compte</a>
+          <a routerLink="/register" class="font-semibold underline">Créer un compte</a>
         </p>
       </div>
     </section>

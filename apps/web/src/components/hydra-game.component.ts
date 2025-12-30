@@ -11,34 +11,46 @@ import { AuthService } from '../services/auth.service'; // Import AuthService
   standalone: true,
   imports: [CommonModule, ChessBoardComponent, FormsModule],
   template: `
-    <div class="p-4">
-      <h2 class="text-2xl font-bold mb-4">Hydra Chess (MVP Phase 1)</h2>
+    <div class="p-4 font-sans">
+      <h2 class="text-2xl font-black font-display uppercase mb-4">Hydra Chess (MVP Phase 1)</h2>
       <div *ngIf="authService.currentUser()">
-        <p class="text-lg font-medium text-white">Your ELO: {{ authService.currentUser()?.elo }}</p>
+        <p class="text-sm font-bold text-gray-500">Your ELO: {{ authService.currentUser()?.elo }}</p>
       </div>
 
-      <div class="flex space-x-4 mb-4">
-        <select [(ngModel)]="selectedPlayerColor" class="p-2 border rounded">
+      <div class="ui-card p-4 mb-4 flex flex-wrap gap-3 items-end">
+        <div>
+          <label class="ui-label">Couleur</label>
+          <select [(ngModel)]="selectedPlayerColor" class="ui-input">
           <option value="w">Play as White</option>
           <option value="b">Play as Black</option>
         </select>
-        <select [(ngModel)]="selectedBotSkill" class="p-2 border rounded">
+        </div>
+        <div>
+          <label class="ui-label">Niveau</label>
+          <select [(ngModel)]="selectedBotSkill" class="ui-input">
           <option value="easy">Easy Bot</option>
           <option value="medium">Medium Bot</option>
           <option value="hard">Hard Bot</option>
         </select>
-        <input type="number" [(ngModel)]="initialTime" placeholder="Minutes" class="p-2 border rounded w-24" />
-        <input type="number" [(ngModel)]="increment" placeholder="Increment" class="p-2 border rounded w-24" />
-        <button (click)="addBotGame()" class="bg-blue-500 text-white px-4 py-2 rounded">Add Bot Game</button>
+        </div>
+        <div>
+          <label class="ui-label">Minutes</label>
+          <input type="number" [(ngModel)]="initialTime" placeholder="Minutes" class="ui-input w-24" />
+        </div>
+        <div>
+          <label class="ui-label">Increment</label>
+          <input type="number" [(ngModel)]="increment" placeholder="Increment" class="ui-input w-24" />
+        </div>
+        <button (click)="addBotGame()" class="ui-btn ui-btn-primary px-4 py-2">Add Bot Game</button>
       </div>
 
       <div class="grid gap-4" [ngClass]="getGridClass()">
         @for (game of hydraGameEngine.games(); track game.id) {
-          <div class="relative rounded-lg shadow-md bg-gray-800 p-2" [class.border-4]="game.opponentJustMoved" [class.border-green-500]="game.opponentJustMoved" [class.animate-pulse]="game.opponentJustMoved">
-            <h3 class="text-lg font-semibold text-white mb-2">{{ game.playerColor === 'w' ? 'White' : 'Black' }} vs Bot ({{ game.botSkill }})</h3>
-            <p class="text-gray-400 text-sm">Game ID: {{ game.id }}</p>
-            <p class="text-gray-400 text-sm">Status: {{ game.status }}</p>
-            <p class="text-gray-400 text-sm">
+          <div class="ui-card relative p-2" [class.ring-4]="game.opponentJustMoved" [class.ring-green-500]="game.opponentJustMoved" [class.animate-pulse]="game.opponentJustMoved">
+            <h3 class="text-lg font-black font-display mb-2">{{ game.playerColor === 'w' ? 'White' : 'Black' }} vs Bot ({{ game.botSkill }})</h3>
+            <p class="text-gray-500 text-sm">Game ID: {{ game.id }}</p>
+            <p class="text-gray-500 text-sm">Status: {{ game.status }}</p>
+            <p class="text-gray-500 text-sm">
               Time W: {{ (game.timeRemaining.white / 1000) | number:'1.0-0' }}s | B: {{ (game.timeRemaining.black / 1000) | number:'1.0-0' }}s
             </p>
             <app-chess-board
@@ -50,7 +62,7 @@ import { AuthService } from '../services/auth.service'; // Import AuthService
               [isFocused]="game.opponentJustMoved"
               (move)="handlePlayerMove(game.id, $event)"
             />
-            <button (click)="removeGame(game.id)" class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs">Remove</button>
+            <button (click)="removeGame(game.id)" class="ui-btn ui-btn-ghost absolute top-2 right-2 px-2 py-1 text-xs text-red-600">Remove</button>
           </div>
         }
       </div>

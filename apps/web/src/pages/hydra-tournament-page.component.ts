@@ -24,38 +24,38 @@ type LeaderboardEntry = {
   standalone: true,
   imports: [CommonModule, RouterLink, HydraBoardMosaicComponent, HydraLeaderboardComponent],
   template: `
-    <section class="min-h-screen bg-slate-50">
-      <header class="border-b bg-white px-6 py-4">
+    <section class="min-h-screen bg-nano-banana font-sans">
+      <header class="border-b-2 border-[#1D1C1C] bg-white px-6 py-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p class="text-xs font-semibold uppercase text-slate-500">Hydra Tournament</p>
-            <h1 class="text-2xl font-bold text-slate-900">Session {{ tournamentId }}</h1>
+            <p class="ui-label">Hydra Tournament</p>
+            <h1 class="text-2xl font-black font-display uppercase text-[#1D1C1C]">Session {{ tournamentId }}</h1>
           </div>
           <div class="flex items-center gap-3">
             <button
-              class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              class="ui-btn ui-btn-dark px-4 py-2 text-sm"
               (click)="joinTournament()"
             >
               Rejoindre
             </button>
             <button
-              class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold"
+              class="ui-btn ui-btn-ghost px-4 py-2 text-sm"
               (click)="toggleQueue()"
             >
               {{ inQueue ? 'Quitter la file' : 'Entrer en file' }}
             </button>
-            <a routerLink="/settings" class="text-sm text-slate-500 underline">Paramètres</a>
+            <a routerLink="/settings" class="text-sm text-gray-500 underline">Paramètres</a>
           </div>
         </div>
       </header>
 
       <div class="mx-auto grid max-w-6xl gap-6 p-6 lg:grid-cols-[2fr_1fr]">
         <div class="space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <div class="ui-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div class="flex items-center gap-3 text-sm">
-              <label class="font-semibold text-slate-700">Tri</label>
+              <label class="ui-label">Tri</label>
               <select
-                class="rounded-md border border-slate-200 px-2 py-1 text-sm"
+                class="ui-input px-2 py-1 text-sm"
                 [value]="sortMode"
                 (change)="setSortMode($any($event.target).value)"
               >
@@ -64,7 +64,7 @@ type LeaderboardEntry = {
                 <option value="time">Temps restant</option>
               </select>
             </div>
-            <label class="flex items-center gap-2 text-sm text-slate-600">
+            <label class="flex items-center gap-2 text-sm text-gray-600">
               <input type="checkbox" [checked]="soundEnabled" (change)="toggleSound($event)" />
               Son d'alerte
             </label>
@@ -79,8 +79,8 @@ type LeaderboardEntry = {
 
         <div class="space-y-4">
           <app-hydra-leaderboard [entries]="(leaderboard$ | async) ?? []"></app-hydra-leaderboard>
-          <section class="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-            <h3 class="mb-2 font-semibold text-slate-700">Statut file d'attente</h3>
+          <section class="ui-card p-4 text-sm text-gray-600">
+            <h3 class="mb-2 font-black uppercase text-gray-700">Statut file d'attente</h3>
             <p>Fenêtre Elo: {{ queueStatus }}</p>
           </section>
         </div>

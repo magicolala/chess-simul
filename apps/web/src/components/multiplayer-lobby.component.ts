@@ -17,13 +17,13 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           </h2>
           <p class="text-gray-500 font-bold">Trouve un adversaire ou invite un ami.</p>
         </div>
-        <div class="text-xs uppercase font-black text-gray-500 bg-gray-100 dark:bg-[#1a1a1a] px-3 py-1 border-2 border-[#1D1C1C] dark:border-white">
+        <div class="ui-chip text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-[#1a1a1a]">
           Hors simul
         </div>
       </div>
 
       <div class="grid gap-6 md:grid-cols-2">
-        <section class="border-2 border-[#1D1C1C] dark:border-white bg-white dark:bg-[#1a1a1a] p-6 wero-shadow space-y-4">
+        <section class="ui-card p-6 space-y-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-bold uppercase text-gray-500">Partie rapide</p>
@@ -32,8 +32,8 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
             <span class="text-lg">⚡</span>
           </div>
 
-          <label class="text-xs font-bold uppercase text-gray-500">Cadence</label>
-          <select [(ngModel)]="selectedTimeControl" class="w-full border-2 border-[#1D1C1C] dark:border-white bg-transparent p-2 font-mono font-bold">
+          <label class="ui-label">Cadence</label>
+          <select [(ngModel)]="selectedTimeControl" class="ui-input font-mono font-bold">
             <option value="3+2">3+2 Blitz</option>
             <option value="5+0">5+0 Standard</option>
             <option value="10+0">10+0 Rapide</option>
@@ -42,7 +42,7 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           <div class="flex items-center space-x-2">
             <button
               (click)="startQuickPlay()"
-              class="flex-1 py-3 bg-[#FFF48D] text-[#1D1C1C] font-black font-display uppercase border-2 border-[#1D1C1C] hover:bg-[#7AF7F7]"
+              class="ui-btn ui-btn-primary flex-1 py-3 font-black font-display"
               [disabled]="matchmaking.queueStatus() === 'searching'"
             >
               {{ matchmaking.queueStatus() === 'searching' ? 'Recherche...' : 'Jouer maintenant' }}
@@ -50,7 +50,7 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
             @if (matchmaking.queueStatus() === 'searching') {
               <button
                 (click)="cancelQueue()"
-                class="px-4 py-3 border-2 border-[#1D1C1C] dark:border-white bg-white dark:bg-[#1a1a1a] font-bold"
+                class="ui-btn ui-btn-ghost px-4 py-3 font-bold"
               >
                 Annuler
               </button>
@@ -66,7 +66,7 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           }
         </section>
 
-        <section class="border-2 border-[#1D1C1C] dark:border-white bg-white dark:bg-[#1a1a1a] p-6 wero-shadow space-y-4">
+        <section class="ui-card p-6 space-y-4">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-bold uppercase text-gray-500">Invitations</p>
@@ -75,15 +75,15 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
             <span class="text-lg">🤝</span>
           </div>
 
-          <label class="text-xs font-bold uppercase text-gray-500">ID de l'ami</label>
+          <label class="ui-label">ID de l'ami</label>
           <input
             [(ngModel)]="friendId"
             placeholder="uuid du joueur"
-            class="w-full border-2 border-[#1D1C1C] dark:border-white bg-transparent p-2 font-mono"
+            class="ui-input font-mono"
           />
 
-          <label class="text-xs font-bold uppercase text-gray-500">Cadence</label>
-          <select [(ngModel)]="inviteTimeControl" class="w-full border-2 border-[#1D1C1C] dark:border-white bg-transparent p-2 font-mono font-bold">
+          <label class="ui-label">Cadence</label>
+          <select [(ngModel)]="inviteTimeControl" class="ui-input font-mono font-bold">
             <option value="5+0">5+0</option>
             <option value="10+0">10+0</option>
             <option value="3+2">3+2</option>
@@ -91,7 +91,7 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
 
           <button
             (click)="sendInvite()"
-            class="w-full py-3 bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] font-black font-display uppercase border-2 border-[#1D1C1C] dark:border-white"
+            class="ui-btn ui-btn-dark w-full py-3 font-black font-display"
           >
             Inviter
           </button>
@@ -139,7 +139,7 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
         </section>
       </div>
 
-      <section class="border-2 border-[#1D1C1C] dark:border-white bg-white dark:bg-[#1a1a1a] p-4 space-y-2">
+      <section class="ui-card p-4 space-y-2">
         <p class="text-xs font-bold uppercase text-gray-500">Notifications</p>
         @if (matchmaking.notifications().length === 0) {
           <p class="text-gray-500 text-sm font-bold">Aucune notification pour l'instant.</p>

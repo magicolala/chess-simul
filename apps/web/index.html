@@ -74,6 +74,143 @@
         box-shadow: 0px 0px 0px 0px #1D1C1C;
         transform: translate(2px, 2px);
       }
+
+      :root {
+        --wero-ink: #1D1C1C;
+        --wero-yellow: #FFF48D;
+        --wero-cyan: #7AF7F7;
+      }
+
+      .ui-card {
+        background: #ffffff;
+        border: 2px solid var(--wero-ink);
+        box-shadow: 4px 4px 0px 0px var(--wero-ink);
+      }
+      .dark .ui-card {
+        background: #1a1a1a;
+        border-color: #ffffff;
+        box-shadow: 4px 4px 0px 0px #ffffff;
+        color: #ffffff;
+      }
+      .ui-card-header {
+        background: var(--wero-yellow);
+        border-bottom: 2px solid var(--wero-ink);
+      }
+      .dark .ui-card-header {
+        border-color: #ffffff;
+      }
+      .ui-card-footer {
+        border-top: 2px solid var(--wero-ink);
+      }
+      .dark .ui-card-footer {
+        border-color: #ffffff;
+      }
+
+      .ui-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+      }
+      .dark .ui-label {
+        color: #9ca3af;
+      }
+      .ui-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--wero-ink);
+        background: #ffffff;
+        font-weight: 600;
+        outline: none;
+      }
+      .ui-input:focus {
+        background: #e8fefe;
+      }
+      .dark .ui-input {
+        background: #0f0f0f;
+        border-color: #ffffff;
+        color: #ffffff;
+      }
+      .dark .ui-input:focus {
+        background: #000000;
+      }
+
+      .ui-btn {
+        border: 2px solid var(--wero-ink);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        box-shadow: 2px 2px 0px 0px var(--wero-ink);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
+      }
+      .ui-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 0px 0px 0px 0px var(--wero-ink);
+      }
+      .ui-btn-primary {
+        background: var(--wero-yellow);
+        color: var(--wero-ink);
+      }
+      .ui-btn-secondary {
+        background: var(--wero-cyan);
+        color: var(--wero-ink);
+      }
+      .ui-btn-dark {
+        background: var(--wero-ink);
+        color: #ffffff;
+      }
+      .ui-btn-ghost {
+        background: #ffffff;
+        color: var(--wero-ink);
+      }
+      .ui-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .dark .ui-btn {
+        border-color: #ffffff;
+        box-shadow: 2px 2px 0px 0px #ffffff;
+      }
+      .dark .ui-btn-dark {
+        background: #ffffff;
+        color: var(--wero-ink);
+      }
+      .dark .ui-btn-ghost {
+        background: #1a1a1a;
+        color: #ffffff;
+      }
+
+      .ui-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 2px solid var(--wero-ink);
+        padding: 0.2rem 0.55rem;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        background: #ffffff;
+      }
+      .dark .ui-chip {
+        border-color: #ffffff;
+        background: #1a1a1a;
+        color: #ffffff;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible {
+        outline: 2px dashed var(--wero-ink);
+        outline-offset: 2px;
+      }
+      .dark button:focus-visible,
+      .dark input:focus-visible,
+      .dark textarea:focus-visible,
+      .dark select:focus-visible {
+        outline-color: #ffffff;
+      }
     </style>
   <script type="importmap">
 {

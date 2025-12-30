@@ -19,7 +19,7 @@ import { ChessBoardComponent } from './chess-board.component';
 
             <!-- Left: Hero / Quick Play -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-6 relative overflow-hidden group">
+                <div class="ui-card p-6 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 font-display text-9xl select-none group-hover:rotate-12 transition-transform duration-700">♟</div>
 
                     <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-tight mb-2">
@@ -61,7 +61,7 @@ import { ChessBoardComponent } from './chess-board.component';
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @for (game of activeGames(); track game.id) {
-                                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-3 flex items-center space-x-4 cursor-pointer hover:translate-x-1 transition-transform" (click)="resumeGame.emit(game.id)">
+                                <div class="ui-card p-3 flex items-center space-x-4 cursor-pointer hover:translate-x-1 transition-transform" (click)="resumeGame.emit(game.id)">
                                     <div class="w-24 h-24 pointer-events-none border border-gray-200">
                                         <app-chess-board [fen]="game.fen" [lastMove]="game.lastMove"></app-chess-board>
                                     </div>
@@ -87,7 +87,7 @@ import { ChessBoardComponent } from './chess-board.component';
             <!-- Right: ELO & Stats -->
             <div class="space-y-6">
                 <!-- ELO Widget -->
-                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-6 flex flex-col justify-between h-64 relative overflow-hidden">
+                <div class="ui-card p-6 flex flex-col justify-between h-64 relative overflow-hidden">
                      <div class="z-10">
                          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Classement Blitz</h3>
                          <div class="flex items-end space-x-3">
@@ -109,7 +109,7 @@ import { ChessBoardComponent } from './chess-board.component';
                 </div>
 
                 <!-- Friends Online (Powered by SocialService) -->
-                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-4">
+                <div class="ui-card p-4">
                     <h3 class="text-xs font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-widest mb-4 flex justify-between items-center">
                         Amis en ligne <span class="bg-green-500 text-white text-[10px] px-1.5 rounded-full">{{ onlineFriends().length }}</span>
                     </h3>
@@ -154,7 +154,7 @@ import { ChessBoardComponent } from './chess-board.component';
             </div>
 
             <!-- Tournaments Card (Placeholder) -->
-            <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-6 cursor-not-allowed opacity-75 relative">
+            <div class="ui-card p-6 cursor-not-allowed opacity-75 relative">
                 <div class="absolute top-2 right-2 bg-gray-200 text-gray-500 text-[10px] font-bold px-2 py-0.5 uppercase">Bientôt</div>
                 <h3 class="text-xl font-black font-display text-[#1D1C1C] dark:text-white uppercase mb-1">Tournois</h3>
                 <p class="text-sm font-medium text-gray-500 mb-4">Arènes rapides et tournois suisses.</p>
@@ -166,7 +166,7 @@ import { ChessBoardComponent } from './chess-board.component';
             </div>
 
              <!-- Recent History (Mini) -->
-             <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-4 flex flex-col">
+             <div class="ui-card p-4 flex flex-col">
                  <div class="flex justify-between items-center mb-4">
                     <h3 class="text-sm font-black font-display text-[#1D1C1C] dark:text-white uppercase">Historique Récent</h3>
                     <button (click)="goToHistory.emit()" class="text-[10px] font-bold underline">TOUT VOIR</button>

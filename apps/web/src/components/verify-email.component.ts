@@ -10,10 +10,10 @@ import { AuthService } from '../services/auth.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-nano-banana p-4 font-sans">
-      <div class="w-full max-w-md bg-white border-2 border-[#1D1C1C] wero-shadow relative p-8">
+      <div class="ui-card w-full max-w-md relative p-8">
          
          <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-[#FFF48D] rounded-full border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mx-auto mb-4">
+            <div class="w-16 h-16 bg-[#FFF48D] border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mx-auto mb-4 wero-shadow-sm">
                 ✉️
             </div>
             <h2 class="text-2xl font-black font-display text-[#1D1C1C] uppercase mb-2">Vérifiez votre email</h2>
@@ -30,10 +30,10 @@ import { AuthService } from '../services/auth.service';
          }
 
          <div class="space-y-4">
-            <input type="text" [(ngModel)]="code" placeholder="Entrez le code" class="w-full text-center text-2xl tracking-widest font-mono font-bold py-4 border-2 border-[#1D1C1C] focus:bg-[#7AF7F7] focus:outline-none uppercase">
+            <input type="text" [(ngModel)]="code" placeholder="Entrez le code" class="ui-input text-center text-2xl tracking-widest font-mono font-bold uppercase">
             
             <button (click)="verify()" [disabled]="auth.isLoading() || code().length < 4" 
-                class="w-full py-4 bg-[#1D1C1C] text-white hover:bg-gray-800 text-lg font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow-sm transition-all disabled:opacity-50">
+                class="ui-btn ui-btn-dark w-full py-4 text-lg font-black font-display">
                 {{ auth.isLoading() ? 'Vérification...' : 'Confirmer' }}
             </button>
             

@@ -18,7 +18,7 @@ import { FormsModule } from '@angular/forms';
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             <!-- Create Game Panel -->
-            <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-8 flex flex-col items-center">
+            <div class="ui-card p-8 flex flex-col items-center">
                 <div class="w-16 h-16 bg-[#FFF48D] rounded-full border-2 border-[#1D1C1C] flex items-center justify-center text-3xl mb-6">
                     ⚔️
                 </div>
@@ -27,12 +27,12 @@ import { FormsModule } from '@angular/forms';
                 <!-- Time Controls -->
                 <div class="w-full space-y-6 mb-8">
                     <div>
-                        <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Cadence: {{ timeMinutes() }} min</label>
+                        <label class="ui-label block mb-2 font-display">Cadence: {{ timeMinutes() }} min</label>
                         <input type="range" min="1" max="60" [(ngModel)]="timeMinutes" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1D1C1C]">
                     </div>
 
                     <div>
-                         <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Incrément: {{ incrementSeconds() }} sec</label>
+                         <label class="ui-label block mb-2 font-display">Incrément: {{ incrementSeconds() }} sec</label>
                         <input type="range" min="0" max="60" [(ngModel)]="incrementSeconds" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1D1C1C]">
                     </div>
 
@@ -49,17 +49,17 @@ import { FormsModule } from '@angular/forms';
                     </div>
                 </div>
 
-                <button (click)="startGame()" class="w-full py-4 bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] text-xl font-black font-display uppercase hover:bg-[#FFF48D] hover:text-[#1D1C1C] border-2 border-[#1D1C1C] dark:border-white transition-all wero-shadow-sm active:translate-y-[2px] active:shadow-none">
+                <button (click)="startGame()" class="ui-btn ui-btn-dark w-full py-4 text-xl font-black font-display">
                     Lancer la partie
                 </button>
             </div>
 
             <!-- Join/Info Panel -->
-            <div class="bg-gray-50 dark:bg-[#121212] border-2 border-dashed border-[#1D1C1C] dark:border-gray-600 p-8 flex flex-col items-center justify-center text-center opacity-75 hover:opacity-100 transition-opacity">
+            <div class="ui-card p-8 flex flex-col items-center justify-center text-center opacity-90 hover:opacity-100 transition-opacity border-dashed">
                  <h3 class="text-xl font-bold font-display text-[#1D1C1C] dark:text-gray-300 uppercase mb-4">Lien d'invitation</h3>
-                 <div class="bg-white dark:bg-[#1a1a1a] p-4 border border-gray-300 dark:border-gray-700 w-full mb-4 flex items-center justify-between">
+                 <div class="ui-card p-4 w-full mb-4 flex items-center justify-between">
                     <code class="text-sm font-mono text-gray-500 truncate">https://chessmaster.app/play/{{ generateCode() }}</code>
-                    <button class="ml-2 text-xs font-bold font-display uppercase text-[#7AF7F7] bg-[#1D1C1C] px-2 py-1">Copier</button>
+                    <button class="ui-btn ui-btn-dark ml-2 text-xs px-2 py-1">Copier</button>
                  </div>
                  <p class="text-sm text-gray-500 max-w-xs">Partagez ce lien (simulation). Pour l'instant, le mode "Pass & Play" est activé sur cet appareil.</p>
             </div>

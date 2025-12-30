@@ -45,12 +45,12 @@ import { Chess } from 'chess.js';
         </div>
 
         <!-- Right: Analysis Tools -->
-        <div class="w-full lg:w-96 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col h-[60vh] lg:h-auto">
+        <div class="ui-card w-full lg:w-96 flex flex-col h-[60vh] lg:h-auto">
 
             <!-- Header Tabs -->
-            <div class="flex border-b-2 border-[#1D1C1C] dark:border-white">
-                <button (click)="tab.set('moves')" [class.bg-[#1D1C1C]]="tab() === 'moves'" [class.text-white]="tab() === 'moves'" class="flex-1 py-3 font-bold uppercase text-xs hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white transition-colors">Coups</button>
-                <button (click)="tab.set('pgn')" [class.bg-[#1D1C1C]]="tab() === 'pgn'" [class.text-white]="tab() === 'pgn'" class="flex-1 py-3 font-bold uppercase text-xs hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white transition-colors">Import PGN</button>
+            <div class="ui-card-footer flex">
+                <button (click)="tab.set('moves')" [class.bg-[#1D1C1C]]="tab() === 'moves'" [class.text-white]="tab() === 'moves'" class="ui-btn ui-btn-ghost flex-1 py-3 text-xs">Coups</button>
+                <button (click)="tab.set('pgn')" [class.bg-[#1D1C1C]]="tab() === 'pgn'" [class.text-white]="tab() === 'pgn'" class="ui-btn ui-btn-ghost flex-1 py-3 text-xs">Import PGN</button>
             </div>
 
             <!-- Engine Output -->
@@ -120,19 +120,19 @@ import { Chess } from 'chess.js';
 
                 @if (tab() === 'pgn') {
                     <div class="p-4">
-                        <textarea [(ngModel)]="pgnInput" rows="10" class="w-full border-2 border-[#1D1C1C] dark:border-white p-2 font-mono text-xs bg-gray-50 dark:bg-[#121212] dark:text-white outline-none focus:bg-white" placeholder="Collez votre PGN ici..."></textarea>
-                        <button (click)="loadPgn()" class="w-full mt-4 py-3 bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] font-black uppercase hover:opacity-90">Importer</button>
+                        <textarea [(ngModel)]="pgnInput" rows="10" class="ui-input font-mono text-xs bg-gray-50 dark:bg-[#121212]" placeholder="Collez votre PGN ici..."></textarea>
+                        <button (click)="loadPgn()" class="ui-btn ui-btn-dark w-full mt-4 py-3">Importer</button>
                     </div>
                 }
 
             </div>
 
             <!-- Footer Controls -->
-            <div class="p-4 border-t-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#121212] flex justify-center space-x-1">
-                <button (click)="navigate('start')" class="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#1D1C1C] hover:bg-[#FFF48D] font-black">|&lt;</button>
-                <button (click)="navigate('prev')" class="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#1D1C1C] hover:bg-[#FFF48D] font-black">&lt;</button>
-                <button (click)="navigate('next')" class="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#1D1C1C] hover:bg-[#FFF48D] font-black">&gt;</button>
-                <button (click)="navigate('end')" class="w-10 h-10 flex items-center justify-center bg-white border-2 border-[#1D1C1C] hover:bg-[#FFF48D] font-black">&gt;|</button>
+            <div class="ui-card-footer p-4 bg-gray-50 dark:bg-[#121212] flex justify-center space-x-1">
+                <button (click)="navigate('start')" class="ui-btn ui-btn-ghost w-10 h-10 font-black">|&lt;</button>
+                <button (click)="navigate('prev')" class="ui-btn ui-btn-ghost w-10 h-10 font-black">&lt;</button>
+                <button (click)="navigate('next')" class="ui-btn ui-btn-ghost w-10 h-10 font-black">&gt;</button>
+                <button (click)="navigate('end')" class="ui-btn ui-btn-ghost w-10 h-10 font-black">&gt;|</button>
             </div>
 
         </div>

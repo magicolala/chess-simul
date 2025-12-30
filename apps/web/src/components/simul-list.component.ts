@@ -16,22 +16,22 @@ import { SimulService } from '../services/simul.service';
                 <h2 class="text-4xl font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-tighter">Simultanées</h2>
                 <p class="text-gray-500 font-bold">Défiez des maîtres ou créez votre propre événement.</p>
             </div>
-            <button (click)="create.emit()" class="px-6 py-3 bg-[#FFF48D] text-[#1D1C1C] font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow hover:-translate-y-1 transition-transform">
+            <button (click)="create.emit()" class="ui-btn ui-btn-primary px-6 py-3 font-black font-display">
                 + Créer
             </button>
         </div>
 
         <!-- Filters -->
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2">
-            <button (click)="filter.set('all')" [class.bg-[#1D1C1C]]="filter() === 'all'" [class.text-white]="filter() === 'all'" class="px-4 py-1 border-2 border-[#1D1C1C] dark:border-white font-bold text-xs uppercase dark:text-white transition-colors">Tout</button>
-            <button (click)="filter.set('open')" [class.bg-[#1D1C1C]]="filter() === 'open'" [class.text-white]="filter() === 'open'" class="px-4 py-1 border-2 border-[#1D1C1C] dark:border-white font-bold text-xs uppercase dark:text-white transition-colors">Ouvertes</button>
-            <button (click)="filter.set('started')" [class.bg-[#1D1C1C]]="filter() === 'started'" [class.text-white]="filter() === 'started'" class="px-4 py-1 border-2 border-[#1D1C1C] dark:border-white font-bold text-xs uppercase dark:text-white transition-colors">En cours</button>
+            <button (click)="filter.set('all')" [class.bg-[#1D1C1C]]="filter() === 'all'" [class.text-white]="filter() === 'all'" class="ui-btn ui-btn-ghost px-4 py-1 text-xs">Tout</button>
+            <button (click)="filter.set('open')" [class.bg-[#1D1C1C]]="filter() === 'open'" [class.text-white]="filter() === 'open'" class="ui-btn ui-btn-ghost px-4 py-1 text-xs">Ouvertes</button>
+            <button (click)="filter.set('started')" [class.bg-[#1D1C1C]]="filter() === 'started'" [class.text-white]="filter() === 'started'" class="ui-btn ui-btn-ghost px-4 py-1 text-xs">En cours</button>
         </div>
 
         <!-- Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @for (simul of filteredSimuls(); track simul.id) {
-                <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow group relative overflow-hidden flex flex-col">
+                <div class="ui-card group relative overflow-hidden flex flex-col">
                     
                     <!-- Status Badge -->
                     <div class="absolute top-0 right-0 px-3 py-1 text-[10px] font-black uppercase z-10 border-l-2 border-b-2 border-[#1D1C1C] dark:border-white"
@@ -41,7 +41,7 @@ import { SimulService } from '../services/simul.service';
                     </div>
 
                     <!-- Host Info -->
-                    <div class="p-6 pb-4 flex items-center space-x-4 border-b-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-[#121212]">
+                    <div class="ui-card-header p-6 pb-4 flex items-center space-x-4">
                         <img [src]="simul.host.avatar" class="w-14 h-14 rounded-full border-2 border-[#1D1C1C] dark:border-white bg-white">
                         <div>
                             <h3 class="font-black font-display text-lg uppercase leading-none text-[#1D1C1C] dark:text-white">{{ simul.host.name }}</h3>
@@ -69,7 +69,7 @@ import { SimulService } from '../services/simul.service';
 
                         <button (click)="join.emit(simul.id)" 
                             [disabled]="simul.status !== 'open'"
-                            class="w-full py-3 mt-2 bg-[#7AF7F7] hover:bg-[#FFF48D] disabled:bg-gray-200 disabled:cursor-not-allowed border-2 border-[#1D1C1C] text-[#1D1C1C] font-black uppercase transition-colors wero-shadow-sm">
+                            class="ui-btn ui-btn-secondary w-full py-3 mt-2 font-black">
                             {{ simul.status === 'open' ? 'Rejoindre' : 'Regarder' }}
                         </button>
                     </div>

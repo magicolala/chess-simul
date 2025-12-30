@@ -16,7 +16,7 @@ import * as d3 from 'd3';
             Historique
          </h2>
          @if (historyService.history().length > 0) {
-           <button (click)="historyService.clearHistory()" class="text-sm font-bold text-white bg-[#1D1C1C] px-4 py-2 border-2 border-transparent hover:bg-red-600 transition-colors uppercase">
+           <button (click)="historyService.clearHistory()" class="ui-btn ui-btn-dark text-sm px-4 py-2">
              Effacer tout
            </button>
          }
@@ -24,12 +24,12 @@ import * as d3 from 'd3';
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-         <div class="bg-white p-6 border-2 border-[#1D1C1C] wero-shadow relative">
+         <div class="ui-card p-6 relative">
             <h3 class="text-xs font-bold text-[#1D1C1C] uppercase tracking-wider mb-2 bg-[#FFF48D] inline-block px-1">Total Parties</h3>
             <p class="text-5xl font-black text-[#1D1C1C] mt-2">{{ stats().wins + stats().losses + stats().draws }}</p>
          </div>
 
-         <div class="bg-white p-6 border-2 border-[#1D1C1C] wero-shadow relative">
+         <div class="ui-card p-6 relative">
             <h3 class="text-xs font-bold text-[#1D1C1C] uppercase tracking-wider mb-2 bg-[#7AF7F7] inline-block px-1">Victoires</h3>
             <div class="flex items-end space-x-2 mt-2">
                <p class="text-5xl font-black text-[#1D1C1C]">{{ stats().wins }}</p>
@@ -37,12 +37,12 @@ import * as d3 from 'd3';
             </div>
          </div>
 
-         <div class="bg-white p-6 border-2 border-[#1D1C1C] wero-shadow flex flex-col items-center justify-center">
+         <div class="ui-card p-6 flex flex-col items-center justify-center">
              <h3 class="text-xs font-bold text-[#1D1C1C] uppercase tracking-wider mb-2 w-full text-left">Répartition</h3>
              <div #chartContainer class="w-full h-32 flex items-center justify-center"></div>
          </div>
 
-         <div class="bg-white p-6 border-2 border-[#1D1C1C] wero-shadow flex flex-col justify-between">
+         <div class="ui-card p-6 flex flex-col justify-between">
             <div>
                 <h3 class="text-xs font-bold text-[#1D1C1C] uppercase tracking-wider mb-2 w-full text-left">Hydra (+3 / +1 / -1)</h3>
                 <p class="text-4xl font-black text-[#1D1C1C]">{{ hydraStats().totalPoints }}</p>
@@ -56,8 +56,8 @@ import * as d3 from 'd3';
       </div>
 
       <!-- Games List -->
-      <div class="bg-white border-2 border-[#1D1C1C] wero-shadow">
-        <div class="px-6 py-4 border-b-2 border-[#1D1C1C] bg-[#FFF48D]">
+      <div class="ui-card">
+        <div class="ui-card-header px-6 py-4">
            <h3 class="font-black text-[#1D1C1C] uppercase tracking-wide text-lg">Journal des matchs</h3>
         </div>
         
@@ -92,7 +92,7 @@ import * as d3 from 'd3';
                        }
                    }
                    <span class="px-2 py-1 border-2 border-[#1D1C1C] text-xs font-black" [class.bg-green-100]="game.hydraPoints > 0" [class.bg-red-100]="game.hydraPoints < 0" [class.bg-gray-100]="game.hydraPoints === 0">{{ game.hydraPoints > 0 ? '+' : ''}}{{ game.hydraPoints }} pts</span>
-                   <button (click)="review.emit(game.id)" class="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 border-2 border-[#1D1C1C] text-[10px] font-black uppercase hover:bg-[#7AF7F7]">
+                   <button (click)="review.emit(game.id)" class="ui-btn ui-btn-secondary opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-[10px]">
                        Analyser
                    </button>
                </div>

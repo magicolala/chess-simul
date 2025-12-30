@@ -10,7 +10,7 @@ import { GameConfig } from '../services/chess-logic.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="max-w-4xl mx-auto p-8 font-sans animate-in fade-in zoom-in duration-300">
-        <div class="bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow p-8">
+        <div class="ui-card p-8">
             
             <div class="flex items-center space-x-4 mb-8 pb-8 border-b-2 border-[#1D1C1C] dark:border-gray-700">
                 <div class="w-16 h-16 bg-[#FFF48D] flex items-center justify-center text-4xl border-2 border-[#1D1C1C]">
@@ -27,7 +27,7 @@ import { GameConfig } from '../services/chess-logic.service';
             <div class="space-y-8">
                 <!-- Opponent Count -->
                 <div>
-                    <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">
+                    <label class="ui-label block mb-2 font-display">
                         Nombre d'adversaires : {{ opponentCount() }}
                     </label>
                     <input type="range" min="2" max="20" [(ngModel)]="opponentCount" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1D1C1C]">
@@ -40,16 +40,16 @@ import { GameConfig } from '../services/chess-logic.service';
                 <!-- Time Control -->
                 <div class="grid grid-cols-2 gap-6">
                     <div>
-                         <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Temps initial (min)</label>
+                         <label class="ui-label block mb-2 font-display">Temps initial (min)</label>
                          <div class="flex space-x-2">
-                             <button (click)="timeMinutes.set(10)" [class.bg-[#1D1C1C]]="timeMinutes() === 10" [class.text-white]="timeMinutes() === 10" class="flex-1 py-2 border-2 border-[#1D1C1C] dark:border-white font-bold hover:bg-gray-100 dark:hover:bg-gray-800">10</button>
-                             <button (click)="timeMinutes.set(20)" [class.bg-[#1D1C1C]]="timeMinutes() === 20" [class.text-white]="timeMinutes() === 20" class="flex-1 py-2 border-2 border-[#1D1C1C] dark:border-white font-bold hover:bg-gray-100 dark:hover:bg-gray-800">20</button>
-                             <button (click)="timeMinutes.set(40)" [class.bg-[#1D1C1C]]="timeMinutes() === 40" [class.text-white]="timeMinutes() === 40" class="flex-1 py-2 border-2 border-[#1D1C1C] dark:border-white font-bold hover:bg-gray-100 dark:hover:bg-gray-800">40</button>
+                             <button (click)="timeMinutes.set(10)" [class.bg-[#1D1C1C]]="timeMinutes() === 10" [class.text-white]="timeMinutes() === 10" class="ui-btn ui-btn-ghost flex-1 py-2 font-bold">10</button>
+                             <button (click)="timeMinutes.set(20)" [class.bg-[#1D1C1C]]="timeMinutes() === 20" [class.text-white]="timeMinutes() === 20" class="ui-btn ui-btn-ghost flex-1 py-2 font-bold">20</button>
+                             <button (click)="timeMinutes.set(40)" [class.bg-[#1D1C1C]]="timeMinutes() === 40" [class.text-white]="timeMinutes() === 40" class="ui-btn ui-btn-ghost flex-1 py-2 font-bold">40</button>
                          </div>
                     </div>
                     <div>
-                         <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Incrément (sec)</label>
-                         <input type="number" [(ngModel)]="incrementSeconds" class="w-full p-2 border-2 border-[#1D1C1C] dark:border-white bg-gray-50 dark:bg-gray-800 font-bold outline-none">
+                         <label class="ui-label block mb-2 font-display">Incrément (sec)</label>
+                         <input type="number" [(ngModel)]="incrementSeconds" class="ui-input font-bold">
                     </div>
                 </div>
 
@@ -58,12 +58,12 @@ import { GameConfig } from '../services/chess-logic.service';
                         <p class="text-sm font-black uppercase text-[#1D1C1C]">Preset Hydra</p>
                         <p class="text-xs font-bold text-gray-700">Cadence recommandée 5 min + 3s, scoring +3 / +1 / -1.</p>
                     </div>
-                    <button (click)="useHydraPreset()" class="px-4 py-2 bg-[#1D1C1C] text-[#FFF48D] font-black uppercase border-2 border-[#1D1C1C] hover:bg-black">Appliquer 5+3</button>
+                    <button (click)="useHydraPreset()" class="ui-btn ui-btn-dark px-4 py-2">Appliquer 5+3</button>
                 </div>
 
                 <!-- Theme / Options -->
                 <div>
-                     <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Visibilité</label>
+                     <label class="ui-label block mb-2 font-display">Visibilité</label>
                      <div class="flex space-x-4">
                          <label class="flex items-center space-x-2 cursor-pointer">
                              <input type="radio" name="visibility" value="public" checked class="accent-[#1D1C1C] w-4 h-4">
@@ -77,7 +77,7 @@ import { GameConfig } from '../services/chess-logic.service';
                 </div>
 
                 <div class="pt-6 border-t-2 border-[#1D1C1C] dark:border-gray-700">
-                    <button (click)="launchSimul()" class="w-full py-4 bg-[#7AF7F7] hover:bg-[#FFF48D] text-[#1D1C1C] text-xl font-black font-display border-2 border-[#1D1C1C] wero-shadow-sm uppercase transition-all hover:-translate-y-1">
+                    <button (click)="launchSimul()" class="ui-btn ui-btn-secondary w-full py-4 text-xl font-black font-display">
                         Créer la Simultanée
                     </button>
                 </div>

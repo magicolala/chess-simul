@@ -11,7 +11,7 @@ import { PreferencesService, BOARD_THEMES } from '../services/preferences.servic
   imports: [CommonModule, FormsModule],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-nano-banana p-4 font-sans">
-      <div class="w-full max-w-2xl bg-white border-2 border-[#1D1C1C] wero-shadow relative flex flex-col md:flex-row overflow-hidden">
+      <div class="ui-card w-full max-w-2xl relative flex flex-col md:flex-row overflow-hidden">
          
          <!-- Left: Preview -->
          <div class="w-full md:w-1/2 bg-[#FFF48D] p-8 flex flex-col items-center justify-center border-b-2 md:border-b-0 md:border-r-2 border-[#1D1C1C]">
@@ -31,22 +31,22 @@ import { PreferencesService, BOARD_THEMES } from '../services/preferences.servic
                 
                 <!-- Pseudo -->
                 <div>
-                    <label class="block text-xs font-bold font-display text-gray-500 uppercase mb-2">Pseudo</label>
-                    <input type="text" [(ngModel)]="name" class="w-full px-3 py-2 border-2 border-[#1D1C1C] font-bold focus:bg-[#7AF7F7] outline-none">
+                    <label class="ui-label block mb-2 font-display">Pseudo</label>
+                    <input type="text" [(ngModel)]="name" class="ui-input font-bold">
                 </div>
 
                 <!-- Avatar Seed -->
                 <div>
-                    <label class="block text-xs font-bold font-display text-gray-500 uppercase mb-2">Avatar Seed</label>
+                    <label class="ui-label block mb-2 font-display">Avatar Seed</label>
                     <div class="flex space-x-2">
-                        <input type="text" [(ngModel)]="avatarSeed" class="flex-1 px-3 py-2 border-2 border-[#1D1C1C] font-mono text-sm outline-none">
-                        <button (click)="randomizeAvatar()" class="px-3 border-2 border-[#1D1C1C] bg-gray-100 hover:bg-[#FFF48D] font-bold">🎲</button>
+                        <input type="text" [(ngModel)]="avatarSeed" class="ui-input flex-1 font-mono text-sm">
+                        <button (click)="randomizeAvatar()" class="ui-btn ui-btn-ghost px-3">🎲</button>
                     </div>
                 </div>
 
                 <!-- Theme -->
                 <div>
-                    <label class="block text-xs font-bold font-display text-gray-500 uppercase mb-2">Thème Échiquier</label>
+                    <label class="ui-label block mb-2 font-display">Thème Échiquier</label>
                     <div class="grid grid-cols-3 gap-2">
                         @for (theme of themes; track theme.id) {
                             <div (click)="selectTheme(theme.id)" 
@@ -65,7 +65,7 @@ import { PreferencesService, BOARD_THEMES } from '../services/preferences.servic
                 </div>
 
                 <button (click)="finish()" [disabled]="auth.isLoading()" 
-                    class="w-full py-4 bg-[#7AF7F7] text-[#1D1C1C] text-lg font-black font-display uppercase border-2 border-[#1D1C1C] wero-shadow-sm hover:bg-[#FFF48D] transition-all disabled:opacity-50 mt-4"
+                    class="ui-btn ui-btn-secondary w-full py-4 text-lg font-black font-display mt-4"
                     [innerText]="auth.isLoading() ? 'Finalisation...' : 'C\\'est parti !'">
                 </button>
 

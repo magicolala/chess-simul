@@ -18,7 +18,7 @@ import { SupabaseClientService } from '../services/supabase-client.service';
           <p class="ui-label text-emerald-600">Supabase Realtime</p>
           <h3 class="text-lg font-black">Abonnements live</h3>
         </div>
-        <span class="ui-chip text-slate-500">Flux demo</span>
+        <span class="ui-chip text-gray-500">Flux demo</span>
       </header>
 
       <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -58,13 +58,13 @@ import { SupabaseClientService } from '../services/supabase-client.service';
       </div>
 
       <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div class="ui-card p-3 bg-slate-50">
+        <div class="ui-card p-3 bg-gray-50">
           <h4 class="ui-label mb-2">Game state (UPDATE)</h4>
           <pre class="max-h-48 overflow-auto border-2 border-[#1D1C1C] bg-white p-3 text-[11px] leading-tight">{{ game$ | async | json }}</pre>
         </div>
-        <div class="ui-card p-3 bg-slate-50 space-y-2">
+        <div class="ui-card p-3 bg-gray-50 space-y-2">
           <h4 class="ui-label mb-2">Moves stream (INSERT)</h4>
-          <div class="flex items-center justify-between text-[10px] text-slate-600">
+          <div class="flex items-center justify-between text-[10px] text-gray-600">
             <button
               (click)="loadMoreMoves()"
               class="ui-btn ui-btn-ghost px-2 py-1 text-[10px]"
@@ -78,46 +78,46 @@ import { SupabaseClientService } from '../services/supabase-client.service';
           <div class="space-y-1 overflow-auto border-2 border-[#1D1C1C] bg-white p-3 text-[11px] leading-tight max-h-48">
             <div *ngFor="let move of moves$ | async; trackBy: trackById" class="flex items-center justify-between">
               <span class="font-mono">{{ move.ply ? '#' + move.ply + ' ' : '' }}{{ move.san || move.uci }}</span>
-              <span class="text-[10px] text-slate-500">{{ move.created_at || 'now' }}</span>
+              <span class="text-[10px] text-gray-500">{{ move.created_at || 'now' }}</span>
             </div>
-            <p *ngIf="(moves$ | async)?.length === 0" class="text-[11px] text-slate-500">En attente d'un coup...</p>
+            <p *ngIf="(moves$ | async)?.length === 0" class="text-[11px] text-gray-500">En attente d'un coup...</p>
           </div>
         </div>
-        <div class="ui-card p-3 bg-slate-50">
+        <div class="ui-card p-3 bg-gray-50">
           <h4 class="ui-label mb-2">Présence (game:{{ gameId || '...' }})</h4>
           <div class="space-y-1 overflow-auto border-2 border-[#1D1C1C] bg-white p-3 text-[11px] leading-tight max-h-48">
             <div *ngFor="let player of onlinePlayers$ | async" class="flex items-center justify-between">
               <span class="font-semibold">{{ player.username || player.user_id }}</span>
               <span class="text-[10px] text-emerald-600">online</span>
             </div>
-            <p *ngIf="(onlinePlayers$ | async)?.length === 0" class="text-[11px] text-slate-500">Personne en ligne.</p>
+            <p *ngIf="(onlinePlayers$ | async)?.length === 0" class="text-[11px] text-gray-500">Personne en ligne.</p>
           </div>
         </div>
       </div>
 
-      <div class="ui-card p-3 bg-slate-50">
+      <div class="ui-card p-3 bg-gray-50">
         <h4 class="ui-label mb-2">Simul tables (UPDATE simul_tables)</h4>
         <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
           <div *ngFor="let table of simulTables$ | async" class="ui-card p-3 text-[11px] leading-tight">
             <div class="flex items-center justify-between">
               <span class="font-semibold">Seat {{ table.seat_no ?? '??' }}</span>
-              <span class="ui-chip text-[10px] text-slate-600 bg-slate-100">{{ table.status || '...' }}</span>
+              <span class="ui-chip text-[10px] text-gray-600 bg-gray-100">{{ table.status || '...' }}</span>
             </div>
-            <p class="mt-1 text-[10px] text-slate-600">Guest: {{ table.guest_id || '---' }}</p>
-            <p class="text-[10px] text-slate-600">Game: {{ table.game_id || '---' }}</p>
+            <p class="mt-1 text-[10px] text-gray-600">Guest: {{ table.guest_id || '---' }}</p>
+            <p class="text-[10px] text-gray-600">Game: {{ table.game_id || '---' }}</p>
           </div>
-          <p *ngIf="(simulTables$ | async)?.length === 0" class="text-[11px] text-slate-500">Aucun update reçu pour le lobby.</p>
+          <p *ngIf="(simulTables$ | async)?.length === 0" class="text-[11px] text-gray-500">Aucun update reçu pour le lobby.</p>
         </div>
       </div>
 
-      <div class="ui-card p-3 bg-slate-50">
+      <div class="ui-card p-3 bg-gray-50">
         <h4 class="ui-label mb-2">Présence (simul:{{ simulId || '...' }})</h4>
         <div class="space-y-1 overflow-auto border-2 border-[#1D1C1C] bg-white p-3 text-[11px] leading-tight max-h-48">
           <div *ngFor="let player of simulPresence$ | async" class="flex items-center justify-between">
             <span class="font-semibold">{{ player.username || player.user_id }}</span>
             <span class="text-[10px] text-emerald-600">online</span>
           </div>
-          <p *ngIf="(simulPresence$ | async)?.length === 0" class="text-[11px] text-slate-500">Personne dans le lobby.</p>
+          <p *ngIf="(simulPresence$ | async)?.length === 0" class="text-[11px] text-gray-500">Personne dans le lobby.</p>
         </div>
       </div>
     </section>

@@ -34,7 +34,7 @@ import { ChessBoardComponent } from './chess-board.component';
                              
                              <!-- Keyboard Shortcut Badge -->
                              @if (i < 9) {
-                                 <div class="absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#1D1C1C] text-white flex items-center justify-center text-[10px] font-bold rounded shadow-sm opacity-50 group-hover:opacity-100">
+                                 <div class="absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#1D1C1C] text-white flex items-center justify-center text-[10px] font-bold opacity-50 group-hover:opacity-100">
                                      {{ i + 1 }}
                                  </div>
                              }
@@ -42,7 +42,7 @@ import { ChessBoardComponent } from './chess-board.component';
                              <div class="pl-8">
                                  <div class="flex justify-between items-center mb-1">
                                      <span class="font-black font-display text-sm text-[#1D1C1C] dark:text-white truncate w-24">{{ game.opponentName }}</span>
-                                     <span class="text-[10px] font-mono font-bold bg-red-500 text-white px-1.5 py-0.5 rounded shadow-sm">À TOI</span>
+                                     <span class="text-[10px] font-mono font-bold bg-red-500 text-white px-1.5 py-0.5">À TOI</span>
                                  </div>
                                  <div class="flex justify-between items-center text-xs">
                                      <span class="text-gray-500">Board #{{ game.id + 1 }}</span>
@@ -76,7 +76,7 @@ import { ChessBoardComponent } from './chess-board.component';
         <!-- Main Area -->
         <main class="flex-1 flex flex-col relative overflow-hidden bg-gray-200 dark:bg-[#000]">
 
-            <div class="ui-card p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
+            <div class="ui-card p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <p class="text-xs font-black uppercase text-gray-500">Score Hydra</p>
                     <div class="flex items-end space-x-3">
@@ -172,7 +172,7 @@ import { ChessBoardComponent } from './chess-board.component';
                          
                          <!-- Challenger Profile -->
                          <div class="ui-card-header p-6 text-center bg-gray-50 dark:bg-[#0f0f0f]">
-                             <img [src]="game.opponentAvatar" class="w-20 h-20 mx-auto border-4 border-[#1D1C1C] bg-white rounded-full mb-3 shadow-sm">
+                             <img [src]="game.opponentAvatar" class="w-20 h-20 mx-auto border-4 border-[#1D1C1C] bg-white rounded-full mb-3">
                              <h3 class="text-xl font-black font-display uppercase truncate">{{ game.opponentName }}</h3>
                              <p class="text-sm text-gray-500 font-mono font-bold">{{ game.opponentRating }} ELO</p>
                              <div class="mt-4 inline-block bg-[#1D1C1C] text-white px-3 py-1 font-mono font-bold text-lg rounded-[2px]">

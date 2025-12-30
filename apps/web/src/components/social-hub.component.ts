@@ -115,7 +115,7 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
                   <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100 dark:bg-[#0f0f0f]">
                       @for (msg of currentMessages(); track msg.timestamp) {
                           <div class="flex flex-col" [class.items-end]="msg.senderId !== friend.id" [class.items-start]="msg.senderId === friend.id">
-                               <div class="max-w-[70%] p-3 border-2 border-[#1D1C1C] text-sm font-medium shadow-sm"
+                               <div class="max-w-[70%] p-3 border-2 border-[#1D1C1C] text-sm font-medium"
                                     [class.bg-[#FFF48D]]="msg.senderId !== friend.id"
                                     [class.bg-white]="msg.senderId === friend.id"
                                     [class.rounded-tl-none]="msg.senderId === friend.id"

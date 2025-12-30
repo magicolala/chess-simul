@@ -99,7 +99,7 @@ import { SupabaseClientService } from '../services/supabase-client.service';
                                      </div>
                                      
                                      <!-- Tooltip -->
-                                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#1D1C1C] text-white text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20 text-center">
+                                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#1D1C1C] text-white text-xs p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20 text-center border-2 border-[#1D1C1C]">
                                          {{ badge.description }}
                                          <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1D1C1C]"></div>
                                      </div>

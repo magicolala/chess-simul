@@ -53,7 +53,7 @@ import { GameConfig } from '../services/chess-logic.service';
                     </div>
                 </div>
 
-                <div class="p-4 bg-[#FFF48D] border-2 border-[#1D1C1C] wero-shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="ui-card-header p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <p class="text-sm font-black uppercase text-[#1D1C1C]">Preset Hydra</p>
                         <p class="text-xs font-bold text-gray-700">Cadence recommandée 5 min + 3s, scoring +3 / +1 / -1.</p>

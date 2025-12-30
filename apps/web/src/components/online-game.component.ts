@@ -112,7 +112,7 @@ import { AuthService } from '../services/auth.service';
                     <div class="text-center text-[10px] font-bold text-gray-400 uppercase mb-4">Début de partie</div>
                     @for (msg of game()!.chat; track msg.id) {
                         <div class="flex flex-col" [class.items-end]="msg.isSelf" [class.items-start]="!msg.isSelf">
-                             <div class="max-w-[85%] p-2 rounded-[2px] border border-gray-200 dark:border-gray-700 text-xs font-medium shadow-sm"
+                             <div class="max-w-[85%] p-2 border-2 border-[#1D1C1C] text-xs font-medium"
                                   [class.bg-[#FFF48D]]="msg.isSelf"
                                   [class.text-[#1D1C1C]]="msg.isSelf"
                                   [class.bg-white]="!msg.isSelf"

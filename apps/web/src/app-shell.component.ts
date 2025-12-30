@@ -9,19 +9,19 @@ import { SupabaseClientService } from './services/supabase-client.service';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink],
   template: `
-    <div class="min-h-screen bg-slate-100 text-slate-900">
-      <nav class="flex items-center justify-between bg-white px-6 py-4 shadow-sm">
+    <div class="min-h-screen bg-nano-banana text-[#1D1C1C] font-sans">
+      <nav class="flex items-center justify-between bg-white px-6 py-4 border-b-2 border-[#1D1C1C]">
         <div class="flex items-center space-x-3">
-          <span class="rounded-md bg-slate-900 px-2 py-1 text-sm font-semibold text-white">Chess Simul</span>
-          <a routerLink="/login" class="text-sm font-semibold text-slate-700">Login</a>
-          <a routerLink="/register" class="text-sm font-semibold text-slate-700">Register</a>
-          <a routerLink="/settings" class="text-sm font-semibold text-slate-700">Settings</a>
+          <span class="ui-chip bg-[#1D1C1C] text-white">Chess Simul</span>
+          <a routerLink="/login" class="text-sm font-semibold text-[#1D1C1C] hover:underline">Login</a>
+          <a routerLink="/register" class="text-sm font-semibold text-[#1D1C1C] hover:underline">Register</a>
+          <a routerLink="/settings" class="text-sm font-semibold text-[#1D1C1C] hover:underline">Settings</a>
         </div>
-        <div class="text-sm text-slate-600" *ngIf="userEmail$ | async as email; else guest">
+        <div class="text-sm text-gray-600" *ngIf="userEmail$ | async as email; else guest">
           Connecté : <span class="font-semibold">{{ email }}</span>
         </div>
         <ng-template #guest>
-          <span class="text-sm text-slate-600">Aucun utilisateur connecté</span>
+          <span class="text-sm text-gray-600">Aucun utilisateur connecté</span>
         </ng-template>
       </nav>
 

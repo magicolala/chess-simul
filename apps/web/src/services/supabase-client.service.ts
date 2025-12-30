@@ -42,11 +42,16 @@ export class SupabaseClientService {
     await this.supabase.auth.signOut();
   }
 
-  async ensureCurrentUserProfile() {
-    const user = this.userSubject.value;
-    if (!user) return;
+  async ensureCurrentUserProfile(user?: User | null) {
+    let resolvedUser = user ?? this.userSubject.value;
+    if (!resolvedUser) {
+      const { data } = await this.supabase.auth.getUser();
+      resolvedUser = data.user ?? null;
+    }
 
-    this.profileEnsureInFlight ??= this.ensureProfileExists(user).finally(() => {
+    if (!resolvedUser) return;
+
+    this.profileEnsureInFlight ??= this.ensureProfileExists(resolvedUser).finally(() => {
       this.profileEnsureInFlight = null;
     });
 

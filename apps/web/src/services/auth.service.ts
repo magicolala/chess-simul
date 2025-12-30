@@ -28,6 +28,7 @@ export class AuthService {
   constructor() {
     this.supabase.session$.subscribe(session => {
       if (session?.user) {
+        void this.supabase.ensureCurrentUserProfile();
         // Map Supabase User to local User interface
         const user: User = {
           id: session.user.id,
@@ -47,7 +48,7 @@ export class AuthService {
           .from('profiles')
           .select('elo')
           .eq('id', session.user.id)
-          .single()
+          .maybeSingle()
           .then(({ data, error }) => {
             if (error) {
               console.error('Error fetching user ELO:', error);

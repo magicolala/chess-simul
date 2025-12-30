@@ -82,7 +82,7 @@ export class SupabaseSimulService {
       throw new Error('Connexion requise');
     }
 
-    await this.supabaseClient.ensureCurrentUserProfile();
+    await this.supabaseClient.ensureCurrentUserProfile(user.data.user);
 
     this.loading.set(true);
     this.error.set(null);

@@ -35,7 +35,9 @@ import { AuthService } from '../services/auth.service';
         <div class="p-8 bg-white">
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
             @if (auth.error()) {
-              <div class="p-3 bg-[#1D1C1C] text-white text-sm font-bold flex items-center wero-shadow-sm">
+              <div
+                class="p-3 bg-[#1D1C1C] text-white text-sm font-bold flex items-center wero-shadow-sm"
+              >
                 <span class="mr-2">⚠️</span>
                 {{ auth.error() }}
               </div>

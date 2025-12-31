@@ -20,17 +20,31 @@ import { SupabaseClientService } from '../services/supabase-client.service';
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
           <label class="block space-y-1 text-sm">
             <span class="ui-label">Email</span>
-            <input formControlName="email" type="email" class="ui-input" placeholder="you@example.com" />
+            <input
+              formControlName="email"
+              type="email"
+              class="ui-input"
+              placeholder="you@example.com"
+            />
           </label>
 
           <label class="block space-y-1 text-sm">
             <span class="ui-label">Mot de passe</span>
-            <input formControlName="password" type="password" class="ui-input" placeholder="••••••••" />
+            <input
+              formControlName="password"
+              type="password"
+              class="ui-input"
+              placeholder="••••••••"
+            />
           </label>
 
           <p *ngIf="error()" class="text-sm text-red-600">{{ error() }}</p>
 
-          <button type="submit" [disabled]="form.invalid || loading()" class="ui-btn ui-btn-secondary w-full px-3 py-2 disabled:opacity-60">
+          <button
+            type="submit"
+            [disabled]="form.invalid || loading()"
+            class="ui-btn ui-btn-secondary w-full px-3 py-2 disabled:opacity-60"
+          >
             {{ loading() ? 'Création…' : "S'inscrire" }}
           </button>
         </form>

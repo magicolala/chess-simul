@@ -22,21 +22,32 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
         </div>
         <div class="text-right">
           <p class="text-sm font-semibold">Places</p>
-          <p class="text-lg font-mono">{{ reservedCount }}/{{ simulService.activeSimul()?.simul_tables.length }}</p>
+          <p class="text-lg font-mono">
+            {{ reservedCount }}/{{ simulService.activeSimul()?.simul_tables.length }}
+          </p>
         </div>
       </div>
 
-      <div class="p-3 border-2 border-[#1D1C1C] bg-gray-50 dark:bg-gray-900" *ngIf="simulService.error()" role="alert">
+      <div
+        class="p-3 border-2 border-[#1D1C1C] bg-gray-50 dark:bg-gray-900"
+        *ngIf="simulService.error()"
+        role="alert"
+      >
         {{ simulService.error() }}
       </div>
 
       <div class="grid gap-3 md:grid-cols-3">
         <div class="md:col-span-2 grid gap-3 md:grid-cols-2">
-          <div class="ui-card p-3 flex items-center justify-between" *ngFor="let table of simulService.activeSimul()?.simul_tables">
+          <div
+            class="ui-card p-3 flex items-center justify-between"
+            *ngFor="let table of simulService.activeSimul()?.simul_tables"
+          >
             <div>
               <p class="ui-label">Table #{{ table.seat_no }}</p>
               <p class="font-bold">{{ formatStatus(table.status) }}</p>
-              <p class="text-xs text-gray-500" *ngIf="table.challenger_id">Challenger : {{ table.challenger_id }}</p>
+              <p class="text-xs text-gray-500" *ngIf="table.challenger_id">
+                Challenger : {{ table.challenger_id }}
+              </p>
               <p class="text-xs text-gray-500" *ngIf="table.game_id">Game : {{ table.game_id }}</p>
             </div>
             <div class="flex flex-col gap-2 items-end">
@@ -56,24 +67,31 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
 
         <div class="ui-card p-3 bg-gray-50 dark:bg-gray-900 space-y-2">
           <p class="ui-label">Présence live</p>
-          <div class="flex items-center gap-2 text-xs text-gray-600" *ngFor="let user of simulPresence$ | async">
+          <div
+            class="flex items-center gap-2 text-xs text-gray-600"
+            *ngFor="let user of simulPresence$ | async"
+          >
             <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
             <span class="font-semibold">{{ user.username || user.user_id }}</span>
           </div>
-          <p *ngIf="(simulPresence$ | async)?.length === 0" class="text-xs text-gray-500">Personne connectée au lobby.</p>
+          <p *ngIf="(simulPresence$ | async)?.length === 0" class="text-xs text-gray-500">
+            Personne connectée au lobby.
+          </p>
         </div>
       </div>
 
-      <div class="p-3 border-2 border-[#1D1C1C] bg-blue-50 text-blue-700" *ngIf="liveUpdatesSummary">
+      <div
+        class="p-3 border-2 border-[#1D1C1C] bg-blue-50 text-blue-700"
+        *ngIf="liveUpdatesSummary"
+      >
         {{ liveUpdatesSummary }}
       </div>
-
     </div>
 
     <ng-template #loading>
       <div class="ui-card p-4">Chargement de la simultanée...</div>
     </ng-template>
-  `,
+  `
 })
 export class SimulLobbyComponent implements OnChanges, OnDestroy {
   private supabaseAuth = inject(SupabaseClientService);
@@ -111,9 +129,9 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
       .fetchSimul(this.simulId)
       .then(() => {
         const tables = this.simulService.activeSimul()?.simul_tables ?? [];
-        const mappedTables = tables.map(table => ({
-            ...table,
-            guest_id: table.challenger_id
+        const mappedTables = tables.map((table) => ({
+          ...table,
+          guest_id: table.challenger_id
         }));
         this.realtimeSimul.preloadTables(mappedTables);
       })
@@ -133,7 +151,7 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
     const map: Record<SimulTableStatus, string> = {
       open: 'Disponible',
       playing: 'En cours',
-      done: 'Terminé',
+      done: 'Terminé'
     };
     return map[status];
   }
@@ -151,7 +169,10 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
 
     const user = this.supabaseAuth.currentUser();
     const presence: PresenceUser | undefined = user
-      ? { user_id: user.id, username: (user.user_metadata as any)?.username || user.email || 'user' }
+      ? {
+          user_id: user.id,
+          username: (user.user_metadata as any)?.username || user.email || 'user'
+        }
       : undefined;
 
     this.realtimeSimul.subscribe(this.simulId, presence);

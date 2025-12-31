@@ -23,7 +23,7 @@ describe('PreferencesService', () => {
     TestBed.flushEffects();
 
     expect(service.activeThemeId()).toBe('green');
-    expect(service.currentTheme).toEqual(BOARD_THEMES.find(t => t.id === 'green'));
+    expect(service.currentTheme).toEqual(BOARD_THEMES.find((t) => t.id === 'green'));
     expect(service.activePieceSetId()).toBe('merida');
     expect(service.darkMode()).toBe(true);
     expect(service.gameSettings().autoQueen).toBe(true);

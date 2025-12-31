@@ -33,7 +33,7 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
     <ng-template #empty>
       <div class="ui-card p-4">Aucune table réservée pour l'instant.</div>
     </ng-template>
-  `,
+  `
 })
 export class SimulBoardComponent implements OnChanges {
   simulService = inject(SupabaseSimulService);

@@ -3,6 +3,7 @@
 ## Entities
 
 ### Tournament
+
 - **Fields**: id, name, type (arena|survival), status (scheduled|active|ended),
   startTime, endTime, durationMinutes, survivalLivesDefault, createdAt.
 - **Rules**: Arena uses durationMinutes; Survival uses survivalLivesDefault and
@@ -11,6 +12,7 @@
   1:N with MatchmakingEvent.
 
 ### Participant
+
 - **Fields**: id, tournamentId, playerId, scoreTotal, livesRemaining,
   eliminatedAt, activeGameCount, joinedAt.
 - **Rules**: livesRemaining only for Survival; eliminatedAt set when lives reach
@@ -18,6 +20,7 @@
 - **Relationships**: N:1 Tournament, 1:N Game (as player), 1:N ScoreEvent.
 
 ### Game
+
 - **Fields**: id, tournamentId, whitePlayerId, blackPlayerId, status
   (pending|active|finished|forfeited), startTime, endTime, result
   (whiteWin|blackWin|draw|forfeit), timeControl (fixed 5+3).
@@ -25,17 +28,20 @@
 - **Relationships**: N:1 Tournament, N:1 Participant (white/black), 1:1 MoveAudit.
 
 ### MoveAudit
+
 - **Fields**: id, gameId, pgnText, createdAt, updatedAt.
 - **Rules**: Stores full PGN for completed games; updated as moves append.
 - **Relationships**: 1:1 Game.
 
 ### ScoreEvent
+
 - **Fields**: id, tournamentId, participantId, gameId, delta, reason,
   createdAt.
 - **Rules**: delta in {+3, +1, -1}; reason in {win, draw, loss, forfeit}.
 - **Relationships**: N:1 Tournament, N:1 Participant, N:1 Game.
 
 ### MatchmakingEvent
+
 - **Fields**: id, tournamentId, playerId, queueAction (join|leave|match),
   eloMin, eloMax, matchedGameId, createdAt.
 - **Rules**: eloMin/eloMax expand every 10s while queued.

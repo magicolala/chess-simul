@@ -1,28 +1,44 @@
-
 <!-- Main Container -->
-@if (auth.currentUser() && auth.currentUser()?.emailVerified && auth.currentUser()?.onboardingCompleted) {
+@if (
+  auth.currentUser() && auth.currentUser()?.emailVerified && auth.currentUser()?.onboardingCompleted
+) {
   <!-- App Shell (Authenticated & Onboarded) -->
-  <div class="min-h-screen bg-nano-banana dark:bg-[#121212] text-[#1D1C1C] dark:text-white flex font-sans overflow-hidden transition-colors duration-300">
-    
+  <div
+    class="min-h-screen bg-nano-banana dark:bg-[#121212] text-[#1D1C1C] dark:text-white flex font-sans overflow-hidden transition-colors duration-300"
+  >
     <!-- Sidebar (Fixed Width) -->
-    <aside class="w-72 bg-white dark:bg-[#1a1a1a] border-r-2 border-[#1D1C1C] dark:border-white flex flex-col z-20 shadow-none overflow-y-auto transition-colors duration-300">
-      
+    <aside
+      class="w-72 bg-white dark:bg-[#1a1a1a] border-r-2 border-[#1D1C1C] dark:border-white flex flex-col z-20 shadow-none overflow-y-auto transition-colors duration-300"
+    >
       <!-- Brand -->
-      <div class="p-6 border-b-2 border-[#1D1C1C] dark:border-white flex items-center space-x-3 cursor-pointer" (click)="switchView('dashboard')">
-          <div class="w-10 h-10 bg-[#FFF48D] text-[#1D1C1C] flex items-center justify-center border-2 border-[#1D1C1C] wero-shadow-sm text-2xl">
-            ♟
-          </div>
-          <h1 class="text-xl font-black font-display text-[#1D1C1C] dark:text-white tracking-tighter uppercase">Chess<br>Master</h1>
+      <div
+        class="p-6 border-b-2 border-[#1D1C1C] dark:border-white flex items-center space-x-3 cursor-pointer"
+        (click)="switchView('dashboard')"
+      >
+        <div
+          class="w-10 h-10 bg-[#FFF48D] text-[#1D1C1C] flex items-center justify-center border-2 border-[#1D1C1C] wero-shadow-sm text-2xl"
+        >
+          ♟
+        </div>
+        <h1
+          class="text-xl font-black font-display text-[#1D1C1C] dark:text-white tracking-tighter uppercase"
+        >
+          Chess<br />Master
+        </h1>
       </div>
 
       <!-- Navigation -->
       <div class="flex-1 py-6 px-4 space-y-8">
-        
         <!-- Menu Principal -->
         <div>
-          <h3 class="text-xs font-black font-display text-gray-400 uppercase tracking-widest mb-4 px-2">Menu Principal</h3>
+          <h3
+            class="text-xs font-black font-display text-gray-400 uppercase tracking-widest mb-4 px-2"
+          >
+            Menu Principal
+          </h3>
           <nav class="space-y-2">
-            <button (click)="switchView('dashboard')" 
+            <button
+              (click)="switchView('dashboard')"
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
               [class.bg-[#FFF48D]]="currentView() === 'dashboard'"
               [class.border-[#1D1C1C]]="currentView() === 'dashboard'"
@@ -32,27 +48,73 @@
               [class.text-gray-600]="currentView() !== 'dashboard'"
               [class.dark:text-gray-300]="currentView() !== 'dashboard'"
               [class.hover:bg-gray-100]="currentView() !== 'dashboard'"
-              [class.dark:hover:bg-gray-800]="currentView() !== 'dashboard'">
+              [class.dark:hover:bg-gray-800]="currentView() !== 'dashboard'"
+            >
               <span class="mr-3 text-lg">📊</span> Tableau de bord
             </button>
-            
+
             <!-- Multiplayer Button -->
-            <button (click)="switchView('multiplayer-lobby')" 
+            <button
+              (click)="switchView('multiplayer-lobby')"
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
-              [class.bg-[#FFF48D]]="currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game'"
-              [class.border-[#1D1C1C]]="currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game'"
-              [class.wero-shadow-sm]="currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game'"
+              [class.bg-[#FFF48D]]="
+                currentView() === 'multiplayer-lobby' ||
+                currentView() === 'game-room' ||
+                currentView() === 'online-game'
+              "
+              [class.border-[#1D1C1C]]="
+                currentView() === 'multiplayer-lobby' ||
+                currentView() === 'game-room' ||
+                currentView() === 'online-game'
+              "
+              [class.wero-shadow-sm]="
+                currentView() === 'multiplayer-lobby' ||
+                currentView() === 'game-room' ||
+                currentView() === 'online-game'
+              "
               [class.text-[#1D1C1C]]="true"
-              [class.border-transparent]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
-              [class.text-gray-600]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
-              [class.dark:text-gray-300]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
-              [class.hover:bg-gray-100]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')"
-              [class.dark:hover:bg-gray-800]="!(currentView() === 'multiplayer-lobby' || currentView() === 'game-room' || currentView() === 'online-game')">
+              [class.border-transparent]="
+                !(
+                  currentView() === 'multiplayer-lobby' ||
+                  currentView() === 'game-room' ||
+                  currentView() === 'online-game'
+                )
+              "
+              [class.text-gray-600]="
+                !(
+                  currentView() === 'multiplayer-lobby' ||
+                  currentView() === 'game-room' ||
+                  currentView() === 'online-game'
+                )
+              "
+              [class.dark:text-gray-300]="
+                !(
+                  currentView() === 'multiplayer-lobby' ||
+                  currentView() === 'game-room' ||
+                  currentView() === 'online-game'
+                )
+              "
+              [class.hover:bg-gray-100]="
+                !(
+                  currentView() === 'multiplayer-lobby' ||
+                  currentView() === 'game-room' ||
+                  currentView() === 'online-game'
+                )
+              "
+              [class.dark:hover:bg-gray-800]="
+                !(
+                  currentView() === 'multiplayer-lobby' ||
+                  currentView() === 'game-room' ||
+                  currentView() === 'online-game'
+                )
+              "
+            >
               <span class="mr-3 text-lg">🌍</span> Multijoueur
             </button>
 
             <!-- SIMUL BUTTON -->
-            <button (click)="switchView('simul-list')" 
+            <button
+              (click)="switchView('simul-list')"
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
               [class.bg-[#FFF48D]]="currentView().startsWith('simul-')"
               [class.border-[#1D1C1C]]="currentView().startsWith('simul-')"
@@ -62,12 +124,14 @@
               [class.text-gray-600]="!currentView().startsWith('simul-')"
               [class.dark:text-gray-300]="!currentView().startsWith('simul-')"
               [class.hover:bg-gray-100]="!currentView().startsWith('simul-')"
-              [class.dark:hover:bg-gray-800]="!currentView().startsWith('simul-')">
+              [class.dark:hover:bg-gray-800]="!currentView().startsWith('simul-')"
+            >
               <span class="mr-3 text-lg">⚔️</span> Simultanées
             </button>
-            
+
             <!-- ANALYSIS BUTTON -->
-            <button (click)="switchView('analysis')" 
+            <button
+              (click)="switchView('analysis')"
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
               [class.bg-[#FFF48D]]="currentView() === 'analysis'"
               [class.border-[#1D1C1C]]="currentView() === 'analysis'"
@@ -77,26 +141,46 @@
               [class.text-gray-600]="currentView() !== 'analysis'"
               [class.dark:text-gray-300]="currentView() !== 'analysis'"
               [class.hover:bg-gray-100]="currentView() !== 'analysis'"
-              [class.dark:hover:bg-gray-800]="currentView() !== 'analysis'">
+              [class.dark:hover:bg-gray-800]="currentView() !== 'analysis'"
+            >
               <span class="mr-3 text-lg">🔬</span> Analyse
             </button>
 
             <!-- Social / Communauté -->
-            <button (click)="switchView('social-hub')" 
+            <button
+              (click)="switchView('social-hub')"
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
-              [class.bg-[#FFF48D]]="currentView() === 'social-hub' || currentView() === 'public-profile'"
-              [class.border-[#1D1C1C]]="currentView() === 'social-hub' || currentView() === 'public-profile'"
-              [class.wero-shadow-sm]="currentView() === 'social-hub' || currentView() === 'public-profile'"
+              [class.bg-[#FFF48D]]="
+                currentView() === 'social-hub' || currentView() === 'public-profile'
+              "
+              [class.border-[#1D1C1C]]="
+                currentView() === 'social-hub' || currentView() === 'public-profile'
+              "
+              [class.wero-shadow-sm]="
+                currentView() === 'social-hub' || currentView() === 'public-profile'
+              "
               [class.text-[#1D1C1C]]="true"
-              [class.border-transparent]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
-              [class.text-gray-600]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
-              [class.dark:text-gray-300]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
-              [class.hover:bg-gray-100]="!(currentView() === 'social-hub' || currentView() === 'public-profile')"
-              [class.dark:hover:bg-gray-800]="!(currentView() === 'social-hub' || currentView() === 'public-profile')">
+              [class.border-transparent]="
+                !(currentView() === 'social-hub' || currentView() === 'public-profile')
+              "
+              [class.text-gray-600]="
+                !(currentView() === 'social-hub' || currentView() === 'public-profile')
+              "
+              [class.dark:text-gray-300]="
+                !(currentView() === 'social-hub' || currentView() === 'public-profile')
+              "
+              [class.hover:bg-gray-100]="
+                !(currentView() === 'social-hub' || currentView() === 'public-profile')
+              "
+              [class.dark:hover:bg-gray-800]="
+                !(currentView() === 'social-hub' || currentView() === 'public-profile')
+              "
+            >
               <span class="mr-3 text-lg">💬</span> Communauté
             </button>
 
-            <button (click)="switchView('history')" 
+            <button
+              (click)="switchView('history')"
               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
               [class.bg-[#FFF48D]]="currentView() === 'history'"
               [class.border-[#1D1C1C]]="currentView() === 'history'"
@@ -106,7 +190,8 @@
               [class.text-gray-600]="currentView() !== 'history'"
               [class.dark:text-gray-300]="currentView() !== 'history'"
               [class.hover:bg-gray-100]="currentView() !== 'history'"
-              [class.dark:hover:bg-gray-800]="currentView() !== 'history'">
+              [class.dark:hover:bg-gray-800]="currentView() !== 'history'"
+            >
               <span class="mr-3 text-lg">🕒</span> Historique
             </button>
           </nav>
@@ -114,15 +199,24 @@
 
         <!-- Compte -->
         <div>
-          <h3 class="text-xs font-black font-display text-gray-400 uppercase tracking-widest mb-4 px-2">Compte</h3>
+          <h3
+            class="text-xs font-black font-display text-gray-400 uppercase tracking-widest mb-4 px-2"
+          >
+            Compte
+          </h3>
           <nav class="space-y-2">
-            <button (click)="openSettings()" 
-               class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-[2px]"
-               [class.bg-gray-100]="showSettingsModal()"
-               [class.dark:bg-gray-800]="showSettingsModal()">
+            <button
+              (click)="openSettings()"
+              class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-[2px]"
+              [class.bg-gray-100]="showSettingsModal()"
+              [class.dark:bg-gray-800]="showSettingsModal()"
+            >
               <span class="mr-3 text-lg">⚙️</span> Paramètres
             </button>
-            <button (click)="handleLogout()" class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center border-2 border-transparent text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-[2px]">
+            <button
+              (click)="handleLogout()"
+              class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center border-2 border-transparent text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-[2px]"
+            >
               <span class="mr-3 text-lg">🚪</span> Déconnexion
             </button>
           </nav>
@@ -132,214 +226,335 @@
 
     <!-- Main Content Layout -->
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
-      
       <!-- Top Bar -->
-      <header class="h-20 bg-white dark:bg-[#1a1a1a] border-b-2 border-[#1D1C1C] dark:border-white flex items-center justify-between px-8 flex-shrink-0 transition-colors duration-300">
-         <!-- Search -->
-         <div class="relative w-96">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-            <input type="text" placeholder="Rechercher un joueur..." class="w-full pl-10 pr-4 py-2 border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-[#1D1C1C] dark:focus:border-white focus:bg-[#FFF48D]/20 outline-none font-medium transition-colors text-sm rounded-[2px]">
-         </div>
+      <header
+        class="h-20 bg-white dark:bg-[#1a1a1a] border-b-2 border-[#1D1C1C] dark:border-white flex items-center justify-between px-8 flex-shrink-0 transition-colors duration-300"
+      >
+        <!-- Search -->
+        <div class="relative w-96">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input
+            type="text"
+            placeholder="Rechercher un joueur..."
+            class="w-full pl-10 pr-4 py-2 border-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-[#1D1C1C] dark:focus:border-white focus:bg-[#FFF48D]/20 outline-none font-medium transition-colors text-sm rounded-[2px]"
+          />
+        </div>
 
-         <!-- Right Actions -->
-         <div class="flex items-center space-x-6">
-            <div class="flex items-center pl-6 border-l-2 border-gray-100 dark:border-gray-800 cursor-pointer hover:opacity-80" (click)="switchView('public-profile', auth.currentUser()!.id)">
-               <div class="text-right mr-3 hidden md:block">
-                  <p class="text-sm font-black font-display text-[#1D1C1C] dark:text-white leading-none">{{ auth.currentUser()?.name }}</p>
-                  <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-1">ELO: {{ currentElo() }}</p>
-               </div>
-               <img [src]="auth.currentUser()?.avatar" class="w-10 h-10 border-2 border-[#1D1C1C] dark:border-white bg-gray-100 rounded-[2px]">
+        <!-- Right Actions -->
+        <div class="flex items-center space-x-6">
+          <div
+            class="flex items-center pl-6 border-l-2 border-gray-100 dark:border-gray-800 cursor-pointer hover:opacity-80"
+            (click)="switchView('public-profile', auth.currentUser()!.id)"
+          >
+            <div class="text-right mr-3 hidden md:block">
+              <p
+                class="text-sm font-black font-display text-[#1D1C1C] dark:text-white leading-none"
+              >
+                {{ auth.currentUser()?.name }}
+              </p>
+              <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-1">
+                ELO: {{ currentElo() }}
+              </p>
             </div>
-         </div>
+            <img
+              [src]="auth.currentUser()?.avatar"
+              class="w-10 h-10 border-2 border-[#1D1C1C] dark:border-white bg-gray-100 rounded-[2px]"
+            />
+          </div>
+        </div>
       </header>
 
       <!-- Content Scrollable Area -->
-      <main class="flex-1 overflow-y-auto transition-colors duration-300" [class.p-4]="currentView() !== 'simul-host' && currentView() !== 'analysis'" [class.md:p-8]="currentView() !== 'simul-host' && currentView() !== 'analysis'">
-        
+      <main
+        class="flex-1 overflow-y-auto transition-colors duration-300"
+        [class.p-4]="currentView() !== 'simul-host' && currentView() !== 'analysis'"
+        [class.md:p-8]="currentView() !== 'simul-host' && currentView() !== 'analysis'"
+      >
         @if (currentView() === 'dashboard') {
-            <app-dashboard 
-                (startQuickGame)="handleQuickPlay($event)"
-                (resumeGame)="enterFocusMode($event)"
-                (goToSimul)="switchView('simul-list')"
-                (goToHistory)="switchView('history')"
-                (goToSocial)="switchView('social-hub')">
-            </app-dashboard>
-        } 
-        
+          <app-dashboard
+            (startQuickGame)="handleQuickPlay($event)"
+            (resumeGame)="enterFocusMode($event)"
+            (goToSimul)="switchView('simul-list')"
+            (goToHistory)="switchView('history')"
+            (goToSocial)="switchView('social-hub')"
+          >
+          </app-dashboard>
+        }
+
         <!-- MULTIPLAYER VIEWS -->
         @else if (currentView() === 'multiplayer-lobby') {
-            <app-multiplayer-lobby (joined)="handleMpJoined($event)"></app-multiplayer-lobby>
-        }
-        @else if (currentView() === 'game-room') {
-            <app-game-room (gameStarted)="handleGameStart()" (goBack)="switchView('multiplayer-lobby')"></app-game-room>
-        }
-        @else if (currentView() === 'online-game') {
-            <app-online-game (leaveGame)="switchView('dashboard')"></app-online-game>
+          <app-multiplayer-lobby (joined)="handleMpJoined($event)"></app-multiplayer-lobby>
+        } @else if (currentView() === 'game-room') {
+          <app-game-room
+            (gameStarted)="handleGameStart()"
+            (goBack)="switchView('multiplayer-lobby')"
+          ></app-game-room>
+        } @else if (currentView() === 'online-game') {
+          <app-online-game (leaveGame)="switchView('dashboard')"></app-online-game>
         }
 
         <!-- SIMUL VIEWS -->
         @else if (currentView() === 'simul-list') {
-            <app-simul-list (create)="switchView('simul-create')" (join)="joinSimul($event)"></app-simul-list>
-        }
-        @else if (currentView() === 'simul-create') {
-            <app-simul-create (start)="createSimul($event)"></app-simul-create>
-        }
-        @else if (currentView() === 'simul-lobby') {
-            <app-simul-lobby (start)="startSimulHost()" (leave)="leaveSimulLobby()"></app-simul-lobby>
-        }
-        @else if (currentView() === 'simul-host') {
-            <app-simul-host></app-simul-host>
-        }
-        @else if (currentView() === 'simul-player') {
-             <app-simul-player (quit)="leaveSimulLobby()"></app-simul-player>
+          <app-simul-list
+            (create)="switchView('simul-create')"
+            (join)="joinSimul($event)"
+          ></app-simul-list>
+        } @else if (currentView() === 'simul-create') {
+          <app-simul-create (start)="createSimul($event)"></app-simul-create>
+        } @else if (currentView() === 'simul-lobby') {
+          <app-simul-lobby (start)="startSimulHost()" (leave)="leaveSimulLobby()"></app-simul-lobby>
+        } @else if (currentView() === 'simul-host') {
+          <app-simul-host></app-simul-host>
+        } @else if (currentView() === 'simul-player') {
+          <app-simul-player (quit)="leaveSimulLobby()"></app-simul-player>
         }
 
         <!-- SOCIAL VIEWS -->
         @else if (currentView() === 'social-hub') {
-            <app-social-hub (goToProfile)="switchView('public-profile', $event)" (goToGame)="switchView('friend-lobby')"></app-social-hub>
-        }
-        @else if (currentView() === 'public-profile') {
-            <app-public-profile [userId]="viewParam()"></app-public-profile>
+          <app-social-hub
+            (goToProfile)="switchView('public-profile', $event)"
+            (goToGame)="switchView('friend-lobby')"
+          ></app-social-hub>
+        } @else if (currentView() === 'public-profile') {
+          <app-public-profile [userId]="viewParam()"></app-public-profile>
         }
 
         <!-- ANALYSIS -->
         @else if (currentView() === 'analysis') {
-            <app-analysis [initialPgn]="viewParam()"></app-analysis>
+          <app-analysis [initialPgn]="viewParam()"></app-analysis>
         }
 
         <!-- GAME MODE (Grid of playable games - PvP) -->
         @else if (currentView() === 'game') {
-            <div class="max-w-[1920px] mx-auto h-full flex flex-col">
-                <!-- ... Existing PvP Grid ... -->
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase">Table de jeu</h2>
-                    <button (click)="openNewGameModal()" class="px-4 py-2 bg-[#FFF48D] text-[#1D1C1C] font-black font-display border-2 border-[#1D1C1C] dark:border-white uppercase text-xs hover:bg-[#7AF7F7]">
-                        + Partie
-                    </button>
-                </div>
-                 <div class="p-12 border-2 border-dashed border-gray-300 dark:border-gray-700 text-center rounded-[2px] bg-white dark:bg-[#1a1a1a]">
-                     <p class="text-gray-400 font-bold">Lancez une partie via le bouton ci-dessus.</p>
-                  </div>
+          <div class="max-w-[1920px] mx-auto h-full flex flex-col">
+            <!-- ... Existing PvP Grid ... -->
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase">
+                Table de jeu
+              </h2>
+              <button
+                (click)="openNewGameModal()"
+                class="px-4 py-2 bg-[#FFF48D] text-[#1D1C1C] font-black font-display border-2 border-[#1D1C1C] dark:border-white uppercase text-xs hover:bg-[#7AF7F7]"
+              >
+                + Partie
+              </button>
             </div>
+            <div
+              class="p-12 border-2 border-dashed border-gray-300 dark:border-gray-700 text-center rounded-[2px] bg-white dark:bg-[#1a1a1a]"
+            >
+              <p class="text-gray-400 font-bold">Lancez une partie via le bouton ci-dessus.</p>
+            </div>
+          </div>
         }
 
         <!-- FRIEND LOBBY VIEW -->
         @else if (currentView() === 'friend-lobby') {
-            <app-friend-lobby (start)="startFriendGame($event)"></app-friend-lobby>
+          <app-friend-lobby (start)="startFriendGame($event)"></app-friend-lobby>
         }
 
         <!-- FOCUS MODE (Single Fullscreen Game) -->
         @else if (currentView() === 'focus' && focusedGame()) {
-            <!-- ... Reuse existing focus layout ... -->
-             <div class="h-full flex flex-col max-w-6xl mx-auto">
-                <button (click)="exitFocusMode()" class="self-start mb-4 text-sm font-bold font-display text-gray-500 hover:text-[#1D1C1C] dark:hover:text-white flex items-center">
-                    ← {{ 'Retour' }}
-                </button>
-                <div class="flex-1 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col md:flex-row overflow-hidden">
-                    <!-- ... Sidebar ... -->
-                    <div class="w-full md:w-80 border-r-2 border-[#1D1C1C] dark:border-white flex flex-col bg-gray-50 dark:bg-[#121212]">
-                         <div class="p-6 border-b-2 border-[#1D1C1C] dark:border-white text-center">
-                            <h2 class="text-2xl font-black font-display text-[#1D1C1C] dark:text-white uppercase">{{ focusedGame()!.opponentName }}</h2>
-                         </div>
-                         <!-- Board -->
-                    </div>
-                     <div class="flex-1 bg-[#e0e0e0] dark:bg-[#000] flex items-center justify-center p-4 md:p-10">
-                        <div class="w-full max-w-[80vh] aspect-square wero-shadow">
-                            <app-chess-board 
-                                [fen]="getDisplayFen(focusedGame()!)" 
-                                [lastMove]="getDisplayLastMove(focusedGame()!)"
-                                [isInteractive]="focusedGame()!.status === 'active' && isAtLatest(focusedGame()!)"
-                                [allowedColor]="'both'"
-                                [orientation]="isBoardFlipped() ? 'b' : 'w'"
-                                (move)="onMove(focusedGame()!.id, $event)"
-                            ></app-chess-board>
-                        </div>
-                    </div>
+          <!-- ... Reuse existing focus layout ... -->
+          <div class="h-full flex flex-col max-w-6xl mx-auto">
+            <button
+              (click)="exitFocusMode()"
+              class="self-start mb-4 text-sm font-bold font-display text-gray-500 hover:text-[#1D1C1C] dark:hover:text-white flex items-center"
+            >
+              ← {{ 'Retour' }}
+            </button>
+            <div
+              class="flex-1 bg-white dark:bg-[#1a1a1a] border-2 border-[#1D1C1C] dark:border-white wero-shadow flex flex-col md:flex-row overflow-hidden"
+            >
+              <!-- ... Sidebar ... -->
+              <div
+                class="w-full md:w-80 border-r-2 border-[#1D1C1C] dark:border-white flex flex-col bg-gray-50 dark:bg-[#121212]"
+              >
+                <div class="p-6 border-b-2 border-[#1D1C1C] dark:border-white text-center">
+                  <h2
+                    class="text-2xl font-black font-display text-[#1D1C1C] dark:text-white uppercase"
+                  >
+                    {{ focusedGame()!.opponentName }}
+                  </h2>
                 </div>
-             </div>
+                <!-- Board -->
+              </div>
+              <div
+                class="flex-1 bg-[#e0e0e0] dark:bg-[#000] flex items-center justify-center p-4 md:p-10"
+              >
+                <div class="w-full max-w-[80vh] aspect-square wero-shadow">
+                  <app-chess-board
+                    [fen]="getDisplayFen(focusedGame()!)"
+                    [lastMove]="getDisplayLastMove(focusedGame()!)"
+                    [isInteractive]="
+                      focusedGame()!.status === 'active' && isAtLatest(focusedGame()!)
+                    "
+                    [allowedColor]="'both'"
+                    [orientation]="isBoardFlipped() ? 'b' : 'w'"
+                    (move)="onMove(focusedGame()!.id, $event)"
+                  ></app-chess-board>
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else if (currentView() === 'history') {
+          <app-history (review)="startAnalysis($event)"></app-history>
         }
-
-        @else if (currentView() === 'history') {
-           <app-history (review)="startAnalysis($event)"></app-history>
-        } 
-        
-
       </main>
     </div>
 
     <!-- NEW GAME MODAL (PvP) -->
     @if (showNewGameModal()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-[#1D1C1C]/80 backdrop-blur-sm" (click)="showNewGameModal.set(false)"></div>
-            <div class="bg-white dark:bg-[#1a1a1a] w-full max-w-lg border-2 border-[#1D1C1C] dark:border-white wero-shadow relative z-10 p-8 animate-in fade-in zoom-in duration-200">
-                <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase mb-6 flex items-center">
-                    <span class="bg-[#FFF48D] text-black w-8 h-8 flex items-center justify-center border-2 border-black mr-3 text-lg">+</span>
-                    Nouvelle Partie (Local)
-                </h2>
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2">Cadence (Temps)</label>
-                        <div class="flex space-x-4">
-                             <button (click)="updateTimeConfig(3)" [class.bg-[#1D1C1C]]="newGameConfig().timeMinutes === 3" [class.text-white]="newGameConfig().timeMinutes === 3" class="flex-1 py-3 border-2 border-[#1D1C1C] dark:border-white font-black font-display dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">3 min</button>
-                             <button (click)="updateTimeConfig(5)" [class.bg-[#1D1C1C]]="newGameConfig().timeMinutes === 5" [class.text-white]="newGameConfig().timeMinutes === 5" class="flex-1 py-3 border-2 border-[#1D1C1C] dark:border-white font-black font-display dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">5 min</button>
-                             <button (click)="updateTimeConfig(10)" [class.bg-[#1D1C1C]]="newGameConfig().timeMinutes === 10" [class.text-white]="newGameConfig().timeMinutes === 10" class="flex-1 py-3 border-2 border-[#1D1C1C] dark:border-white font-black font-display dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">10 min</button>
-                        </div>
-                    </div>
-                    <button (click)="startNewSession()" class="w-full py-4 bg-[#7AF7F7] hover:bg-[#FFF48D] border-2 border-[#1D1C1C] dark:border-white text-[#1D1C1C] font-black font-display text-xl uppercase transition-colors wero-shadow-sm active:translate-y-[2px] active:shadow-none">
-                        Jouer (Pass & Play)
-                    </button>
-                </div>
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          class="absolute inset-0 bg-[#1D1C1C]/80 backdrop-blur-sm"
+          (click)="showNewGameModal.set(false)"
+        ></div>
+        <div
+          class="bg-white dark:bg-[#1a1a1a] w-full max-w-lg border-2 border-[#1D1C1C] dark:border-white wero-shadow relative z-10 p-8 animate-in fade-in zoom-in duration-200"
+        >
+          <h2
+            class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase mb-6 flex items-center"
+          >
+            <span
+              class="bg-[#FFF48D] text-black w-8 h-8 flex items-center justify-center border-2 border-black mr-3 text-lg"
+              >+</span
+            >
+            Nouvelle Partie (Local)
+          </h2>
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm font-bold font-display text-gray-500 uppercase mb-2"
+                >Cadence (Temps)</label
+              >
+              <div class="flex space-x-4">
+                <button
+                  (click)="updateTimeConfig(3)"
+                  [class.bg-[#1D1C1C]]="newGameConfig().timeMinutes === 3"
+                  [class.text-white]="newGameConfig().timeMinutes === 3"
+                  class="flex-1 py-3 border-2 border-[#1D1C1C] dark:border-white font-black font-display dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  3 min
+                </button>
+                <button
+                  (click)="updateTimeConfig(5)"
+                  [class.bg-[#1D1C1C]]="newGameConfig().timeMinutes === 5"
+                  [class.text-white]="newGameConfig().timeMinutes === 5"
+                  class="flex-1 py-3 border-2 border-[#1D1C1C] dark:border-white font-black font-display dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  5 min
+                </button>
+                <button
+                  (click)="updateTimeConfig(10)"
+                  [class.bg-[#1D1C1C]]="newGameConfig().timeMinutes === 10"
+                  [class.text-white]="newGameConfig().timeMinutes === 10"
+                  class="flex-1 py-3 border-2 border-[#1D1C1C] dark:border-white font-black font-display dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  10 min
+                </button>
+              </div>
             </div>
+            <button
+              (click)="startNewSession()"
+              class="w-full py-4 bg-[#7AF7F7] hover:bg-[#FFF48D] border-2 border-[#1D1C1C] dark:border-white text-[#1D1C1C] font-black font-display text-xl uppercase transition-colors wero-shadow-sm active:translate-y-[2px] active:shadow-none"
+            >
+              Jouer (Pass & Play)
+            </button>
+          </div>
         </div>
+      </div>
     }
 
     <!-- SETTINGS MODAL -->
     @if (showSettingsModal()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-[#1D1C1C]/80 backdrop-blur-sm" (click)="closeSettings()"></div>
-            <div class="bg-white dark:bg-[#1a1a1a] w-full max-w-4xl h-[85vh] border-2 border-[#1D1C1C] dark:border-white wero-shadow relative z-10 animate-in fade-in zoom-in duration-200 overflow-hidden">
-                <app-settings (close)="closeSettings()"></app-settings>
-            </div>
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          class="absolute inset-0 bg-[#1D1C1C]/80 backdrop-blur-sm"
+          (click)="closeSettings()"
+        ></div>
+        <div
+          class="bg-white dark:bg-[#1a1a1a] w-full max-w-4xl h-[85vh] border-2 border-[#1D1C1C] dark:border-white wero-shadow relative z-10 animate-in fade-in zoom-in duration-200 overflow-hidden"
+        >
+          <app-settings (close)="closeSettings()"></app-settings>
         </div>
+      </div>
     }
 
     <!-- GAME OVER MODAL (Local Only - Online handled in component) -->
     @if (showGameOverModal()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-[#1D1C1C]/90 backdrop-blur-sm" (click)="showGameOverModal.set(null)"></div>
-            <div class="bg-white dark:bg-[#1a1a1a] w-full max-w-md border-2 border-[#1D1C1C] dark:border-white wero-shadow relative z-10 p-8 text-center animate-in fade-in zoom-in duration-200">
-                
-                <div class="w-20 h-20 mx-auto rounded-full border-4 border-[#1D1C1C] dark:border-white flex items-center justify-center text-4xl mb-4"
-                     [class.bg-green-400]="showGameOverModal()?.result === 'win'"
-                     [class.bg-red-400]="showGameOverModal()?.result === 'loss'"
-                     [class.bg-gray-200]="showGameOverModal()?.result === 'draw'">
-                    {{ showGameOverModal()?.result === 'win' ? '🏆' : (showGameOverModal()?.result === 'loss' ? '💀' : '🤝') }}
-                </div>
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          class="absolute inset-0 bg-[#1D1C1C]/90 backdrop-blur-sm"
+          (click)="showGameOverModal.set(null)"
+        ></div>
+        <div
+          class="bg-white dark:bg-[#1a1a1a] w-full max-w-md border-2 border-[#1D1C1C] dark:border-white wero-shadow relative z-10 p-8 text-center animate-in fade-in zoom-in duration-200"
+        >
+          <div
+            class="w-20 h-20 mx-auto rounded-full border-4 border-[#1D1C1C] dark:border-white flex items-center justify-center text-4xl mb-4"
+            [class.bg-green-400]="showGameOverModal()?.result === 'win'"
+            [class.bg-red-400]="showGameOverModal()?.result === 'loss'"
+            [class.bg-gray-200]="showGameOverModal()?.result === 'draw'"
+          >
+            {{
+              showGameOverModal()?.result === 'win'
+                ? '🏆'
+                : showGameOverModal()?.result === 'loss'
+                  ? '💀'
+                  : '🤝'
+            }}
+          </div>
 
-                <h2 class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase mb-2">
-                    {{ showGameOverModal()?.result === 'win' ? 'Victoire !' : (showGameOverModal()?.result === 'loss' ? 'Défaite' : 'Match Nul') }}
-                </h2>
-                
-                <p class="text-gray-600 dark:text-gray-300 font-medium italic mb-8">
-                    "{{ showGameOverModal()?.systemMessage }}"
-                </p>
-                
-                <div class="space-y-3">
-                    <button (click)="analyzeOnLichess(showGameOverModal()!.fen)" class="w-full py-3 bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] border-2 border-[#1D1C1C] dark:border-white font-black font-display uppercase hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center justify-center">
-                        <span class="mr-2">☖</span> Analyser sur Lichess
-                    </button>
-                    <button (click)="showGameOverModal.set(null)" class="w-full py-3 bg-transparent border-2 border-[#1D1C1C] dark:border-white text-[#1D1C1C] dark:text-white font-bold font-display uppercase hover:bg-gray-50 dark:hover:bg-gray-800">
-                        Fermer
-                    </button>
-                </div>
-            </div>
+          <h2
+            class="text-3xl font-black font-display text-[#1D1C1C] dark:text-white uppercase mb-2"
+          >
+            {{
+              showGameOverModal()?.result === 'win'
+                ? 'Victoire !'
+                : showGameOverModal()?.result === 'loss'
+                  ? 'Défaite'
+                  : 'Match Nul'
+            }}
+          </h2>
+
+          <p class="text-gray-600 dark:text-gray-300 font-medium italic mb-8">
+            "{{ showGameOverModal()?.systemMessage }}"
+          </p>
+
+          <div class="space-y-3">
+            <button
+              (click)="analyzeOnLichess(showGameOverModal()!.fen)"
+              class="w-full py-3 bg-[#1D1C1C] dark:bg-white text-white dark:text-[#1D1C1C] border-2 border-[#1D1C1C] dark:border-white font-black font-display uppercase hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center justify-center"
+            >
+              <span class="mr-2">☖</span> Analyser sur Lichess
+            </button>
+            <button
+              (click)="showGameOverModal.set(null)"
+              class="w-full py-3 bg-transparent border-2 border-[#1D1C1C] dark:border-white text-[#1D1C1C] dark:text-white font-bold font-display uppercase hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
+      </div>
     }
-
   </div>
 } @else {
   <!-- Public / Onboarding Flows -->
-  @if (currentView() === 'verify-email') {
+  @if (currentView() === 'landing') {
+    <app-landing
+      (goToLogin)="switchView('login')"
+      (goToRegister)="switchView('register')"
+    ></app-landing>
+  } @else if (currentView() === 'login') {
+    <app-login
+      (goToRegister)="switchView('register')"
+      (goToForgot)="switchView('forgot-password')"
+    ></app-login>
+  } @else if (currentView() === 'register') {
+    <app-register (goToLogin)="switchView('login')"></app-register>
+  } @else if (currentView() === 'forgot-password') {
+    <app-forgot-password (back)="switchView('login')"></app-forgot-password>
+  } @else if (currentView() === 'verify-email') {
     <app-verify-email></app-verify-email>
   } @else if (currentView() === 'onboarding') {
     <app-onboarding></app-onboarding>

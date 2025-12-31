@@ -1,4 +1,3 @@
-
 import { Injectable, signal, effect } from '@angular/core';
 
 export interface GameResult {
@@ -23,7 +22,7 @@ export class HistoryService {
     if (stored) {
       const parsed: GameResult[] = JSON.parse(stored);
       this.history.set(
-        parsed.map(result => ({
+        parsed.map((result) => ({
           hydraPoints: 0,
           ...result
         }))
@@ -36,7 +35,7 @@ export class HistoryService {
   }
 
   addResult(result: GameResult) {
-    this.history.update(h => [result, ...h]);
+    this.history.update((h) => [result, ...h]);
   }
 
   clearHistory() {
@@ -48,9 +47,9 @@ export class HistoryService {
     const total = games.length;
     if (total === 0) return { wins: 0, losses: 0, draws: 0, winRate: 0 };
 
-    const wins = games.filter(g => g.result === 'win').length;
-    const losses = games.filter(g => g.result === 'loss').length;
-    const draws = games.filter(g => g.result === 'draw').length;
+    const wins = games.filter((g) => g.result === 'win').length;
+    const losses = games.filter((g) => g.result === 'loss').length;
+    const draws = games.filter((g) => g.result === 'draw').length;
 
     return {
       wins,
@@ -62,9 +61,9 @@ export class HistoryService {
 
   getHydraStats() {
     const games = this.history();
-    const wins = games.filter(g => g.result === 'win').length;
-    const draws = games.filter(g => g.result === 'draw').length;
-    const losses = games.filter(g => g.result === 'loss').length;
+    const wins = games.filter((g) => g.result === 'win').length;
+    const draws = games.filter((g) => g.result === 'draw').length;
+    const losses = games.filter((g) => g.result === 'loss').length;
     const totalPoints = games.reduce((sum, g) => sum + (g.hydraPoints ?? 0), 0);
 
     return {

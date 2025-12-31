@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { createSupabaseClient } from '../_shared/supabase-client.ts';
@@ -17,7 +16,9 @@ serve(async (req) => {
     // Fetch all waiting players from the hydra_match_queue
     const { data: waitingPlayers, error: fetchError } = await supabase
       .from('hydra_match_queue')
-      .select('id, user_id, elo, max_games, time_control_initial, time_control_increment, created_at')
+      .select(
+        'id, user_id, elo, max_games, time_control_initial, time_control_increment, created_at'
+      )
       .eq('status', 'waiting')
       .order('created_at', { ascending: true }); // Process older entries first
 
@@ -27,7 +28,7 @@ serve(async (req) => {
 
     if (!waitingPlayers || waitingPlayers.length < 1) {
       return new Response(JSON.stringify({ message: 'No players in Hydra queue to process.' }), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -49,7 +50,7 @@ serve(async (req) => {
           !processedPlayerIds.includes(op.user_id) &&
           op.time_control_initial === player.time_control_initial &&
           op.time_control_increment === player.time_control_increment
-          // Add Elo range logic here in a more advanced version
+        // Add Elo range logic here in a more advanced version
       );
 
       if (potentialOpponent) {
@@ -71,8 +72,8 @@ serve(async (req) => {
             initialSeconds: player.time_control_initial * 60,
             incrementSeconds: player.time_control_increment,
             white: player.time_control_initial * 60,
-            black: player.time_control_initial * 60,
-          },
+            black: player.time_control_initial * 60
+          }
         });
 
         // Mark players as processed and ready to be removed from queue
@@ -101,14 +102,17 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ message: `Processed queue. Created ${gamesToCreate.length} games.` }), {
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({ message: `Processed queue. Created ${gamesToCreate.length} games.` }),
+      {
+        headers: corsHeaders
+      }
+    );
   } catch (error) {
     console.error('process-hydra-queue error', error);
     return new Response(JSON.stringify({ error: 'Failed to process Hydra queue' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

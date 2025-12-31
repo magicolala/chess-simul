@@ -14,12 +14,13 @@ serve(async (req) => {
     if (authError || !authData?.user) {
       return new Response(JSON.stringify({ error: 'unauthorized' }), {
         status: 401,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
     const body = await req.json().catch(() => ({}));
-    const timeControl = typeof body?.time_control === 'string' ? body.time_control.trim() : undefined;
+    const timeControl =
+      typeof body?.time_control === 'string' ? body.time_control.trim() : undefined;
 
     let query = supabase.from('match_queue').delete().eq('user_id', authData.user.id);
 
@@ -38,7 +39,7 @@ serve(async (req) => {
     console.error('leave-queue error', error);
     return new Response(JSON.stringify({ error: 'Unable to leave queue' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

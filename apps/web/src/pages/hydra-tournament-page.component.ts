@@ -2,7 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, distinctUntilChanged, map, takeUntil } from 'rxjs';
-import { HydraBoardMosaicComponent, HydraBoardSortMode } from '../components/hydra-board-mosaic.component';
+import {
+  HydraBoardMosaicComponent,
+  HydraBoardSortMode
+} from '../components/hydra-board-mosaic.component';
 import { HydraLeaderboardComponent } from '../components/hydra-leaderboard.component';
 import { HydraMatchmakingService } from '../services/hydra-matchmaking.service';
 import { HydraRealtimeService } from '../services/hydra-realtime.service';
@@ -29,19 +32,15 @@ type LeaderboardEntry = {
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p class="ui-label">Hydra Tournament</p>
-            <h1 class="text-2xl font-black font-display uppercase text-[#1D1C1C]">Session {{ tournamentId }}</h1>
+            <h1 class="text-2xl font-black font-display uppercase text-[#1D1C1C]">
+              Session {{ tournamentId }}
+            </h1>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              class="ui-btn ui-btn-dark px-4 py-2 text-sm"
-              (click)="joinTournament()"
-            >
+            <button class="ui-btn ui-btn-dark px-4 py-2 text-sm" (click)="joinTournament()">
               Rejoindre
             </button>
-            <button
-              class="ui-btn ui-btn-ghost px-4 py-2 text-sm"
-              (click)="toggleQueue()"
-            >
+            <button class="ui-btn ui-btn-ghost px-4 py-2 text-sm" (click)="toggleQueue()">
               {{ inQueue ? 'Quitter la file' : 'Entrer en file' }}
             </button>
             <a routerLink="/settings" class="text-sm text-gray-500 underline">Paramètres</a>
@@ -125,12 +124,10 @@ export class HydraTournamentPageComponent implements OnInit, OnDestroy {
 
     this.hydraRealtime.subscribe(this.tournamentId);
     void this.loadInitialGames();
-    this.highlightedGameId$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((gameId) => {
-        if (!gameId || !this.soundEnabled) return;
-        this.playAlertSound();
-      });
+    this.highlightedGameId$.pipe(takeUntil(this.destroy$)).subscribe((gameId) => {
+      if (!gameId || !this.soundEnabled) return;
+      this.playAlertSound();
+    });
   }
 
   async loadInitialGames() {
@@ -147,7 +144,8 @@ export class HydraTournamentPageComponent implements OnInit, OnDestroy {
   async toggleQueue() {
     if (!this.inQueue) {
       const response = await this.matchmaking.joinQueue(this.tournamentId, 1500, 9);
-      this.queueStatus = response.eloMin !== undefined ? `${response.eloMin} - ${response.eloMax}` : 'En file';
+      this.queueStatus =
+        response.eloMin !== undefined ? `${response.eloMin} - ${response.eloMax}` : 'En file';
       this.inQueue = true;
       return;
     }
@@ -188,7 +186,7 @@ export class HydraTournamentPageComponent implements OnInit, OnDestroy {
       playerId: participant.user_id,
       scoreTotal: participant.score,
       eliminatedAt: participant.eliminated_at,
-      rank: index + 1,
+      rank: index + 1
     }));
   }
 

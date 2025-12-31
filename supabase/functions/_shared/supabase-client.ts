@@ -10,7 +10,7 @@ export function createSupabaseClient(request: Request) {
 
   return createClient(supabaseUrl, serviceRoleKey, {
     global: {
-      headers: { Authorization: request.headers.get('Authorization') ?? '' },
-    },
+      headers: { Authorization: request.headers.get('Authorization') ?? '' }
+    }
   });
 }

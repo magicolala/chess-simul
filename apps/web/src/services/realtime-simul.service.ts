@@ -37,7 +37,12 @@ export class RealtimeSimulService implements OnDestroy {
 
     channel.on(
       'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'simul_tables', filter: `simul_id=eq.${simulId}` },
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'simul_tables',
+        filter: `simul_id=eq.${simulId}`
+      },
       (payload: RealtimePostgresChangesPayload<SimulTableRow>) => {
         this.upsertTable(payload.new as SimulTableRow);
       }

@@ -7,45 +7,51 @@ Sync Impact Report
 - Templates requiring updates: ✅ .specify/templates/plan-template.md; ✅ .specify/templates/spec-template.md (no changes needed); ✅ .specify/templates/tasks-template.md (no changes needed); ⚠ .specify/templates/commands/*.md (directory missing)
 - Follow-up TODOs: TODO(RATIFICATION_DATE)
 -->
+
 # Chess Simul Monorepo Constitution
 
 ## Core Principles
 
 ### I. Workspace Ownership
+
 - All UI code lives in `apps/web`, shared types/utilities in `packages/shared`, and
   database work (migrations, seed data, generated types) in `supabase`.
 - Cross-workspace dependencies MUST go through package boundaries; do not import
   files directly across workspaces.
 - Repository tooling and shared scripts live at the root or in `scripts`.
-Rationale: Clear boundaries prevent circular dependencies and keep ownership explicit.
+  Rationale: Clear boundaries prevent circular dependencies and keep ownership explicit.
 
 ### II. Security & Privileged Operations
+
 - Only the public `anon` key may appear in `apps/web/src/environments/`.
 - Never commit Supabase `.env` files; web-only secrets belong in root `.env.local`.
 - Privileged database writes MUST go through Edge Functions or server-only code,
   with RLS policies enforced and validated.
-Rationale: Client bundles must remain safe, and database access must be auditable.
+  Rationale: Client bundles must remain safe, and database access must be auditable.
 
 ### III. Quality Gates (Non-Negotiable)
+
 - Before review or merge, changes MUST pass `npm run lint`, `npm run format:check`,
   and `npm test` (TypeScript typecheck).
 - Code MUST follow `.editorconfig` and Prettier formatting; do not bypass tooling.
-Rationale: Automated checks keep the monorepo consistent and prevent regressions.
+  Rationale: Automated checks keep the monorepo consistent and prevent regressions.
 
 ### IV. Spec-Driven Delivery
+
 - Feature work MUST include a spec (`/specs/.../spec.md`), plan, and tasks aligned
   to user stories, with acceptance scenarios defined up front.
 - If a feature requires tests, they MUST be listed and written to fail before
   implementation.
 - Changes that alter environments, schemas, or workflows MUST update docs.
-Rationale: Specs keep scope aligned and make delivery measurable and reviewable.
+  Rationale: Specs keep scope aligned and make delivery measurable and reviewable.
 
 ### V. Realtime & Performance Discipline
+
 - Realtime subscriptions MUST filter early and keep payloads lean (select only the
   columns needed).
 - Prefer incremental updates and paginated history over full-table streams.
 - Avoid heavy computed fields in realtime payloads unless justified.
-Rationale: Realtime features must remain fast and scalable for live play.
+  Rationale: Realtime features must remain fast and scalable for live play.
 
 ## Environment & Deployment Constraints
 

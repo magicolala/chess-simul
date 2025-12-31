@@ -17,13 +17,8 @@ for (const dir of functionDirs) {
     assert(responseMatch, `Incorrect OPTIONS response in ${dir}`);
 
     if (dir !== 'submit-move') {
-      assertEquals(
-        responseMatch[1],
-        'null',
-        `OPTIONS handler in ${dir} should return null body`
-      );
+      assertEquals(responseMatch[1], 'null', `OPTIONS handler in ${dir} should return null body`);
     }
-
 
     if (dir === 'submit-move') {
       const respondFunctionMatch = content.match(
@@ -34,13 +29,17 @@ for (const dir of functionDirs) {
       const corsInRespondMatch = respondFunctionMatch[1].includes('{ ...corsHeaders,');
       assert(corsInRespondMatch, `respond function in ${dir} is not adding corsHeaders`);
     } else {
-        const responsesHaveCors = content.matchAll(/new Response\([\s\S]+?headers: corsHeaders/g);
-        const allResponses = content.matchAll(/new Response\(/g);
+      const responsesHaveCors = content.matchAll(/new Response\([\s\S]+?headers: corsHeaders/g);
+      const allResponses = content.matchAll(/new Response\(/g);
 
-        // This is a bit of a rough check, but it's better than nothing.
-        // It counts all `new Response` and all `new Response` that have `headers: corsHeaders`.
-        // The number should be equal.
-        assertEquals([...responsesHaveCors].length, [...allResponses].length, `Not all responses in ${dir} have CORS headers`);
+      // This is a bit of a rough check, but it's better than nothing.
+      // It counts all `new Response` and all `new Response` that have `headers: corsHeaders`.
+      // The number should be equal.
+      assertEquals(
+        [...responsesHaveCors].length,
+        [...allResponses].length,
+        `Not all responses in ${dir} have CORS headers`
+      );
     }
   });
 }

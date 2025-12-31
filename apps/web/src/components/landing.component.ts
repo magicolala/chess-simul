@@ -1,4 +1,3 @@
-
 import { Component, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -230,7 +229,6 @@ import { CommonModule } from '@angular/common';
           <p class="text-gray-400 text-sm font-medium font-sans">© 2024 Chess Master. Design Néo-Brutaliste.</p>
         </div>
       </footer>
-
     </div>
   `
 })

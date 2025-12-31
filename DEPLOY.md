@@ -14,12 +14,12 @@ Ce guide prépare le client Angular pour un hébergement statique (Netlify, Verc
 
 ## Variables d'environnement à définir sur l'hébergeur
 
-| Variable | Usage | Exemple |
-| --- | --- | --- |
-| `SUPABASE_URL` | URL du projet Supabase (production) | `https://<project>.supabase.co` |
-| `SUPABASE_ANON_KEY` | Clé publique `anon` (production) | `ey...` |
-| `SUPABASE_URL_DEV` | (optionnel) URL Supabase pour les builds préprod | `https://staging.supabase.co` |
-| `SUPABASE_ANON_KEY_DEV` | (optionnel) Clé `anon` préprod | `ey...` |
+| Variable                | Usage                                            | Exemple                         |
+| ----------------------- | ------------------------------------------------ | ------------------------------- |
+| `SUPABASE_URL`          | URL du projet Supabase (production)              | `https://<project>.supabase.co` |
+| `SUPABASE_ANON_KEY`     | Clé publique `anon` (production)                 | `ey...`                         |
+| `SUPABASE_URL_DEV`      | (optionnel) URL Supabase pour les builds préprod | `https://staging.supabase.co`   |
+| `SUPABASE_ANON_KEY_DEV` | (optionnel) Clé `anon` préprod                   | `ey...`                         |
 
 Les valeurs sont injectées au build. Ne stockez jamais la clé `service_role` côté front/hosting.
 
@@ -27,21 +27,21 @@ Les valeurs sont injectées au build. Ne stockez jamais la clé `service_role` c
 
 - Build command : `npm run build`
 - Publish directory : `dist/apps/web`
-- Variables dans l'onglet *Site settings > Build & deploy > Environment*.
+- Variables dans l'onglet _Site settings > Build & deploy > Environment_.
 
 ### Vercel
 
 - Framework preset : Angular
 - Build command : `npm run build`
 - Output directory : `dist/apps/web`
-- Variables via *Project Settings > Environment Variables*. Ajoutez les mêmes valeurs pour `Production` et `Preview`.
+- Variables via _Project Settings > Environment Variables_. Ajoutez les mêmes valeurs pour `Production` et `Preview`.
 
 ### Cloudflare Pages
 
 - Build command : `npm run build`
 - Output directory : `dist/apps/web`
-- Node 22 + npm ci (activé via *Environment variables* > `NODE_VERSION=22` si besoin)
-- Variables dans *Settings > Environment Variables* (sélectionner `Production` et `Preview`).
+- Node 22 + npm ci (activé via _Environment variables_ > `NODE_VERSION=22` si besoin)
+- Variables dans _Settings > Environment Variables_ (sélectionner `Production` et `Preview`).
 
 ## Supabase : Auth, CORS et redirections
 

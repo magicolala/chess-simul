@@ -1,4 +1,3 @@
-
 import { Injectable, signal, computed } from '@angular/core';
 import { Chess } from 'chess.js';
 import { Observable, interval, map, Subject } from 'rxjs';
@@ -41,17 +40,20 @@ export class HydraGameEngineService {
 
     this.gameLoop$.subscribe((currentTime) => {
       const INACTIVITY_THRESHOLD_MS = 20 * 1000; // 20 seconds
-      this.gamesMap.update(currentMap => {
+      this.gamesMap.update((currentMap) => {
         const newMap = new Map(currentMap);
         newMap.forEach((game, gameId) => {
           if (game.status === 'playing') {
             // Check for inactivity at the start of the game (low plyCount)
-            if (game.plyCount <= 1 && (currentTime - game.lastActivityTime) > INACTIVITY_THRESHOLD_MS) {
-                // Forfeit condition
-                game.status = 'timeout'; // Use 'timeout' or introduce 'forfeit' status
-                console.log(`Game ${game.id} forfeited due to inactivity.`);
-                // In a real application, you'd trigger a server-side function to record this forfeit
-                // and update player Elo accordingly.
+            if (
+              game.plyCount <= 1 &&
+              currentTime - game.lastActivityTime > INACTIVITY_THRESHOLD_MS
+            ) {
+              // Forfeit condition
+              game.status = 'timeout'; // Use 'timeout' or introduce 'forfeit' status
+              console.log(`Game ${game.id} forfeited due to inactivity.`);
+              // In a real application, you'd trigger a server-side function to record this forfeit
+              // and update player Elo accordingly.
             }
 
             const elapsedTime = currentTime - game.lastMoveTime;
@@ -70,7 +72,11 @@ export class HydraGameEngineService {
                 newTimeRemaining.black = 0;
               }
             }
-            newMap.set(gameId, { ...game, timeRemaining: newTimeRemaining, lastMoveTime: currentTime });
+            newMap.set(gameId, {
+              ...game,
+              timeRemaining: newTimeRemaining,
+              lastMoveTime: currentTime
+            });
           }
         });
         return newMap;
@@ -110,10 +116,10 @@ export class HydraGameEngineService {
       turn: 'w', // Games always start with white
       opponentElo: opponentElo,
       opponentJustMoved: false,
-      lastActivityTime: Date.now(),
+      lastActivityTime: Date.now()
     };
 
-    this.gamesMap.update(map => {
+    this.gamesMap.update((map) => {
       map.set(gameId, newGame);
       return new Map(map);
     });
@@ -155,13 +161,13 @@ export class HydraGameEngineService {
         lastMoveTime: now,
         lastActivityTime: now, // Update last activity time
         turn: game.chess.turn(),
-        opponentJustMoved: false, // Player just moved, so opponent hasn't yet
+        opponentJustMoved: false // Player just moved, so opponent hasn't yet
       });
 
       // If it's now bot's turn, make its move
       if (game.status === 'playing' && game.turn !== game.playerColor) {
         // Reset opponentJustMoved for all games, then set for current
-        this.gamesMap.update(currentMap => {
+        this.gamesMap.update((currentMap) => {
           const newMap = new Map(currentMap);
           newMap.forEach((g, id) => {
             newMap.set(id, { ...g, opponentJustMoved: false });
@@ -187,7 +193,7 @@ export class HydraGameEngineService {
     if (legalMoves.length > 0) {
       const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
       // Bot makes a move, so set opponentJustMoved to true for this game
-      this.gamesMap.update(currentMap => {
+      this.gamesMap.update((currentMap) => {
         const newMap = new Map(currentMap);
         newMap.forEach((g, id) => {
           newMap.set(id, { ...g, opponentJustMoved: false });
@@ -199,7 +205,7 @@ export class HydraGameEngineService {
     } else {
       // If no legal moves, game is over (stalemate, checkmate)
       this.updateGame(gameId, { status: this.getGameStatus(game.chess) });
-      this.gamesMap.update(currentMap => {
+      this.gamesMap.update((currentMap) => {
         const newMap = new Map(currentMap);
         newMap.forEach((g, id) => {
           newMap.set(id, { ...g, opponentJustMoved: false });
@@ -210,7 +216,7 @@ export class HydraGameEngineService {
   }
 
   private updateGame(gameId: string, partialGame: Partial<HydraGame>): void {
-    this.gamesMap.update(map => {
+    this.gamesMap.update((map) => {
       const existingGame = map.get(gameId);
       if (existingGame) {
         map.set(gameId, { ...existingGame, ...partialGame });
@@ -227,13 +233,14 @@ export class HydraGameEngineService {
     if (chess.isCheckmate()) return 'checkmate';
     if (chess.isStalemate()) return 'stalemate';
     if (chess.isDraw()) return 'draw';
-    if (chess.isThreefoldRepetition() || chess.isInsufficientMaterial() || chess.isFiftyMoves()) return 'draw';
+    if (chess.isThreefoldRepetition() || chess.isInsufficientMaterial() || chess.isFiftyMoves())
+      return 'draw';
     return 'playing';
   }
 
   // Remove a game (e.g., when it's finished or resigned)
   removeGame(gameId: string): void {
-    this.gamesMap.update(map => {
+    this.gamesMap.update((map) => {
       map.delete(gameId);
       return new Map(map);
     });

@@ -1,4 +1,3 @@
-
 import { Injectable, signal, inject } from '@angular/core';
 import { SupabaseClientService } from './supabase-client.service';
 
@@ -26,18 +25,25 @@ export class AuthService {
   private supabase = inject(SupabaseClientService);
 
   constructor() {
-    this.supabase.session$.subscribe(session => {
+    this.supabase.session$.subscribe((session) => {
       if (session?.user) {
         void this.supabase.ensureCurrentUserProfile();
         // Map Supabase User to local User interface
         const user: User = {
           id: session.user.id,
           email: session.user.email || '',
-          name: session.user.user_metadata['user_name'] || session.user.email?.split('@')[0] || 'Unknown',
-          avatar: session.user.user_metadata['avatar_url'] || `https://api.dicebear.com/7.x/notionists/svg?seed=${session.user.id}`,
+          name:
+            session.user.user_metadata['user_name'] ||
+            session.user.email?.split('@')[0] ||
+            'Unknown',
+          avatar:
+            session.user.user_metadata['avatar_url'] ||
+            `https://api.dicebear.com/7.x/notionists/svg?seed=${session.user.id}`,
           bio: session.user.user_metadata['bio'],
           isPremium: session.user.user_metadata['is_premium'] || false,
-          emailVerified: session.user.email_confirmed_at !== undefined && session.user.email_confirmed_at !== null,
+          emailVerified:
+            session.user.email_confirmed_at !== undefined &&
+            session.user.email_confirmed_at !== null,
           onboardingCompleted: session.user.user_metadata['onboarding_completed'] || false,
           twoFactorEnabled: (session.user as any).two_factor_enabled || false,
           elo: 1200 // Default value, will be updated by profile fetch
@@ -81,14 +87,13 @@ export class AuthService {
 
     try {
       const { error } = await this.supabase.signIn(email, password);
-      
+
       if (error) {
         throw new Error(error.message);
       }
       return true;
-
     } catch (e: any) {
-      this.error.set(e.message || "Erreur de connexion.");
+      this.error.set(e.message || 'Erreur de connexion.');
       return false;
     } finally {
       this.isLoading.set(false);
@@ -110,13 +115,12 @@ export class AuthService {
       if (error) {
         throw new Error(error.message);
       }
-      
+
       // Optionally, you might want to call a Supabase function here to update the user's profile with 'name'
       // after successful registration and session creation.
       // For now, the user_metadata will be updated in the finishAuth based on session.user.user_metadata
 
       return true;
-
     } catch (e: any) {
       this.error.set(e.message);
       return false;
@@ -137,7 +141,7 @@ export class AuthService {
         data: {
           user_name: updates.name || current.name,
           avatar_url: updates.avatar || current.avatar,
-          bio: updates.bio || current.bio,
+          bio: updates.bio || current.bio
         }
       });
 
@@ -145,7 +149,6 @@ export class AuthService {
         throw new Error(error.message);
       }
       // The session listener in the constructor will update currentUser signal
-
     } catch (e: any) {
       this.error.set(e.message || 'Erreur lors de la mise à jour du profil.');
     } finally {
@@ -154,85 +157,85 @@ export class AuthService {
   }
 
   async changePassword(oldP: string, newP: string): Promise<boolean> {
-      this.isLoading.set(true);
-      this.error.set(null);
-      try {
-          if (newP.length < 6) throw new Error("Nouveau mot de passe trop court.");
-          const { error } = await this.supabase.client.auth.updateUser({ password: newP });
-          if (error) throw new Error(error.message);
-          return true;
-      } catch(e: any) {
-          this.error.set(e.message);
-          return false;
-      } finally {
-          this.isLoading.set(false);
-      }
+    this.isLoading.set(true);
+    this.error.set(null);
+    try {
+      if (newP.length < 6) throw new Error('Nouveau mot de passe trop court.');
+      const { error } = await this.supabase.client.auth.updateUser({ password: newP });
+      if (error) throw new Error(error.message);
+      return true;
+    } catch (e: any) {
+      this.error.set(e.message);
+      return false;
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   async toggle2FA(enable: boolean) {
-      this.isLoading.set(true);
-      await new Promise(r => setTimeout(r, 800));
-      const user = this.currentUser();
-      if(user) this.finishAuth({ ...user, twoFactorEnabled: enable });
-      this.isLoading.set(false);
+    this.isLoading.set(true);
+    await new Promise((r) => setTimeout(r, 800));
+    const user = this.currentUser();
+    if (user) this.finishAuth({ ...user, twoFactorEnabled: enable });
+    this.isLoading.set(false);
   }
 
   async upgradePremium() {
-      this.isLoading.set(true);
-      await new Promise(r => setTimeout(r, 1500)); // Payment processing
-      const user = this.currentUser();
-      if(user) this.finishAuth({ ...user, isPremium: true });
-      this.isLoading.set(false);
+    this.isLoading.set(true);
+    await new Promise((r) => setTimeout(r, 1500)); // Payment processing
+    const user = this.currentUser();
+    if (user) this.finishAuth({ ...user, isPremium: true });
+    this.isLoading.set(false);
   }
 
   async verifyEmail(code: string): Promise<boolean> {
     this.isLoading.set(true);
     try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        if (code !== '1234') throw new Error("Code invalide (Essayez 1234)");
-        
-        const user = this.currentUser();
-        if (user) {
-            this.finishAuth({ ...user, emailVerified: true });
-        }
-        return true;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (code !== '1234') throw new Error('Code invalide (Essayez 1234)');
+
+      const user = this.currentUser();
+      if (user) {
+        this.finishAuth({ ...user, emailVerified: true });
+      }
+      return true;
     } catch (e: any) {
-        this.error.set(e.message);
-        return false;
+      this.error.set(e.message);
+      return false;
     } finally {
-        this.isLoading.set(false);
+      this.isLoading.set(false);
     }
   }
 
-  async completeOnboarding(updates: { avatar: string, name: string }): Promise<boolean> {
-      this.isLoading.set(true);
-      try {
-          await new Promise(resolve => setTimeout(resolve, 800));
-          const user = this.currentUser();
-          if (user) {
-              this.finishAuth({ ...user, ...updates, onboardingCompleted: true });
-          }
-          return true;
-      } finally {
-          this.isLoading.set(false);
+  async completeOnboarding(updates: { avatar: string; name: string }): Promise<boolean> {
+    this.isLoading.set(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      const user = this.currentUser();
+      if (user) {
+        this.finishAuth({ ...user, ...updates, onboardingCompleted: true });
       }
+      return true;
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   async resetPassword(email: string): Promise<boolean> {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-        if (!email.includes('@')) throw new Error("Email invalide");
-        const { error } = await this.supabase.client.auth.resetPasswordForEmail(email, { 
-            redirectTo: window.location.origin + '/update-password' 
-        });
-        if (error) throw new Error(error.message);
-        return true;
-    } catch(e: any) {
-        this.error.set(e.message);
-        return false;
+      if (!email.includes('@')) throw new Error('Email invalide');
+      const { error } = await this.supabase.client.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/update-password'
+      });
+      if (error) throw new Error(error.message);
+      return true;
+    } catch (e: any) {
+      this.error.set(e.message);
+      return false;
     } finally {
-        this.isLoading.set(false);
+      this.isLoading.set(false);
     }
   }
 
@@ -246,11 +249,16 @@ export class AuthService {
     try {
       await this.supabase.signOut();
     } catch (e: any) {
-      this.error.set(e.message || "Erreur de déconnexion.");
+      this.error.set(e.message || 'Erreur de déconnexion.');
     } finally {
       this.isLoading.set(false);
     }
   }
 
-
+  updateElo(newElo: number) {
+    const user = this.currentUser();
+    if (user) {
+      this.finishAuth({ ...user, elo: Math.round(newElo) });
+    }
+  }
 }

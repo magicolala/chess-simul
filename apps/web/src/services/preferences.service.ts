@@ -1,4 +1,3 @@
-
 import { Injectable, signal, effect } from '@angular/core';
 
 export interface BoardTheme {
@@ -14,7 +13,7 @@ export const BOARD_THEMES: BoardTheme[] = [
   { id: 'brown', name: 'Bois (Classique)', light: '#f0d9b5', dark: '#b58863' },
   { id: 'terracotta', name: 'Terracotta', light: '#e8e0db', dark: '#bf5f52' },
   { id: 'green', name: 'Vert Tournoi', light: '#ffffdd', dark: '#86a666' },
-  { id: 'purple', name: 'Violet', light: '#e2e2ee', dark: '#6f5f90' },
+  { id: 'purple', name: 'Violet', light: '#e2e2ee', dark: '#6f5f90' }
 ];
 
 export const PIECE_SETS = [
@@ -22,7 +21,7 @@ export const PIECE_SETS = [
   { id: 'merida', name: 'Merida' },
   { id: 'leipzig', name: 'Leipzig' },
   { id: 'fantasy', name: 'Fantasy' },
-  { id: 'spatial', name: 'Spatial' },
+  { id: 'spatial', name: 'Spatial' }
 ];
 
 export interface GameSettings {
@@ -31,6 +30,7 @@ export interface GameSettings {
   inputMethod: 'drag' | 'click' | 'both';
   soundEnabled: boolean;
   animations: boolean;
+  allowPremoves: boolean;
 }
 
 export interface NotificationSettings {
@@ -60,7 +60,8 @@ export class PreferencesService {
     confirmResign: true,
     inputMethod: 'both',
     soundEnabled: true,
-    animations: true
+    animations: true,
+    allowPremoves: true
   });
 
   // Notifications
@@ -78,7 +79,7 @@ export class PreferencesService {
   });
 
   get currentTheme() {
-    return BOARD_THEMES.find(t => t.id === this.activeThemeId()) || BOARD_THEMES[0];
+    return BOARD_THEMES.find((t) => t.id === this.activeThemeId()) || BOARD_THEMES[0];
   }
 
   constructor() {
@@ -92,26 +93,26 @@ export class PreferencesService {
       localStorage.setItem('simul_game', JSON.stringify(this.gameSettings()));
       localStorage.setItem('simul_notif', JSON.stringify(this.notifications()));
       localStorage.setItem('simul_privacy', JSON.stringify(this.privacy()));
-      
+
       if (this.darkMode()) document.body.classList.add('dark');
       else document.body.classList.remove('dark');
     });
   }
 
   toggleDarkMode() {
-    this.darkMode.update(d => !d);
+    this.darkMode.update((d) => !d);
   }
 
   updateGameSettings(partial: Partial<GameSettings>) {
-    this.gameSettings.update(s => ({ ...s, ...partial }));
+    this.gameSettings.update((s) => ({ ...s, ...partial }));
   }
 
   updateNotifications(partial: Partial<NotificationSettings>) {
-    this.notifications.update(s => ({ ...s, ...partial }));
+    this.notifications.update((s) => ({ ...s, ...partial }));
   }
 
   updatePrivacy(partial: Partial<PrivacySettings>) {
-    this.privacy.update(s => ({ ...s, ...partial }));
+    this.privacy.update((s) => ({ ...s, ...partial }));
   }
 
   private loadSettings() {

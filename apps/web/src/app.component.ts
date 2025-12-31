@@ -108,7 +108,7 @@ export class AppComponent {
 
   currentView = signal<ViewState>('landing');
   viewParam = signal<string>(''); // For profile ID, room ID etc
-  authModalMode = signal<'login' | 'register' | null>(null);
+  authModalModeState = signal<'login' | 'register' | null>(null);
 
   // UI State for Modals
   authModalMode = signal<'login' | 'register' | null>(null);
@@ -379,22 +379,22 @@ export class AppComponent {
   }
 
   openLoginModal() {
-    this.authModalMode.set('login');
+    this.authModalModeState.set('login');
     this.currentView.set('landing');
   }
 
   openRegisterModal() {
-    this.authModalMode.set('register');
+    this.authModalModeState.set('register');
     this.currentView.set('landing');
   }
 
   openForgotPassword() {
-    this.authModalMode.set(null);
+    this.authModalModeState.set(null);
     this.currentView.set('forgot-password');
   }
 
   closeAuthModals() {
-    this.authModalMode.set(null);
+    this.authModalModeState.set(null);
     if (this.currentView() === 'forgot-password') {
       this.currentView.set('landing');
     }
@@ -402,7 +402,7 @@ export class AppComponent {
 
   backToLoginModal() {
     this.currentView.set('landing');
-    this.authModalMode.set('login');
+    this.authModalModeState.set('login');
   }
 
   handleLogout() {

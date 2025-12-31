@@ -27,7 +27,9 @@ import { AuthService } from '../services/auth.service';
         </div>
 
         @if (isSent()) {
-          <div class="bg-green-100 border border-green-500 text-green-800 p-4 rounded-[2px] mb-4 text-center">
+          <div
+            class="bg-green-100 border border-green-500 text-green-800 p-4 rounded-[2px] mb-4 text-center"
+          >
             <p class="font-bold">Email envoyé !</p>
             <p class="text-xs mt-1">Vérifiez votre boîte de réception.</p>
           </div>

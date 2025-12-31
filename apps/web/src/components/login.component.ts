@@ -30,17 +30,12 @@ import { AuthService } from '../services/auth.service';
           </h2>
           <p class="text-[#1D1C1C] font-medium text-sm mt-2">Prêt pour le prochain coup ?</p>
         </div>
-        <h2 class="text-3xl font-black font-display text-[#1D1C1C] tracking-tight uppercase">Bon retour</h2>
-        <p class="text-[#1D1C1C] font-medium text-sm mt-2">Prêt pour le prochain coup ?</p>
-      </div>
 
         <!-- Form -->
         <div class="p-8 bg-white">
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
             @if (auth.error()) {
-              <div
-                class="p-3 bg-[#1D1C1C] text-white text-sm font-bold flex items-center wero-shadow-sm"
-              >
+              <div class="p-3 bg-[#1D1C1C] text-white text-sm font-bold flex items-center wero-shadow-sm">
                 <span class="mr-2">⚠️</span>
                 {{ auth.error() }}
               </div>
@@ -55,12 +50,6 @@ import { AuthService } from '../services/auth.service';
                 placeholder="grandmaster@chess.com"
               />
             </div>
-          }
-
-          <div>
-            <label class="ui-label block mb-2 font-display">Email</label>
-            <input type="email" formControlName="email" class="ui-input" placeholder="grandmaster@chess.com">
-          </div>
 
             <div>
               <div class="flex justify-between mb-2">
@@ -80,8 +69,6 @@ import { AuthService } from '../services/auth.service';
                 placeholder="••••••••"
               />
             </div>
-            <input type="password" formControlName="password" class="ui-input" placeholder="••••••••">
-          </div>
 
             <button
               type="submit"

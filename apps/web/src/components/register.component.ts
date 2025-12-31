@@ -29,17 +29,12 @@ import { AuthService } from '../services/auth.service';
           </h2>
           <p class="text-[#1D1C1C] text-sm mt-1 font-medium">Devenez une légende</p>
         </div>
-        <h2 class="text-3xl font-black font-display text-[#1D1C1C] tracking-tight uppercase">Rejoignez-nous</h2>
-        <p class="text-[#1D1C1C] text-sm mt-1 font-medium">Devenez une légende</p>
-      </div>
 
         <!-- Form -->
         <div class="p-8 pt-4">
           <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-5">
             @if (auth.error()) {
-              <div
-                class="p-3 bg-[#1D1C1C] text-white text-sm font-bold flex items-center wero-shadow-sm"
-              >
+              <div class="p-3 bg-[#1D1C1C] text-white text-sm font-bold flex items-center wero-shadow-sm">
                 {{ auth.error() }}
               </div>
             }
@@ -53,7 +48,6 @@ import { AuthService } from '../services/auth.service';
               <label class="ui-label block mb-2 font-display">Email</label>
               <input type="email" formControlName="email" class="ui-input" />
             </div>
-          }
 
             <div>
               <label class="ui-label block mb-2 font-display">Mot de passe</label>

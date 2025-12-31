@@ -50,3 +50,40 @@ const { data, error } = await supabase.functions.invoke('submit-move', {
   body: { game_id: '<game uuid>', uci: 'e2e4' }
 });
 ```
+
+## Supabase helper tests
+
+Two Deno suites cover helpers that are shared between the Edge functions and any other scripts:
+
+1. `time_control_test.ts` asserts that `_shared/time-control.ts` parses `MM+SS` strings consistently.
+2. `supabase_client_test.ts` ensures `_shared/supabase-client.ts` fails early when the required env vars are missing.
+
+Run them with the CLI so Deno can fetch dependencies and access environment state:
+
+```bash
+cd /path/to/repo
+deno test --allow-net --allow-env supabase/tests
+```
+
+## Integration smoke tests
+
+The integration suite simulates real matchmaking, move submission, and realtime flows against a Supabase Cloud project.
+It requires test-specific credentials so the suite can create users, insert games, and subscribe to realtime channels with a service role.
+
+Set the following variables before running the suite:
+
+```bash
+export SUPABASE_TEST_URL=https://<your-test-project>.supabase.co
+export SUPABASE_TEST_ANON_KEY=<anon-public-key>
+export SUPABASE_TEST_SERVICE_ROLE_KEY=<service-role-key>
+```
+
+Run the suite with:
+
+```bash
+deno test --allow-net --allow-env supabase/tests/integration
+```
+
+The tests clean up after themselves (queues, games, and generated users) so they can run repeatedly in CI or locally.
+
+The suite is intentionally small and fast; adding these checks to CI keeps those helpers from regressing.

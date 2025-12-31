@@ -110,6 +110,7 @@ export class AppComponent {
   viewParam = signal<string>(''); // For profile ID, room ID etc
 
   // UI State for Modals
+  authModalMode = signal<'login' | 'register' | null>(null);
   showNewGameModal = signal(false);
   showSettingsModal = signal(false);
   showGameOverModal = signal<GameState | null>(null);
@@ -145,13 +146,9 @@ export class AppComponent {
       () => {
         const user = this.auth.currentUser();
 
-<<<<<<< magicolala/add-premoves-and-elo-rating-management
-=======
         if (user) {
-            this.closeAuthModals();
+          this.closeAuthModals();
         }
-
->>>>>>> main
         if (!user) {
           const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
           if (!publicViews.includes(this.currentView())) {

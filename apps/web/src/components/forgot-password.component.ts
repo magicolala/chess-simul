@@ -25,15 +25,9 @@ import { AuthService } from '../services/auth.service';
             Entrez votre email pour recevoir un lien de réinitialisation.
           </p>
         </div>
-        <button (click)="back.emit()" class="ui-btn ui-btn-dark w-full py-3">Retour à la connexion</button>
-      } @else {
-        <div class="space-y-4">
-          <input type="email" [(ngModel)]="email" placeholder="votre@email.com" class="ui-input">
 
         @if (isSent()) {
-          <div
-            class="bg-green-100 border border-green-500 text-green-800 p-4 rounded-[2px] mb-4 text-center"
-          >
+          <div class="bg-green-100 border border-green-500 text-green-800 p-4 rounded-[2px] mb-4 text-center">
             <p class="font-bold">Email envoyé !</p>
             <p class="text-xs mt-1">Vérifiez votre boîte de réception.</p>
           </div>

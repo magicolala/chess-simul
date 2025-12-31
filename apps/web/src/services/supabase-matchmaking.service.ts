@@ -3,7 +3,7 @@ import { SupabaseClientService } from './supabase-client.service';
 import type { InviteRow } from '@chess-simul/shared';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class SupabaseMatchmakingService {
   private supabaseService = inject(SupabaseClientService);
@@ -56,7 +56,7 @@ export class SupabaseMatchmakingService {
 
     this.queueStatus.set('searching');
     const { data, error } = await this.supabase.functions.invoke('join-queue', {
-      body: { time_control: trimmed },
+      body: { time_control: trimmed }
     });
 
     if (error) {
@@ -85,7 +85,7 @@ export class SupabaseMatchmakingService {
 
     if (error) {
       console.error('leaveQueue error', error);
-      this.notify("Impossible de quitter la file.");
+      this.notify('Impossible de quitter la file.');
       return;
     }
 
@@ -122,7 +122,7 @@ export class SupabaseMatchmakingService {
     if (!this.ensureUser()) return null;
 
     const { data, error } = await this.supabase.functions.invoke('accept-invite', {
-      body: { invite_id: inviteId },
+      body: { invite_id: inviteId }
     });
 
     if (error) {

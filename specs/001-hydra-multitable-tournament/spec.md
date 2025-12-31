@@ -5,13 +5,13 @@
 **Status**: Draft  
 **Input**: User description: "Add Hydra Chess multitabling tournament mode to the existing Chess Simul app without changing the current monorepo architecture. Players can open multiple simultaneous games (2 to 9) during a tournament session. Each game uses a fixed time control of 5+3. The UI displays boards in a responsive mosaic: 1 board fullscreen, 2-4 boards in a 2x2 grid, 5-9 boards in a 3x3 grid. The board where the opponent just moved is highlighted and can optionally trigger a distinct sound. Implement Hydra scoring: Win: +3 Draw: +1 Loss: -1 Scores update in real-time during the session. Support two event types: 1) Arena (“Hydra Hour”): fixed duration (e.g., 60 minutes). Rankings are decided by total score at the end; games still running at the end continue and still count. 2) Survival: each player has a life pool; each loss consumes one life; players are eliminated at zero lives and final ranking is based on score and time of elimination. Matchmaking: A single global queue that pairs players based on Elo, widening the Elo range every 10 seconds until a match is found. Players may have multiple active games at once. Anti-abandon: If a player is inactive for 20 seconds at the beginning of a game, the game is forfeited. Rage-quitting multiple games should not block opponents; forfeits should resolve games quickly. Data & audit: Persist tournaments, participants, games, moves metadata (minimal), results, scores, and matchmaking events. Provide a tournament leaderboard view and a “my active games” view. Non-goals for MVP: No bots, no new frontend framework, no major refactor; only add missing features aligned with existing structure and security rules."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 <!--
   IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
   Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
   you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
+
   Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
   Think of each story as a standalone slice of functionality that can be:
   - Developed independently
@@ -92,7 +92,7 @@ As a participant, I want matchmaking to quickly find opponents for multiple game
 - Two opponents move in different games within the same update window and both boards need highlighting.
 - An opponent disconnects at the game start but reconnects within the 20-second inactivity window.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
@@ -128,7 +128,7 @@ As a participant, I want matchmaking to quickly find opponents for multiple game
 - **Matchmaking Event**: Queue entry, Elo search range changes, pairing outcome, and timestamps.
 - **Score Event**: Score adjustments tied to game outcomes for audit and leaderboard updates.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 <!--
   ACTION REQUIRED: Define measurable success criteria.

@@ -5,7 +5,7 @@ import type {
   SimulStatus,
   SimulTableRow,
   SimulTableStatus,
-  TimeControl,
+  TimeControl
 } from '@chess-simul/shared';
 
 export type Simul = SimulRow & { time_control: TimeControl };

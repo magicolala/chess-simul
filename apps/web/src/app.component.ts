@@ -1,5 +1,11 @@
-
-import { Component, inject, computed, signal, ChangeDetectionStrategy, effect } from '@angular/core';
+import {
+  Component,
+  inject,
+  computed,
+  signal,
+  ChangeDetectionStrategy,
+  effect
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessSimulService, GameState, GameConfig } from './services/chess-logic.service';
@@ -34,19 +40,41 @@ import { SocialHubComponent } from './components/social-hub.component';
 import { PublicProfileComponent } from './components/public-profile.component';
 import { AnalysisComponent } from './components/analysis.component';
 
-type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'verify-email' | 'onboarding' | 'dashboard' | 'history' | 'game' | 'focus' | 'friend-lobby' | 'simul-create' | 'simul-host' | 'simul-list' | 'simul-lobby' | 'simul-player' | 'multiplayer-lobby' | 'game-room' | 'online-game' | 'social-hub' | 'public-profile' | 'analysis';
+type ViewState =
+  | 'landing'
+  | 'login'
+  | 'register'
+  | 'forgot-password'
+  | 'verify-email'
+  | 'onboarding'
+  | 'dashboard'
+  | 'history'
+  | 'game'
+  | 'focus'
+  | 'friend-lobby'
+  | 'simul-create'
+  | 'simul-host'
+  | 'simul-list'
+  | 'simul-lobby'
+  | 'simul-player'
+  | 'multiplayer-lobby'
+  | 'game-room'
+  | 'online-game'
+  | 'social-hub'
+  | 'public-profile'
+  | 'analysis';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    ChessBoardComponent, 
-    LoginComponent, 
-    RegisterComponent, 
-    SettingsComponent, 
-    HistoryComponent, 
+    CommonModule,
+    FormsModule,
+    ChessBoardComponent,
+    LoginComponent,
+    RegisterComponent,
+    SettingsComponent,
+    HistoryComponent,
     FriendLobbyComponent,
     LandingComponent,
     SimulCreateComponent,
@@ -80,7 +108,7 @@ export class AppComponent {
 
   currentView = signal<ViewState>('landing');
   viewParam = signal<string>(''); // For profile ID, room ID etc
-  
+
   // UI State for Modals
   showNewGameModal = signal(false);
   showSettingsModal = signal(false);
@@ -90,62 +118,78 @@ export class AppComponent {
   isBoardFlipped = signal(false);
 
   newGameConfig = signal<GameConfig>({
-      timeMinutes: 10,
-      incrementSeconds: 0,
-      opponentCount: 1, 
-      difficulty: 'pvp'
+    timeMinutes: 10,
+    incrementSeconds: 0,
+    opponentCount: 1,
+    difficulty: 'pvp'
   });
 
   games = this.logicService.games;
 
-  activeGamesCount = computed(() => 
-    this.games().filter(g => g.status === 'active').length
-  );
-  
+  activeGamesCount = computed(() => this.games().filter((g) => g.status === 'active').length);
+
   focusedGame = computed(() => {
-     const id = this.focusedGameId();
-     return id !== null ? this.games().find(g => g.id === id) : null;
+    const id = this.focusedGameId();
+    return id !== null ? this.games().find((g) => g.id === id) : null;
   });
 
   totalGamesPlayed = computed(() => this.historyService.history().length);
-  totalWins = computed(() => this.historyService.history().filter(g => g.result === 'win').length);
-  currentElo = signal(1200); 
+  totalWins = computed(
+    () => this.historyService.history().filter((g) => g.result === 'win').length
+  );
+  currentElo = signal(1200);
 
   constructor() {
     // Routing Logic based on Auth State
-    effect(() => {
+    effect(
+      () => {
         const user = this.auth.currentUser();
-        
+
         if (!user) {
-            const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
-            if (!publicViews.includes(this.currentView())) {
-                this.currentView.set('landing');
-            }
-            return;
+          const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
+          if (!publicViews.includes(this.currentView())) {
+            this.currentView.set('landing');
+          }
+          return;
         }
 
         const emailVerified = user.emailVerified;
         const onboardingCompleted = user.onboardingCompleted;
 
         if (!emailVerified) {
-            this.currentView.set('verify-email');
+          this.currentView.set('verify-email');
         } else if (!onboardingCompleted) {
-            this.currentView.set('onboarding');
+          this.currentView.set('onboarding');
         } else {
-            const authViews: ViewState[] = ['landing', 'login', 'register', 'verify-email', 'onboarding', 'forgot-password'];
-            if (authViews.includes(this.currentView())) {
-                this.currentView.set('dashboard');
-            }
+          const authViews: ViewState[] = [
+            'landing',
+            'login',
+            'register',
+            'verify-email',
+            'onboarding',
+            'forgot-password'
+          ];
+          if (authViews.includes(this.currentView())) {
+            this.currentView.set('dashboard');
+          }
         }
-    }, { allowSignalWrites: true });
+      },
+      { allowSignalWrites: true }
+    );
   }
 
-  onMove(gameId: number, move: { from: string, to: string }) {
+  onMove(gameId: number, move: { from: string; to: string }) {
     this.logicService.makeMove(gameId, move.from, move.to);
-    
-    const game = this.games().find(g => g.id === gameId);
-    if (game && game.status !== 'active' && game.status !== 'waiting' && game.mode !== 'online' && game.mode !== 'simul-player') {
-        setTimeout(() => this.showGameOverModal.set(game), 1000);
+
+    const game = this.games().find((g) => g.id === gameId);
+    if (
+      game &&
+      game.status !== 'active' &&
+      game.status !== 'waiting' &&
+      game.mode !== 'online' &&
+      game.mode !== 'simul-player'
+    ) {
+      setTimeout(() => this.showGameOverModal.set(game), 1000);
     }
   }
 
@@ -155,47 +199,58 @@ export class AppComponent {
     return game.fenHistory[game.viewIndex] || game.fen;
   }
 
-  getDisplayLastMove(game: GameState): { from: string, to: string } | null {
-      if (game.viewIndex === -1) return game.lastMove;
-      return null;
+  getDisplayLastMove(game: GameState): { from: string; to: string } | null {
+    if (game.viewIndex === -1) return game.lastMove;
+    return null;
   }
 
   navigateGame(gameId: number, direction: 'start' | 'prev' | 'next' | 'end') {
-      this.logicService.navigateHistory(gameId, direction);
+    this.logicService.navigateHistory(gameId, direction);
   }
 
   isAtLatest(game: GameState): boolean {
-      return game.viewIndex === -1;
+    return game.viewIndex === -1;
   }
 
   // --- Modal / View Logic ---
-  openNewGameModal() { this.showNewGameModal.set(true); }
-  openSettings() { this.showSettingsModal.set(true); }
-  closeSettings() { this.showSettingsModal.set(false); }
+  openNewGameModal() {
+    this.showNewGameModal.set(true);
+  }
+  openSettings() {
+    this.showSettingsModal.set(true);
+  }
+  closeSettings() {
+    this.showSettingsModal.set(false);
+  }
 
   startNewSession() {
     this.logicService.startPvpSession(this.newGameConfig());
     this.showNewGameModal.set(false);
-    this.currentView.set('game'); 
+    this.currentView.set('game');
   }
 
-  handleQuickPlay(config: { time: number, inc: number }) {
-      this.newGameConfig.set({
-          timeMinutes: config.time,
-          incrementSeconds: config.inc,
-          opponentCount: 1,
-          difficulty: 'pvp'
-      });
-      this.startNewSession();
+  handleQuickPlay(config: { time: number; inc: number }) {
+    this.newGameConfig.set({
+      timeMinutes: config.time,
+      incrementSeconds: config.inc,
+      opponentCount: 1,
+      difficulty: 'pvp'
+    });
+    this.startNewSession();
   }
 
-  startFriendGame(config: { time: number, inc: number, color: 'w' | 'b' | 'random' }) {
-      this.newGameConfig.set({ timeMinutes: config.time, incrementSeconds: config.inc, opponentCount: 1, difficulty: 'pvp' });
-      this.logicService.startPvpSession(this.newGameConfig());
-      this.enterFocusMode(0); 
-      this.isBoardFlipped.set(config.color === 'b'); 
+  startFriendGame(config: { time: number; inc: number; color: 'w' | 'b' | 'random' }) {
+    this.newGameConfig.set({
+      timeMinutes: config.time,
+      incrementSeconds: config.inc,
+      opponentCount: 1,
+      difficulty: 'pvp'
+    });
+    this.logicService.startPvpSession(this.newGameConfig());
+    this.enterFocusMode(0);
+    this.isBoardFlipped.set(config.color === 'b');
   }
-  
+
   // Simul Logic
   async createSimul(config: GameConfig) {
     try {
@@ -203,7 +258,7 @@ export class AppComponent {
       const simulName = `Simul by ${this.auth.currentUser()?.email}`;
       const newSimul = await this.simulService.createSimul(simulName, config.opponentCount, {
         initial: config.timeMinutes * 60,
-        increment: config.incrementSeconds,
+        increment: config.incrementSeconds
       });
       if (newSimul) {
         this.viewParam.set(newSimul.id);
@@ -244,39 +299,39 @@ export class AppComponent {
   }
 
   startSimulPlayer() {
-      this.currentView.set('simul-player');
+    this.currentView.set('simul-player');
   }
 
   enterFocusMode(gameId: number) {
-      this.focusedGameId.set(gameId);
-      this.currentView.set('focus');
+    this.focusedGameId.set(gameId);
+    this.currentView.set('focus');
   }
 
   exitFocusMode() {
-      this.currentView.set('game');
-      this.focusedGameId.set(null);
+    this.currentView.set('game');
+    this.focusedGameId.set(null);
   }
 
   analyzeOnLichess(fen: string) {
-      const url = `https://lichess.org/analysis/standard/${fen.replace(/\s/g, '_')}`;
-      window.open(url, '_blank');
+    const url = `https://lichess.org/analysis/standard/${fen.replace(/\s/g, '_')}`;
+    window.open(url, '_blank');
   }
 
   // --- ANALYSIS ---
   startAnalysis(gameId?: string) {
-      if (gameId) {
-          // Find game in history to get PGN/FEN sequence (Mocking PGN retrieval)
-          // Since our history only stores end FEN, we can't fully replay unless we stored moves.
-          // For this demo, let's assume we pass the FEN as "PGN" simply to load the board, 
-          // or ideally, HistoryService should store the PGN string.
-          // Let's create a fake PGN for the demo if not available.
-          
-          // In a real app, HistoryService would store the full PGN.
-          // We will just pass an empty string to open the board, user can paste PGN.
-          this.switchView('analysis', '');
-      } else {
-          this.switchView('analysis');
-      }
+    if (gameId) {
+      // Find game in history to get PGN/FEN sequence (Mocking PGN retrieval)
+      // Since our history only stores end FEN, we can't fully replay unless we stored moves.
+      // For this demo, let's assume we pass the FEN as "PGN" simply to load the board,
+      // or ideally, HistoryService should store the PGN string.
+      // Let's create a fake PGN for the demo if not available.
+
+      // In a real app, HistoryService would store the full PGN.
+      // We will just pass an empty string to open the board, user can paste PGN.
+      this.switchView('analysis', '');
+    } else {
+      this.switchView('analysis');
+    }
   }
 
   formatTime(ms: number): string {
@@ -286,13 +341,15 @@ export class AppComponent {
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
-  
-  isLowTime(ms: number): boolean { return ms > 0 && ms < 30000; }
-  
+
+  isLowTime(ms: number): boolean {
+    return ms > 0 && ms < 30000;
+  }
+
   getTimePercentage(current: number, initial: number): string {
-      if (!initial || initial === 0) return '0%';
-      const pct = (current / initial) * 100;
-      return `${Math.max(0, Math.min(100, pct))}%`;
+    if (!initial || initial === 0) return '0%';
+    const pct = (current / initial) * 100;
+    return `${Math.max(0, Math.min(100, pct))}%`;
   }
 
   switchView(view: ViewState, param: string = '') {
@@ -305,21 +362,21 @@ export class AppComponent {
   }
 
   updateTimeConfig(minutes: number) {
-    this.newGameConfig.update(c => ({...c, timeMinutes: minutes}));
+    this.newGameConfig.update((c) => ({ ...c, timeMinutes: minutes }));
   }
 
   toggleBoardFlip() {
-      this.isBoardFlipped.update(v => !v);
+    this.isBoardFlipped.update((v) => !v);
   }
 
   handleMpJoined(gameId?: string | null) {
-      if (gameId) {
-        this.viewParam.set(gameId);
-      }
-      this.currentView.set('game-room');
+    if (gameId) {
+      this.viewParam.set(gameId);
+    }
+    this.currentView.set('game-room');
   }
 
   handleGameStart() {
-      this.currentView.set('online-game');
+    this.currentView.set('online-game');
   }
 }

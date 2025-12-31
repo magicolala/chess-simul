@@ -31,7 +31,10 @@ serve(async (req) => {
     const rawUci = payload.uci?.trim();
 
     if (!gameId || !rawUci) {
-      return respond(400, { error: 'invalid_payload', message: 'Both game_id and uci are required.' });
+      return respond(400, {
+        error: 'invalid_payload',
+        message: 'Both game_id and uci are required.'
+      });
     }
 
     const supabaseClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -44,7 +47,10 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      return respond(401, { error: 'unauthorized', message: authError?.message ?? 'User not found.' });
+      return respond(401, {
+        error: 'unauthorized',
+        message: authError?.message ?? 'User not found.'
+      });
     }
 
     const { data: game, error: gameError } = await supabaseClient
@@ -54,7 +60,10 @@ serve(async (req) => {
       .single();
 
     if (gameError || !game) {
-      return respond(404, { error: 'game_not_found', message: gameError?.message ?? 'Game not found.' });
+      return respond(404, {
+        error: 'game_not_found',
+        message: gameError?.message ?? 'Game not found.'
+      });
     }
 
     if (game.status !== 'active' && game.status !== 'waiting') {
@@ -75,12 +84,18 @@ serve(async (req) => {
     try {
       chess = new Chess(game.fen);
     } catch {
-      return respond(500, { error: 'invalid_fen', message: 'Stored game FEN could not be loaded.' });
+      return respond(500, {
+        error: 'invalid_fen',
+        message: 'Stored game FEN could not be loaded.'
+      });
     }
 
     const fenTurn = chess.turn();
     if (fenTurn !== game.turn) {
-      return respond(409, { error: 'turn_mismatch', message: 'Game state is out of sync; please retry.' });
+      return respond(409, {
+        error: 'turn_mismatch',
+        message: 'Game state is out of sync; please retry.'
+      });
     }
 
     const move = chess.move({
@@ -90,7 +105,10 @@ serve(async (req) => {
     });
 
     if (!move) {
-      return respond(400, { error: 'illegal_move', message: 'The move is not legal in this position.' });
+      return respond(400, {
+        error: 'illegal_move',
+        message: 'The move is not legal in this position.'
+      });
     }
 
     const newFen = chess.fen();
@@ -146,7 +164,10 @@ serve(async (req) => {
     }
 
     if (!updatedGame) {
-      return respond(409, { error: 'concurrent_update', message: 'Game changed before the update was applied.' });
+      return respond(409, {
+        error: 'concurrent_update',
+        message: 'Game changed before the update was applied.'
+      });
     }
 
     return respond(200, {
@@ -159,13 +180,16 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('submit-move unexpected error', error);
-    return respond(500, { error: 'unexpected_error', message: (error as Error)?.message ?? 'Unexpected error' });
+    return respond(500, {
+      error: 'unexpected_error',
+      message: (error as Error)?.message ?? 'Unexpected error'
+    });
   }
 });
 
 function respond(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
 }

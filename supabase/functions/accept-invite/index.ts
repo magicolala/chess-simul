@@ -15,7 +15,7 @@ serve(async (req) => {
     if (authError || !authData?.user) {
       return new Response(JSON.stringify({ error: 'unauthorized' }), {
         status: 401,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -25,7 +25,7 @@ serve(async (req) => {
     if (!inviteId) {
       return new Response(JSON.stringify({ error: 'invite_id is required' }), {
         status: 400,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -39,21 +39,18 @@ serve(async (req) => {
     if (inviteError || !invite) {
       return new Response(JSON.stringify({ error: 'invite not found' }), {
         status: 404,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
     if (invite.to_user !== authData.user.id) {
       return new Response(JSON.stringify({ error: 'forbidden' }), {
         status: 403,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
-    await supabase
-      .from('invites')
-      .update({ status: 'accepted' })
-      .eq('id', inviteId);
+    await supabase.from('invites').update({ status: 'accepted' }).eq('id', inviteId);
 
     const parsed = parseTimeControl(invite.time_control);
     const clocks = parsed
@@ -61,7 +58,7 @@ serve(async (req) => {
           initialSeconds: parsed.initialSeconds,
           incrementSeconds: parsed.incrementSeconds,
           white: parsed.initialSeconds,
-          black: parsed.initialSeconds,
+          black: parsed.initialSeconds
         }
       : null;
 
@@ -76,7 +73,7 @@ serve(async (req) => {
         status: 'active',
         fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
         turn: 'w',
-        clocks,
+        clocks
       })
       .select()
       .single();
@@ -88,13 +85,13 @@ serve(async (req) => {
     await supabase.from('match_queue').delete().in('user_id', [invite.from_user, invite.to_user]);
 
     return new Response(JSON.stringify({ game: createdGame }), {
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   } catch (error) {
     console.error('accept-invite error', error);
     return new Response(JSON.stringify({ error: 'Unable to accept invite' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

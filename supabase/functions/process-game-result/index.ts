@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { createSupabaseClient } from '../_shared/supabase-client.ts';
@@ -20,10 +19,10 @@ serve(async (req) => {
     const { game_id, outcome } = body; // outcome: 'white_won', 'black_won', 'draw'
 
     if (!game_id || !outcome) {
-      return new Response(
-        JSON.stringify({ error: 'game_id and outcome are required.' }),
-        { status: 400, headers: corsHeaders }
-      );
+      return new Response(JSON.stringify({ error: 'game_id and outcome are required.' }), {
+        status: 400,
+        headers: corsHeaders
+      });
     }
 
     // Fetch game details
@@ -41,10 +40,10 @@ serve(async (req) => {
     }
 
     if (game.status === 'draw' || game.status === 'white_won' || game.status === 'black_won') {
-        return new Response(
-            JSON.stringify({ message: 'Game already processed.' }),
-            { status: 200, headers: corsHeaders }
-        );
+      return new Response(JSON.stringify({ message: 'Game already processed.' }), {
+        status: 200,
+        headers: corsHeaders
+      });
     }
 
     // Determine score points based on Hydra rules
@@ -65,10 +64,10 @@ serve(async (req) => {
         blackScoreChange = 1;
         break;
       default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid game outcome.' }),
-          { status: 400, headers: corsHeaders }
-        );
+        return new Response(JSON.stringify({ error: 'Invalid game outcome.' }), {
+          status: 400,
+          headers: corsHeaders
+        });
     }
 
     // Update player ELOs (simple direct update for Hydra scoring)
@@ -107,26 +106,25 @@ serve(async (req) => {
 
     if (updateWhiteError || updateBlackError) {
       console.error('Error updating player ELOs:', updateWhiteError, updateBlackError);
-      return new Response(
-        JSON.stringify({ error: 'Error updating player ELOs.' }),
-        { status: 500, headers: corsHeaders }
-      );
+      return new Response(JSON.stringify({ error: 'Error updating player ELOs.' }), {
+        status: 500,
+        headers: corsHeaders
+      });
     }
 
     // Update game status to reflect it's processed
     const { error: updateGameStatusError } = await supabase
-        .from('games')
-        .update({ status: outcome })
-        .eq('id', game_id);
+      .from('games')
+      .update({ status: outcome })
+      .eq('id', game_id);
 
     if (updateGameStatusError) {
-        console.error('Error updating game status:', updateGameStatusError);
-        return new Response(
-            JSON.stringify({ error: 'Error updating game status after processing result.' }),
-            { status: 500, headers: corsHeaders }
-        );
+      console.error('Error updating game status:', updateGameStatusError);
+      return new Response(
+        JSON.stringify({ error: 'Error updating game status after processing result.' }),
+        { status: 500, headers: corsHeaders }
+      );
     }
-
 
     return new Response(
       JSON.stringify({
@@ -135,7 +133,7 @@ serve(async (req) => {
         white_elo_change: whiteScoreChange,
         black_elo_change: blackScoreChange,
         new_white_elo: newWhiteElo,
-        new_black_elo: newBlackElo,
+        new_black_elo: newBlackElo
       }),
       { headers: corsHeaders }
     );
@@ -143,7 +141,7 @@ serve(async (req) => {
     console.error('process-game-result error', error);
     return new Response(JSON.stringify({ error: 'Failed to process game result' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

@@ -1,22 +1,26 @@
 # Quickstart: Hydra Multitable Tournaments
 
 ## Prerequisites
+
 - Node.js and npm
 - Supabase CLI (optional for local DB)
 
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Start Supabase locally (if using local database):
+
    ```bash
    npm run supabase:start
    ```
 
 3. Apply migrations and regenerate types (if schema changes were added):
+
    ```bash
    npm run supabase:migrate:up
    npm run supabase:gen:types

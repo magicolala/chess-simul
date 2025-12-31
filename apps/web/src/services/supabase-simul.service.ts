@@ -7,7 +7,7 @@ import {
   SimulStatus,
   SimulTable,
   SimulWithTables,
-  TimeControl,
+  TimeControl
 } from '../models/simul.model';
 
 interface RpcError {
@@ -68,7 +68,10 @@ export class SupabaseSimulService {
       const simul = (data as SimulWithTables) ?? null;
       this.activeSimul.set(simul);
       if (simul && this.supabaseClient.currentUser()) {
-        const seat = simul.simul_tables.find((t) => t.challenger_id === this.supabaseClient.currentUser()?.id) ?? null;
+        const seat =
+          simul.simul_tables.find(
+            (t) => t.challenger_id === this.supabaseClient.currentUser()?.id
+          ) ?? null;
         if (seat) this.activeTable.set(seat);
       }
     }
@@ -92,7 +95,7 @@ export class SupabaseSimulService {
         host_id: user.data.user.id,
         name,
         status: 'open',
-        time_control: timeControl,
+        time_control: timeControl
       })
       .select('*, simul_tables(*)')
       .maybeSingle();
@@ -106,7 +109,7 @@ export class SupabaseSimulService {
     const seats = Array.from({ length: tablesCount }, (_, idx) => ({
       simul_id: newSimul.id,
       seat_no: idx + 1,
-      status: 'open',
+      status: 'open'
     }));
 
     const { error: tablesError } = await this.supabase.from('simul_tables').insert(seats);
@@ -213,7 +216,7 @@ export class SupabaseSimulService {
         host_id: simul.host_id,
         white_id: simul.host_id,
         black_id: table.challenger_id,
-        status: 'waiting',
+        status: 'waiting'
       })
       .select()
       .maybeSingle();
@@ -263,7 +266,7 @@ export class SupabaseSimulService {
         seat_no: (data as any).seat_no,
         status: (data as any).status,
         created_at: (data as any).created_at,
-        updated_at: (data as any).updated_at,
+        updated_at: (data as any).updated_at
       });
     }
     return this.activeGame();

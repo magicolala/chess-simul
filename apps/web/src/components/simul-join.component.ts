@@ -21,7 +21,11 @@ import { SimulTable } from '../models/simul.model';
         </div>
       </div>
 
-      <div class="p-3 border-2 border-[#1D1C1C] bg-gray-50 dark:bg-gray-900" *ngIf="simulService.error()" role="alert">
+      <div
+        class="p-3 border-2 border-[#1D1C1C] bg-gray-50 dark:bg-gray-900"
+        *ngIf="simulService.error()"
+        role="alert"
+      >
         {{ simulService.error() }}
       </div>
 
@@ -33,14 +37,16 @@ import { SimulTable } from '../models/simul.model';
         >
           Rejoindre une table libre
         </button>
-        <p class="text-sm text-gray-500" *ngIf="lastSeat">Réservé sur la table #{{ lastSeat.seat_no }}</p>
+        <p class="text-sm text-gray-500" *ngIf="lastSeat">
+          Réservé sur la table #{{ lastSeat.seat_no }}
+        </p>
       </div>
     </div>
 
     <ng-template #loader>
       <div class="ui-card p-4">Chargement du lobby invité...</div>
     </ng-template>
-  `,
+  `
 })
 export class SimulJoinComponent implements OnChanges {
   simulService = inject(SupabaseSimulService);

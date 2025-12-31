@@ -12,14 +12,18 @@ import { RealtimeSandboxComponent } from '../components/realtime-sandbox.compone
   imports: [CommonModule, RouterLink, RealtimeSandboxComponent],
   template: `
     <section class="min-h-screen bg-nano-banana font-sans">
-      <header class="flex items-center justify-between px-8 py-6 border-b-2 border-[#1D1C1C] bg-white">
+      <header
+        class="flex items-center justify-between px-8 py-6 border-b-2 border-[#1D1C1C] bg-white"
+      >
         <div class="space-y-1">
           <p class="ui-label">Compte connecté</p>
           <h1 class="text-2xl font-black font-display uppercase">Paramètres</h1>
         </div>
         <div class="space-x-3">
           <a routerLink="/login" class="text-sm text-gray-600 underline">Changer de compte</a>
-          <button (click)="signOut()" class="ui-btn ui-btn-dark px-4 py-2 text-sm">Se déconnecter</button>
+          <button (click)="signOut()" class="ui-btn ui-btn-dark px-4 py-2 text-sm">
+            Se déconnecter
+          </button>
         </div>
       </header>
 
@@ -55,15 +59,19 @@ import { RealtimeSandboxComponent } from '../components/realtime-sandbox.compone
           </ng-container>
 
           <ng-template #emptyProfile>
-            <p class="text-sm text-gray-600">Aucun utilisateur connecté. Retournez à la page de connexion.</p>
+            <p class="text-sm text-gray-600">
+              Aucun utilisateur connecté. Retournez à la page de connexion.
+            </p>
           </ng-template>
         </article>
 
         <article class="ui-card p-6 text-sm text-amber-800 bg-amber-50 border-amber-200">
           <h3 class="mb-2 text-base font-black uppercase">Note sécurité</h3>
           <p>
-            Ne stockez jamais de clé <code>service_role</code> dans le front. Utilisez uniquement la clé <strong>anon</strong>
-            côté navigateur et confiez les opérations privilégiées à des fonctions backend sécurisées.
+            Ne stockez jamais de clé <code>service_role</code> dans le front. Utilisez uniquement la
+            clé <strong>anon</strong>
+            côté navigateur et confiez les opérations privilégiées à des fonctions backend
+            sécurisées.
           </p>
         </article>
 
@@ -76,7 +84,7 @@ export class SettingsPageComponent {
   private readonly supabase = inject(SupabaseClientService);
 
   profile$ = this.supabase.user$.pipe(
-    map(user => {
+    map((user) => {
       if (!user) return null;
       const profile: Profile = {
         id: user.id,

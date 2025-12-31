@@ -74,7 +74,8 @@ export class RealtimeGameService implements OnDestroy {
   }
 
   async loadNextMovesPage(pageSize = this.defaultPageSize) {
-    if (!this.currentGameId || this.loadingMovesSubject.value || !this.hasMoreMovesSubject.value) return;
+    if (!this.currentGameId || this.loadingMovesSubject.value || !this.hasMoreMovesSubject.value)
+      return;
 
     this.loadingMovesSubject.next(true);
     const from = this.loadedMoves;

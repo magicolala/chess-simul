@@ -1,4 +1,3 @@
-
 import { Component, inject, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +11,9 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
     <div class="max-w-5xl mx-auto p-4 md:p-8 font-sans h-full space-y-8">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-4xl font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-tighter">
+          <h2
+            class="text-4xl font-black font-display text-[#1D1C1C] dark:text-white uppercase tracking-tighter"
+          >
             Multijoueur
           </h2>
           <p class="text-gray-500 font-bold">Trouve un adversaire ou invite un ami.</p>
@@ -27,7 +28,9 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-bold uppercase text-gray-500">Partie rapide</p>
-              <h3 class="text-2xl font-black font-display text-[#1D1C1C] dark:text-white">Quick Play</h3>
+              <h3 class="text-2xl font-black font-display text-[#1D1C1C] dark:text-white">
+                Quick Play
+              </h3>
             </div>
             <span class="text-lg">⚡</span>
           </div>
@@ -48,21 +51,22 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
               {{ matchmaking.queueStatus() === 'searching' ? 'Recherche...' : 'Jouer maintenant' }}
             </button>
             @if (matchmaking.queueStatus() === 'searching') {
-              <button
-                (click)="cancelQueue()"
-                class="ui-btn ui-btn-ghost px-4 py-3 font-bold"
-              >
+              <button (click)="cancelQueue()" class="ui-btn ui-btn-ghost px-4 py-3 font-bold">
                 Annuler
               </button>
             }
           </div>
 
           @if (matchmaking.activeGameId()) {
-            <div class="p-3 bg-green-100 border-2 border-green-500 text-green-900 font-bold text-sm">
+            <div
+              class="p-3 bg-green-100 border-2 border-green-500 text-green-900 font-bold text-sm"
+            >
               Partie créée : {{ matchmaking.activeGameId() }}
             </div>
           } @else {
-            <p class="text-sm text-gray-500 font-bold">Deux joueurs dans la file créent automatiquement une partie.</p>
+            <p class="text-sm text-gray-500 font-bold">
+              Deux joueurs dans la file créent automatiquement une partie.
+            </p>
           }
         </section>
 
@@ -70,17 +74,15 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-bold uppercase text-gray-500">Invitations</p>
-              <h3 class="text-2xl font-black font-display text-[#1D1C1C] dark:text-white">Invite a friend</h3>
+              <h3 class="text-2xl font-black font-display text-[#1D1C1C] dark:text-white">
+                Invite a friend
+              </h3>
             </div>
             <span class="text-lg">🤝</span>
           </div>
 
           <label class="ui-label">ID de l'ami</label>
-          <input
-            [(ngModel)]="friendId"
-            placeholder="uuid du joueur"
-            class="ui-input font-mono"
-          />
+          <input [(ngModel)]="friendId" placeholder="uuid du joueur" class="ui-input font-mono" />
 
           <label class="ui-label">Cadence</label>
           <select [(ngModel)]="inviteTimeControl" class="ui-input font-mono font-bold">
@@ -103,14 +105,26 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
             } @else {
               <div class="space-y-2">
                 @for (invite of matchmaking.incomingInvites(); track invite.id) {
-                  <div class="flex items-center justify-between border border-gray-200 dark:border-gray-700 p-2">
+                  <div
+                    class="flex items-center justify-between border border-gray-200 dark:border-gray-700 p-2"
+                  >
                     <div>
                       <p class="font-bold text-sm">{{ invite.from_user }}</p>
                       <p class="text-xs text-gray-500">Cadence {{ invite.time_control }}</p>
                     </div>
                     <div class="space-x-2">
-                      <button (click)="accept(invite.id)" class="px-3 py-1 bg-green-500 text-white text-xs font-black">Accepter</button>
-                      <button (click)="decline(invite.id)" class="px-3 py-1 bg-red-500 text-white text-xs font-black">Refuser</button>
+                      <button
+                        (click)="accept(invite.id)"
+                        class="px-3 py-1 bg-green-500 text-white text-xs font-black"
+                      >
+                        Accepter
+                      </button>
+                      <button
+                        (click)="decline(invite.id)"
+                        class="px-3 py-1 bg-red-500 text-white text-xs font-black"
+                      >
+                        Refuser
+                      </button>
                     </div>
                   </div>
                 }
@@ -124,13 +138,22 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
               <p class="text-gray-500 text-sm font-bold">Pas d'invitation en cours.</p>
             } @else {
               @for (invite of matchmaking.outgoingInvites(); track invite.id) {
-                <div class="flex items-center justify-between border border-gray-200 dark:border-gray-700 p-2">
+                <div
+                  class="flex items-center justify-between border border-gray-200 dark:border-gray-700 p-2"
+                >
                   <div>
                     <p class="font-bold text-sm">{{ invite.to_user }}</p>
-                    <p class="text-xs text-gray-500">{{ invite.time_control }} • {{ invite.status }}</p>
+                    <p class="text-xs text-gray-500">
+                      {{ invite.time_control }} • {{ invite.status }}
+                    </p>
                   </div>
                   @if (invite.status === 'pending') {
-                    <button (click)="decline(invite.id)" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-xs font-bold">Annuler</button>
+                    <button
+                      (click)="decline(invite.id)"
+                      class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-xs font-bold"
+                    >
+                      Annuler
+                    </button>
                   }
                 </div>
               }
@@ -146,7 +169,9 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
         } @else {
           <ul class="space-y-1 text-sm font-bold">
             @for (message of matchmaking.notifications(); track $index) {
-              <li class="flex items-center space-x-2"><span>•</span> <span>{{ message }}</span></li>
+              <li class="flex items-center space-x-2">
+                <span>•</span> <span>{{ message }}</span>
+              </li>
             }
           </ul>
         }

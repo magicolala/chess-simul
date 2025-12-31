@@ -9,11 +9,7 @@ type HydraGameRow = Database['public']['Tables']['hydra_games']['Row'];
   standalone: true,
   imports: [CommonModule],
   template: `
-    <article
-      class="ui-card p-3"
-      [class.ring-4]="highlighted"
-      [class.ring-[#7AF7F7]]="highlighted"
-    >
+    <article class="ui-card p-3" [class.ring-4]="highlighted" [class.ring-[#7AF7F7]]="highlighted">
       <header class="mb-2 flex items-center justify-between text-xs text-gray-500">
         <span>Partie #{{ game.id.slice(0, 6) }}</span>
         <span class="ui-chip text-[10px] bg-gray-100">
@@ -28,7 +24,9 @@ type HydraGameRow = Database['public']['Tables']['hydra_games']['Row'];
         <span>Cadence {{ game.time_control }}</span>
         <span>Temps restant ~ {{ estimatedSecondsRemaining }}s</span>
       </div>
-      <div class="mt-3 flex h-40 items-center justify-center border-2 border-[#1D1C1C] bg-[#1D1C1C] text-xs text-white">
+      <div
+        class="mt-3 flex h-40 items-center justify-center border-2 border-[#1D1C1C] bg-[#1D1C1C] text-xs text-white"
+      >
         Plateau Hydra
       </div>
     </article>

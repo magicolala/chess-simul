@@ -20,7 +20,7 @@ function buildDeltas(
   if (result === 'draw') {
     return [
       { participantId: whiteParticipantId, delta: 1, reason: 'draw', isLoss: false },
-      { participantId: blackParticipantId, delta: 1, reason: 'draw', isLoss: false },
+      { participantId: blackParticipantId, delta: 1, reason: 'draw', isLoss: false }
     ];
   }
 
@@ -35,7 +35,12 @@ function buildDeltas(
 
   return [
     { participantId: winnerId, delta: 3, reason: 'win', isLoss: false },
-    { participantId: loserId, delta: -1, reason: result === 'forfeit' ? 'forfeit' : 'loss', isLoss: true },
+    {
+      participantId: loserId,
+      delta: -1,
+      reason: result === 'forfeit' ? 'forfeit' : 'loss',
+      isLoss: true
+    }
   ];
 }
 
@@ -50,14 +55,14 @@ serve(async (req) => {
   if (authError || !authData?.user) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'unsupported request' }), {
       status: 400,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 
@@ -69,7 +74,7 @@ serve(async (req) => {
       whiteParticipantId,
       blackParticipantId,
       result,
-      forfeitParticipantId,
+      forfeitParticipantId
     } = body as {
       tournamentId?: string;
       gameId?: string;
@@ -82,7 +87,7 @@ serve(async (req) => {
     if (!tournamentId || !gameId || !whiteParticipantId || !blackParticipantId || !result) {
       return new Response(JSON.stringify({ error: 'invalid input' }), {
         status: 400,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -108,13 +113,11 @@ serve(async (req) => {
       participant_id: delta.participantId,
       game_id: gameId,
       delta: delta.delta,
-      reason: delta.reason,
+      reason: delta.reason
     }));
 
     if (scoreEvents.length > 0) {
-      const { error: insertError } = await supabase
-        .from('hydra_score_events')
-        .insert(scoreEvents);
+      const { error: insertError } = await supabase.from('hydra_score_events').insert(scoreEvents);
 
       if (insertError) {
         throw insertError;
@@ -148,7 +151,7 @@ serve(async (req) => {
         .update({
           score: newScore,
           lives_remaining: livesRemaining,
-          eliminated_at: eliminatedAt,
+          eliminated_at: eliminatedAt
         })
         .eq('id', delta.participantId);
 
@@ -162,7 +165,7 @@ serve(async (req) => {
       .update({
         status: 'finished',
         result,
-        end_time: new Date().toISOString(),
+        end_time: new Date().toISOString()
       })
       .eq('id', gameId);
 
@@ -171,13 +174,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ status: 'scored' }), {
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   } catch (error) {
     console.error('hydra-scoring error', error);
     return new Response(JSON.stringify({ error: 'hydra scoring failure' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

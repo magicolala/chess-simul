@@ -30,6 +30,9 @@ import { AuthService } from '../services/auth.service';
           </h2>
           <p class="text-[#1D1C1C] font-medium text-sm mt-2">Prêt pour le prochain coup ?</p>
         </div>
+        <h2 class="text-3xl font-black font-display text-[#1D1C1C] tracking-tight uppercase">Bon retour</h2>
+        <p class="text-[#1D1C1C] font-medium text-sm mt-2">Prêt pour le prochain coup ?</p>
+      </div>
 
         <!-- Form -->
         <div class="p-8 bg-white">
@@ -52,6 +55,12 @@ import { AuthService } from '../services/auth.service';
                 placeholder="grandmaster@chess.com"
               />
             </div>
+          }
+
+          <div>
+            <label class="ui-label block mb-2 font-display">Email</label>
+            <input type="email" formControlName="email" class="ui-input" placeholder="grandmaster@chess.com">
+          </div>
 
             <div>
               <div class="flex justify-between mb-2">
@@ -71,6 +80,8 @@ import { AuthService } from '../services/auth.service';
                 placeholder="••••••••"
               />
             </div>
+            <input type="password" formControlName="password" class="ui-input" placeholder="••••••••">
+          </div>
 
             <button
               type="submit"

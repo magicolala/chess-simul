@@ -15,7 +15,7 @@ serve(async (req) => {
     if (authError || !authData?.user) {
       return new Response(JSON.stringify({ error: 'unauthorized' }), {
         status: 401,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -25,7 +25,7 @@ serve(async (req) => {
     if (!timeControl) {
       return new Response(JSON.stringify({ error: 'time_control is required' }), {
         status: 400,
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -61,7 +61,7 @@ serve(async (req) => {
             initialSeconds: parsed.initialSeconds,
             incrementSeconds: parsed.incrementSeconds,
             white: parsed.initialSeconds,
-            black: parsed.initialSeconds,
+            black: parsed.initialSeconds
           }
         : null;
 
@@ -73,7 +73,7 @@ serve(async (req) => {
           status: 'active',
           fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
           turn: 'w',
-          clocks,
+          clocks
         })
         .select()
         .single();
@@ -84,17 +84,20 @@ serve(async (req) => {
 
       game = createdGame as Record<string, unknown>;
 
-      await supabase.from('match_queue').delete().in('user_id', [authData.user.id, opponent.user_id]);
+      await supabase
+        .from('match_queue')
+        .delete()
+        .in('user_id', [authData.user.id, opponent.user_id]);
     }
 
     return new Response(JSON.stringify({ matched: !!game, game }), {
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   } catch (error) {
     console.error('join-queue error', error);
     return new Response(JSON.stringify({ error: 'Unable to join queue' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

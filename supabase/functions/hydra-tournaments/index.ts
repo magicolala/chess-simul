@@ -47,7 +47,7 @@ serve(async (req) => {
   if (authError || !authData?.user) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 
@@ -57,7 +57,7 @@ serve(async (req) => {
   if (!tournamentId || !action) {
     return new Response(JSON.stringify({ error: 'invalid route' }), {
       status: 404,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 
@@ -74,7 +74,7 @@ serve(async (req) => {
       }
 
       return new Response(JSON.stringify(data), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -89,9 +89,8 @@ serve(async (req) => {
         throw tournamentError;
       }
 
-      const livesRemaining = tournament?.type === 'survival'
-        ? tournament?.survival_lives_default ?? 3
-        : null;
+      const livesRemaining =
+        tournament?.type === 'survival' ? (tournament?.survival_lives_default ?? 3) : null;
 
       const { data, error } = await supabase
         .from('hydra_tournament_participants')
@@ -100,7 +99,7 @@ serve(async (req) => {
             tournament_id: tournamentId,
             user_id: authData.user.id,
             score: 0,
-            lives_remaining: livesRemaining,
+            lives_remaining: livesRemaining
           },
           { onConflict: 'tournament_id,user_id' }
         )
@@ -112,7 +111,7 @@ serve(async (req) => {
       }
 
       return new Response(JSON.stringify(data), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -143,11 +142,11 @@ serve(async (req) => {
         scoreTotal: entry.score,
         eliminatedAt: entry.eliminated_at,
         rank: index + 1,
-        type: tournament?.type ?? 'arena',
+        type: tournament?.type ?? 'arena'
       }));
 
       return new Response(JSON.stringify(leaderboard), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -156,9 +155,7 @@ serve(async (req) => {
         .from('hydra_games')
         .select('*')
         .eq('tournament_id', tournamentId)
-        .or(
-          `white_player_id.eq.${authData.user.id},black_player_id.eq.${authData.user.id}`
-        )
+        .or(`white_player_id.eq.${authData.user.id},black_player_id.eq.${authData.user.id}`)
         .in('status', ['pending', 'active']);
 
       if (error) {
@@ -166,19 +163,19 @@ serve(async (req) => {
       }
 
       return new Response(JSON.stringify(data), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
     return new Response(JSON.stringify({ error: 'unsupported request' }), {
       status: 400,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   } catch (error) {
     console.error('hydra-tournaments error', error);
     return new Response(JSON.stringify({ error: 'hydra tournaments failure' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

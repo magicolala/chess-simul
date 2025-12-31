@@ -23,7 +23,7 @@ function widenRange(
   return {
     eloMin: baseMin - widened,
     eloMax: baseMax + widened,
-    lastRangeUpdateAt: steps > 0 ? new Date(now).toISOString() : lastRangeUpdateAt,
+    lastRangeUpdateAt: steps > 0 ? new Date(now).toISOString() : lastRangeUpdateAt
   };
 }
 
@@ -38,7 +38,7 @@ serve(async (req) => {
   if (authError || !authData?.user) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 
@@ -53,7 +53,7 @@ serve(async (req) => {
       if (!tournamentId || typeof elo !== 'number' || typeof maxGames !== 'number') {
         return new Response(JSON.stringify({ error: 'invalid input' }), {
           status: 400,
-          headers: corsHeaders,
+          headers: corsHeaders
         });
       }
 
@@ -71,30 +71,28 @@ serve(async (req) => {
       if (participant?.active_game_count && participant.active_game_count >= 9) {
         return new Response(JSON.stringify({ error: 'game cap reached' }), {
           status: 400,
-          headers: corsHeaders,
+          headers: corsHeaders
         });
       }
 
       const eloMin = elo - INITIAL_ELO_WINDOW;
       const eloMax = elo + INITIAL_ELO_WINDOW;
 
-      const { error: upsertError } = await supabase
-        .from('hydra_match_queue')
-        .upsert(
-          {
-            user_id: authData.user.id,
-            tournament_id: tournamentId,
-            elo,
-            max_games: maxGames,
-            time_control_initial: 5,
-            time_control_increment: 3,
-            status: 'waiting',
-            elo_min: eloMin,
-            elo_max: eloMax,
-            last_range_update_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id' }
-        );
+      const { error: upsertError } = await supabase.from('hydra_match_queue').upsert(
+        {
+          user_id: authData.user.id,
+          tournament_id: tournamentId,
+          elo,
+          max_games: maxGames,
+          time_control_initial: 5,
+          time_control_increment: 3,
+          status: 'waiting',
+          elo_min: eloMin,
+          elo_max: eloMax,
+          last_range_update_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id' }
+      );
 
       if (upsertError) {
         throw upsertError;
@@ -105,11 +103,11 @@ serve(async (req) => {
         player_id: authData.user.id,
         queue_action: 'join',
         elo_min: eloMin,
-        elo_max: eloMax,
+        elo_max: eloMax
       });
 
       return new Response(JSON.stringify({ status: 'waiting', eloMin, eloMax }), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -120,7 +118,7 @@ serve(async (req) => {
       if (!tournamentId) {
         return new Response(JSON.stringify({ error: 'invalid input' }), {
           status: 400,
-          headers: corsHeaders,
+          headers: corsHeaders
         });
       }
 
@@ -129,11 +127,11 @@ serve(async (req) => {
       await supabase.from('hydra_matchmaking_events').insert({
         tournament_id: tournamentId,
         player_id: authData.user.id,
-        queue_action: 'leave',
+        queue_action: 'leave'
       });
 
       return new Response(JSON.stringify({ status: 'left' }), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
@@ -150,7 +148,7 @@ serve(async (req) => {
 
       if (!data || data.elo === null) {
         return new Response(JSON.stringify({ status: 'not_queued' }), {
-          headers: corsHeaders,
+          headers: corsHeaders
         });
       }
 
@@ -161,7 +159,7 @@ serve(async (req) => {
         .update({
           elo_min: widened.eloMin,
           elo_max: widened.eloMax,
-          last_range_update_at: widened.lastRangeUpdateAt,
+          last_range_update_at: widened.lastRangeUpdateAt
         })
         .eq('user_id', authData.user.id);
 
@@ -169,7 +167,7 @@ serve(async (req) => {
         JSON.stringify({
           status: 'waiting',
           eloMin: widened.eloMin,
-          eloMax: widened.eloMax,
+          eloMax: widened.eloMax
         }),
         { headers: corsHeaders }
       );
@@ -182,7 +180,7 @@ serve(async (req) => {
       if (!tournamentId) {
         return new Response(JSON.stringify({ error: 'invalid input' }), {
           status: 400,
-          headers: corsHeaders,
+          headers: corsHeaders
         });
       }
 
@@ -217,7 +215,11 @@ serve(async (req) => {
       );
 
       const processed = new Set<string>();
-      const gamesToCreate: { white_player_id: string; black_player_id: string; tournament_id: string }[] = [];
+      const gamesToCreate: {
+        white_player_id: string;
+        black_player_id: string;
+        tournament_id: string;
+      }[] = [];
       const matchedPairs: Array<{ a: string; b: string }> = [];
 
       for (const entry of queueEntries) {
@@ -226,7 +228,12 @@ serve(async (req) => {
         const participant = participantByUser.get(entry.user_id);
         if (participant && participant.active_game_count >= 9) continue;
 
-        const widened = widenRange(entry.elo, entry.last_range_update_at, entry.elo_min, entry.elo_max);
+        const widened = widenRange(
+          entry.elo,
+          entry.last_range_update_at,
+          entry.elo_min,
+          entry.elo_max
+        );
 
         if (widened.lastRangeUpdateAt && widened.lastRangeUpdateAt !== entry.last_range_update_at) {
           await supabase
@@ -234,7 +241,7 @@ serve(async (req) => {
             .update({
               elo_min: widened.eloMin,
               elo_max: widened.eloMax,
-              last_range_update_at: widened.lastRangeUpdateAt,
+              last_range_update_at: widened.lastRangeUpdateAt
             })
             .eq('id', entry.id);
         }
@@ -261,7 +268,7 @@ serve(async (req) => {
         gamesToCreate.push({
           tournament_id: tournamentId,
           white_player_id: whiteId,
-          black_player_id: blackId,
+          black_player_id: blackId
         });
 
         matchedPairs.push({ a: entry.user_id, b: opponent.user_id });
@@ -277,7 +284,7 @@ serve(async (req) => {
               ...game,
               status: 'active',
               time_control: '5+3',
-              start_time: new Date().toISOString(),
+              start_time: new Date().toISOString()
             }))
           )
           .select('id, white_player_id, black_player_id');
@@ -291,13 +298,13 @@ serve(async (req) => {
             tournament_id: tournamentId,
             player_id: game.white_player_id,
             queue_action: 'match',
-            matched_game_id: game.id,
+            matched_game_id: game.id
           });
           await supabase.from('hydra_matchmaking_events').insert({
             tournament_id: tournamentId,
             player_id: game.black_player_id,
             queue_action: 'match',
-            matched_game_id: game.id,
+            matched_game_id: game.id
           });
         }
 
@@ -326,19 +333,19 @@ serve(async (req) => {
         .lt('start_time', inactivityCutoff);
 
       return new Response(JSON.stringify({ matched: gamesToCreate.length }), {
-        headers: corsHeaders,
+        headers: corsHeaders
       });
     }
 
     return new Response(JSON.stringify({ error: 'unsupported request' }), {
       status: 400,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   } catch (error) {
     console.error('hydra-matchmaking error', error);
     return new Response(JSON.stringify({ error: 'hydra matchmaking failure' }), {
       status: 500,
-      headers: corsHeaders,
+      headers: corsHeaders
     });
   }
 });

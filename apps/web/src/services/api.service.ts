@@ -1,4 +1,3 @@
-
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, delay } from 'rxjs';
@@ -65,9 +64,9 @@ export class ApiService {
 
     // MOCK IMPLEMENTATION (Validation happens in Logic Service for now in Pass & Play)
     return of({
-        success: true,
-        fen: `${req.from}${req.to}`, // Backend would calculate this
-        isCheckmate: false
+      success: true,
+      fen: `${req.from}${req.to}`, // Backend would calculate this
+      isCheckmate: false
     }).pipe(delay(200));
   }
 }

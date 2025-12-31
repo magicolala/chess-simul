@@ -33,7 +33,7 @@ multiboard UI.
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - Workspace Ownership: changes stay within correct workspace; no cross-workspace
   direct file imports.
@@ -62,6 +62,7 @@ specs/001-hydra-multitable-tournament/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -97,6 +98,7 @@ supabase/
 **Output**: `/home/ced/projet/chess-simul/specs/001-hydra-multitable-tournament/research.md`
 
 Scope:
+
 - Confirm Supabase realtime and RLS approach for live scores and game updates.
 - Confirm Edge Function usage for matchmaking and scoring to avoid privileged
   client writes.
@@ -104,11 +106,13 @@ Scope:
 ## Phase 1: Design & Contracts
 
 **Outputs**:
+
 - `/home/ced/projet/chess-simul/specs/001-hydra-multitable-tournament/data-model.md`
 - `/home/ced/projet/chess-simul/specs/001-hydra-multitable-tournament/quickstart.md`
 - `/home/ced/projet/chess-simul/specs/001-hydra-multitable-tournament/contracts/`
 
 Design focus:
+
 - Data model for tournaments, participants, games, PGN audit, matchmaking events,
   and score events with state transitions.
 - API surface for tournament lifecycle, queue management, game state, and

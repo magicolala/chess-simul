@@ -84,16 +84,14 @@ export class SupabaseClientService {
 
     const avatarUrl = (user.user_metadata?.avatar_url as string | undefined | null) ?? null;
 
-    const { error } = await this.supabase
-      .from('profiles')
-      .upsert(
-        {
-          id: user.id,
-          username,
-          avatar_url: avatarUrl,
-        },
-        { onConflict: 'id' }
-      );
+    const { error } = await this.supabase.from('profiles').upsert(
+      {
+        id: user.id,
+        username,
+        avatar_url: avatarUrl
+      },
+      { onConflict: 'id' }
+    );
 
     if (error) {
       console.error('Error ensuring profile exists:', error);

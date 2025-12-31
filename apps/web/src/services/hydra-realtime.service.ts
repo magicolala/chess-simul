@@ -30,7 +30,12 @@ export class HydraRealtimeService implements OnDestroy {
 
     channel.on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'hydra_games', filter: `tournament_id=eq.${tournamentId}` },
+      {
+        event: '*',
+        schema: 'public',
+        table: 'hydra_games',
+        filter: `tournament_id=eq.${tournamentId}`
+      },
       (payload: RealtimePostgresChangesPayload<HydraGameRow>) => {
         this.mergeRow(this.gamesSubject, payload.new as HydraGameRow, payload.eventType);
       }
@@ -45,13 +50,22 @@ export class HydraRealtimeService implements OnDestroy {
         filter: `tournament_id=eq.${tournamentId}`
       },
       (payload: RealtimePostgresChangesPayload<HydraParticipantRow>) => {
-        this.mergeRow(this.participantsSubject, payload.new as HydraParticipantRow, payload.eventType);
+        this.mergeRow(
+          this.participantsSubject,
+          payload.new as HydraParticipantRow,
+          payload.eventType
+        );
       }
     );
 
     channel.on(
       'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'hydra_score_events', filter: `tournament_id=eq.${tournamentId}` },
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'hydra_score_events',
+        filter: `tournament_id=eq.${tournamentId}`
+      },
       (payload: RealtimePostgresChangesPayload<HydraScoreEventRow>) => {
         const existing = this.scoreEventsSubject.value;
         this.scoreEventsSubject.next([payload.new as HydraScoreEventRow, ...existing]);

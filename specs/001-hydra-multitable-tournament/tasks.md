@@ -1,6 +1,5 @@
 ---
-
-description: "Task list for Hydra Multitable Tournaments implementation"
+description: 'Task list for Hydra Multitable Tournaments implementation'
 ---
 
 # Tasks: Hydra Multitable Tournaments

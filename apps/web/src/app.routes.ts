@@ -11,6 +11,10 @@ export const routes: Routes = [
   { path: 'login', canActivate: [GuestGuard], component: LoginPageComponent },
   { path: 'register', canActivate: [GuestGuard], component: RegisterPageComponent },
   { path: 'settings', canActivate: [AuthGuard], component: SettingsPageComponent },
-  { path: 'hydra-tournament/:id', canActivate: [AuthGuard], component: HydraTournamentPageComponent },
+  {
+    path: 'hydra-tournament/:id',
+    canActivate: [AuthGuard],
+    component: HydraTournamentPageComponent
+  },
   { path: '**', redirectTo: 'settings' }
 ];

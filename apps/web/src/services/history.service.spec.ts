@@ -11,7 +11,7 @@ const createResult = (overrides: Partial<GameResult> = {}): GameResult => ({
   date: 1700000000000,
   fen: 'start',
   hydraPoints: 3,
-  ...overrides,
+  ...overrides
 });
 
 describe('HistoryService', () => {
@@ -44,7 +44,7 @@ describe('HistoryService', () => {
 
     TestBed.flushEffects();
 
-    expect(service.history().map(r => r.id)).toEqual(['second', 'first']);
+    expect(service.history().map((r) => r.id)).toEqual(['second', 'first']);
     const storedHistory = JSON.parse(localStorage.getItem('simul_history') ?? '[]');
     expect(storedHistory[0].id).toBe('second');
   });

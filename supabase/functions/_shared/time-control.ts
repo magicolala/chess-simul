@@ -13,6 +13,6 @@ export function parseTimeControl(raw: string): ParsedTimeControl | null {
 
   return {
     initialSeconds: minutes * 60,
-    incrementSeconds,
+    incrementSeconds
   };
 }

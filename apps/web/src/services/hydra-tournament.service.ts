@@ -3,7 +3,8 @@ import { SupabaseClientService } from './supabase-client.service';
 import type { Database } from '@supabase/types/database.types';
 
 export type HydraTournamentRow = Database['public']['Tables']['hydra_tournaments']['Row'];
-export type HydraParticipantRow = Database['public']['Tables']['hydra_tournament_participants']['Row'];
+export type HydraParticipantRow =
+  Database['public']['Tables']['hydra_tournament_participants']['Row'];
 export type HydraGameRow = Database['public']['Tables']['hydra_games']['Row'];
 
 @Injectable({ providedIn: 'root' })
@@ -11,11 +12,7 @@ export class HydraTournamentService {
   private readonly supabase = inject(SupabaseClientService).client;
 
   async getTournament(tournamentId: string) {
-    return this.supabase
-      .from('hydra_tournaments')
-      .select('*')
-      .eq('id', tournamentId)
-      .maybeSingle();
+    return this.supabase.from('hydra_tournaments').select('*').eq('id', tournamentId).maybeSingle();
   }
 
   async joinTournament(tournamentId: string) {
@@ -31,7 +28,7 @@ export class HydraTournamentService {
       .maybeSingle();
 
     const livesDefault =
-      tournament?.type === 'survival' ? tournament.survival_lives_default ?? 3 : null;
+      tournament?.type === 'survival' ? (tournament.survival_lives_default ?? 3) : null;
 
     return this.supabase
       .from('hydra_tournament_participants')
@@ -40,7 +37,7 @@ export class HydraTournamentService {
           tournament_id: tournamentId,
           user_id: auth.user.id,
           score: 0,
-          lives_remaining: livesDefault,
+          lives_remaining: livesDefault
         },
         { onConflict: 'tournament_id,user_id' }
       )

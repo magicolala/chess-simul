@@ -339,17 +339,40 @@
   </div>
 } @else {
   <!-- Public / Onboarding Flows -->
-  @if (currentView() === 'landing') {
-    <app-landing (goToLogin)="switchView('login')" (goToRegister)="switchView('register')"></app-landing>
-  } @else if (currentView() === 'login') {
-    <app-login (goToRegister)="switchView('register')" (goToForgot)="switchView('forgot-password')"></app-login>
-  } @else if (currentView() === 'register') {
-    <app-register (goToLogin)="switchView('login')"></app-register>
-  } @else if (currentView() === 'forgot-password') {
-    <app-forgot-password (back)="switchView('login')"></app-forgot-password>
-  } @else if (currentView() === 'verify-email') {
+  @if (currentView() === 'verify-email') {
     <app-verify-email></app-verify-email>
   } @else if (currentView() === 'onboarding') {
     <app-onboarding></app-onboarding>
+  } @else {
+    <div class="relative min-h-screen bg-nano-banana text-[#1D1C1C] font-sans">
+      <app-landing (goToLogin)="openLoginModal()" (goToRegister)="openRegisterModal()"></app-landing>
+
+      @if (authModalMode() === 'login') {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-[#1D1C1C]/70 backdrop-blur-sm" (click)="closeAuthModals()"></div>
+          <div class="relative z-10 w-full max-w-lg animate-in fade-in zoom-in duration-200">
+            <app-login (goToRegister)="openRegisterModal()" (goToForgot)="openForgotPassword()"></app-login>
+          </div>
+        </div>
+      }
+
+      @if (authModalMode() === 'register') {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-[#1D1C1C]/70 backdrop-blur-sm" (click)="closeAuthModals()"></div>
+          <div class="relative z-10 w-full max-w-lg animate-in fade-in zoom-in duration-200">
+            <app-register (goToLogin)="openLoginModal()"></app-register>
+          </div>
+        </div>
+      }
+
+      @if (currentView() === 'forgot-password') {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-[#1D1C1C]/70 backdrop-blur-sm" (click)="backToLoginModal()"></div>
+          <div class="relative z-10 w-full max-w-lg animate-in fade-in zoom-in duration-200">
+            <app-forgot-password (back)="backToLoginModal()"></app-forgot-password>
+          </div>
+        </div>
+      }
+    </div>
   }
 }

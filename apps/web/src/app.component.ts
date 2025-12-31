@@ -80,6 +80,7 @@ export class AppComponent {
 
   currentView = signal<ViewState>('landing');
   viewParam = signal<string>(''); // For profile ID, room ID etc
+  authModalMode = signal<'login' | 'register' | null>(null);
   
   // UI State for Modals
   showNewGameModal = signal(false);
@@ -115,7 +116,11 @@ export class AppComponent {
     // Routing Logic based on Auth State
     effect(() => {
         const user = this.auth.currentUser();
-        
+
+        if (user) {
+            this.closeAuthModals();
+        }
+
         if (!user) {
             const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
             if (!publicViews.includes(this.currentView())) {
@@ -296,11 +301,55 @@ export class AppComponent {
   }
 
   switchView(view: ViewState, param: string = '') {
+    if (view === 'login') {
+      this.openLoginModal();
+      return;
+    }
+
+    if (view === 'register') {
+      this.openRegisterModal();
+      return;
+    }
+
+    if (view === 'forgot-password') {
+      this.openForgotPassword();
+      return;
+    }
+
+    this.closeAuthModals();
     this.currentView.set(view);
     this.viewParam.set(param);
   }
 
+  openLoginModal() {
+    this.authModalMode.set('login');
+    this.currentView.set('landing');
+  }
+
+  openRegisterModal() {
+    this.authModalMode.set('register');
+    this.currentView.set('landing');
+  }
+
+  openForgotPassword() {
+    this.authModalMode.set(null);
+    this.currentView.set('forgot-password');
+  }
+
+  closeAuthModals() {
+    this.authModalMode.set(null);
+    if (this.currentView() === 'forgot-password') {
+      this.currentView.set('landing');
+    }
+  }
+
+  backToLoginModal() {
+    this.currentView.set('landing');
+    this.authModalMode.set('login');
+  }
+
   handleLogout() {
+    this.closeAuthModals();
     this.auth.signOut();
   }
 

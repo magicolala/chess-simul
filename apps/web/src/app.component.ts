@@ -111,7 +111,6 @@ export class AppComponent {
   authModalModeState = signal<'login' | 'register' | null>(null);
 
   // UI State for Modals
-  authModalMode = signal<'login' | 'register' | null>(null);
   showNewGameModal = signal(false);
   showSettingsModal = signal(false);
   showGameOverModal = signal<GameState | null>(null);

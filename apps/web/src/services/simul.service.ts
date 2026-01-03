@@ -46,7 +46,10 @@ export class SimulService {
 
   createSimul(config: GameConfig, isPrivate: boolean): string {
     const user = this.auth.currentUser();
-    if (!user) throw new Error('Must be logged in');
+    if (!user) {
+      console.warn('[SimulService] createSimul blocked: missing authentication');
+      throw new Error('Must be logged in');
+    }
 
     const newSimul: SimulEvent = {
       id: Math.random().toString(36).substring(7).toUpperCase(),
@@ -72,16 +75,28 @@ export class SimulService {
 
   joinSimul(simulId: string) {
     const user = this.auth.currentUser();
-    if (!user) return;
+    if (!user) {
+      console.warn('[SimulService] joinSimul blocked: missing authentication', {
+        simulId
+      });
+      throw new Error('Must be logged in');
+    }
 
     // Find in list or use current if we are just looking at it
     const simul = this.simuls().find((s) => s.id === simulId) || this.currentSimul();
 
-    if (!simul) throw new Error('Simultanée introuvable');
-    if (simul.status !== 'open') throw new Error('Cette simultanée a déjà commencé');
+    if (!simul) {
+      console.warn('[SimulService] joinSimul failed: simul not found', { simulId, user });
+      throw new Error('Simultanée introuvable');
+    }
+    if (simul.status !== 'open') {
+      console.warn('[SimulService] joinSimul failed: simul not open', { simulId, status: simul.status, user });
+      throw new Error('Cette simultanée a déjà commencé');
+    }
 
     // Check if already joined
     if (simul.challengers.some((c) => c.name === user.name)) {
+      console.debug('[SimulService] joinSimul ignored: user already joined', { simulId, user });
       this.currentSimul.set(simul);
       return;
     }

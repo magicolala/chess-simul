@@ -138,6 +138,84 @@ export type Database = {
         };
         Relationships: [];
       };
+      simul_round_robin_sessions: {
+        Row: {
+          id: string;
+          organizer_id: string;
+          invite_code: string;
+          status: 'draft' | 'started' | 'completed';
+          created_at: string;
+          started_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          organizer_id: string;
+          invite_code: string;
+          status?: 'draft' | 'started' | 'completed';
+          created_at?: string;
+          started_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          organizer_id?: string;
+          invite_code?: string;
+          status?: 'draft' | 'started' | 'completed';
+          created_at?: string;
+          started_at?: string | null;
+        };
+        Relationships: [];
+      };
+      simul_round_robin_participants: {
+        Row: {
+          id: string;
+          session_id: string;
+          user_id: string;
+          status: 'active' | 'left';
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          user_id: string;
+          status?: 'active' | 'left';
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          user_id?: string;
+          status?: 'active' | 'left';
+          joined_at?: string;
+        };
+        Relationships: [];
+      };
+      simul_round_robin_game_links: {
+        Row: {
+          id: string;
+          session_id: string;
+          game_id: string;
+          white_id: string;
+          black_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          game_id: string;
+          white_id: string;
+          black_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          game_id?: string;
+          white_id?: string;
+          black_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       games: {
         Row: {
           id: string;

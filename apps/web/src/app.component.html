@@ -129,6 +129,22 @@
               <span class="mr-3 text-lg">⚔️</span> Simultanées
             </button>
 
+            <button
+              (click)="switchView('round-robin-simul')"
+              class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
+              [class.bg-[#FFF48D]]="currentView() === 'round-robin-simul'"
+              [class.border-[#1D1C1C]]="currentView() === 'round-robin-simul'"
+              [class.wero-shadow-sm]="currentView() === 'round-robin-simul'"
+              [class.text-[#1D1C1C]]="true"
+              [class.border-transparent]="currentView() !== 'round-robin-simul'"
+              [class.text-gray-600]="currentView() !== 'round-robin-simul'"
+              [class.dark:text-gray-300]="currentView() !== 'round-robin-simul'"
+              [class.hover:bg-gray-100]="currentView() !== 'round-robin-simul'"
+              [class.dark:hover:bg-gray-800]="currentView() !== 'round-robin-simul'"
+            >
+              <span class="mr-3 text-lg">🔁</span> Round Robin
+            </button>
+
             <!-- ANALYSIS BUTTON -->
             <button
               (click)="switchView('analysis')"
@@ -307,6 +323,8 @@
           <app-simul-host></app-simul-host>
         } @else if (currentView() === 'simul-player') {
           <app-simul-player (quit)="leaveSimulLobby()"></app-simul-player>
+        } @else if (currentView() === 'round-robin-simul') {
+          <app-round-robin-simul-page></app-round-robin-simul-page>
         }
 
         <!-- SOCIAL VIEWS -->

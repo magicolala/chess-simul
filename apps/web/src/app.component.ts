@@ -39,6 +39,7 @@ import { OnlineGameComponent } from './components/online-game.component';
 import { SocialHubComponent } from './components/social-hub.component';
 import { PublicProfileComponent } from './components/public-profile.component';
 import { AnalysisComponent } from './components/analysis.component';
+import { RoundRobinSimulPageComponent } from './pages/round-robin-simul-page.component';
 
 type ViewState =
   | 'landing'
@@ -57,6 +58,7 @@ type ViewState =
   | 'simul-list'
   | 'simul-lobby'
   | 'simul-player'
+  | 'round-robin-simul'
   | 'multiplayer-lobby'
   | 'game-room'
   | 'online-game'
@@ -91,7 +93,8 @@ type ViewState =
     OnlineGameComponent,
     SocialHubComponent,
     PublicProfileComponent,
-    AnalysisComponent
+    AnalysisComponent,
+    RoundRobinSimulPageComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -141,6 +144,17 @@ export class AppComponent {
   currentElo = signal(1200);
 
   constructor() {
+    const params = new URLSearchParams(window.location.search);
+    const rrSession = params.get('rr_session');
+    const rrGame = params.get('rr_game');
+    if (rrGame) {
+      this.viewParam.set(rrGame);
+      this.currentView.set('game-room');
+    } else if (rrSession) {
+      this.currentView.set('round-robin-simul');
+      this.viewParam.set(rrSession);
+    }
+
     // Routing Logic based on Auth State
     effect(
       () => {

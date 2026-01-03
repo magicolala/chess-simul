@@ -15,8 +15,8 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create session/join response types in `packages/shared/src/simul-round-robin.types.ts`
-- [ ] T002 [P] Re-export round-robin simul types from `packages/shared/src/index.ts`
+- [x] T001 Create session/join response types in `packages/shared/src/simul-round-robin.types.ts`
+- [x] T002 [P] Re-export round-robin simul types from `packages/shared/src/index.ts`
 
 ---
 
@@ -24,12 +24,12 @@
 
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
-- [ ] T003 Add Supabase schema for sessions, participants, and game links in `supabase/migrations/<timestamp>_round_robin_simul.sql`
-- [ ] T004 [P] Define RLS policies for session visibility and participation in `supabase/migrations/<timestamp>_round_robin_simul.sql`
-- [ ] T005 Regenerate Supabase types in `supabase/types/database.types.ts`
-- [ ] T006 [P] Add shared SQL helper functions or enums (if needed) in `supabase/migrations/<timestamp>_round_robin_simul.sql`
-- [ ] T007 Scaffold Edge Function router in `supabase/functions/simul-sessions/index.ts`
-- [ ] T008 [P] Add CORS handling and auth checks in `supabase/functions/simul-sessions/index.ts`
+- [x] T003 Add Supabase schema for sessions, participants, and game links in `supabase/migrations/20260103000000_round_robin_simul.sql`
+- [x] T004 [P] Define RLS policies for session visibility and participation in `supabase/migrations/20260103000000_round_robin_simul.sql`
+- [x] T005 Regenerate Supabase types in `supabase/types/database.types.ts`
+- [x] T006 [P] Add shared SQL helper functions or enums (if needed) in `supabase/migrations/20260103000000_round_robin_simul.sql`
+- [x] T007 Scaffold Edge Function router in `supabase/functions/simul-sessions/index.ts`
+- [x] T008 [P] Add CORS handling and auth checks in `supabase/functions/simul-sessions/index.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -43,15 +43,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Implement session creation endpoint in `supabase/functions/simul-sessions/index.ts` (POST /simul-sessions)
-- [ ] T010 [US1] Implement session start endpoint in `supabase/functions/simul-sessions/index.ts` (POST /simul-sessions/{id}/start)
-- [ ] T011 [US1] Enforce roster lock after start in `supabase/functions/simul-sessions/index.ts` (reject joins when status=started)
-- [ ] T012 [US1] Prevent auto-start by validating start is organizer-triggered in `supabase/functions/simul-sessions/index.ts`
-- [ ] T013 [US1] Add session service calls in `apps/web/src/services/round-robin-simul.service.ts`
-- [ ] T014 [P] [US1] Create organizer lobby UI in `apps/web/src/components/round-robin-lobby.component.ts`
-- [ ] T015 [US1] Wire lobby into a page/view in `apps/web/src/pages/round-robin-simul-page.component.ts`
-- [ ] T016 [US1] Route or view state integration in `apps/web/src/app.routes.ts` and `apps/web/src/app.component.ts`
-- [ ] T017 [US1] Enforce start guard (min 2 participants) in `apps/web/src/components/round-robin-lobby.component.ts`
+- [x] T009 [US1] Implement session creation endpoint in `supabase/functions/simul-sessions/index.ts` (POST /simul-sessions)
+- [x] T010 [US1] Implement session start endpoint in `supabase/functions/simul-sessions/index.ts` (POST /simul-sessions/{id}/start)
+- [x] T011 [US1] Enforce roster lock after start in `supabase/functions/simul-sessions/index.ts` (reject joins when status=started)
+- [x] T012 [US1] Prevent auto-start by validating start is organizer-triggered in `supabase/functions/simul-sessions/index.ts`
+- [x] T013 [US1] Add session service calls in `apps/web/src/services/round-robin-simul.service.ts`
+- [x] T014 [P] [US1] Create organizer lobby UI in `apps/web/src/components/round-robin-lobby.component.ts`
+- [x] T015 [US1] Wire lobby into a page/view in `apps/web/src/pages/round-robin-simul-page.component.ts`
+- [x] T016 [US1] Route or view state integration in `apps/web/src/app.routes.ts` and `apps/web/src/app.component.ts`
+- [x] T017 [US1] Enforce start guard (min 2 participants) in `apps/web/src/components/round-robin-lobby.component.ts`
 
 **Checkpoint**: User Story 1 fully functional and testable independently
 
@@ -65,11 +65,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Implement join endpoint in `supabase/functions/simul-sessions/index.ts` (POST /simul-sessions/{id}/join)
-- [ ] T019 [US2] Implement session detail endpoint in `supabase/functions/simul-sessions/index.ts` (GET /simul-sessions/{id})
-- [ ] T020 [US2] Add join flow in `apps/web/src/pages/round-robin-simul-page.component.ts` (invite link parsing)
-- [ ] T021 [US2] Update roster rendering + duplicate prevention in `apps/web/src/components/round-robin-lobby.component.ts`
-- [ ] T022 [US2] Add participant join call in `apps/web/src/services/round-robin-simul.service.ts`
+- [x] T018 [US2] Implement join endpoint in `supabase/functions/simul-sessions/index.ts` (POST /simul-sessions/{id}/join)
+- [x] T019 [US2] Implement session detail endpoint in `supabase/functions/simul-sessions/index.ts` (GET /simul-sessions/{id})
+- [x] T020 [US2] Add join flow in `apps/web/src/pages/round-robin-simul-page.component.ts` (invite link parsing)
+- [x] T021 [US2] Update roster rendering + duplicate prevention in `apps/web/src/components/round-robin-lobby.component.ts`
+- [x] T022 [US2] Add participant join call in `apps/web/src/services/round-robin-simul.service.ts`
 
 **Checkpoint**: User Story 2 fully functional and testable independently
 
@@ -83,11 +83,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Implement session games endpoint in `supabase/functions/simul-sessions/index.ts` (GET /simul-sessions/{id}/games)
-- [ ] T024 [US3] Add games fetch to `apps/web/src/services/round-robin-simul.service.ts`
-- [ ] T025 [US3] Create match list UI in `apps/web/src/components/round-robin-games.component.ts`
-- [ ] T026 [US3] Render match list in `apps/web/src/pages/round-robin-simul-page.component.ts`
-- [ ] T027 [US3] Add deep link handling for games in `apps/web/src/app.component.ts`
+- [x] T023 [US3] Implement session games endpoint in `supabase/functions/simul-sessions/index.ts` (GET /simul-sessions/{id}/games)
+- [x] T024 [US3] Add games fetch to `apps/web/src/services/round-robin-simul.service.ts`
+- [x] T025 [US3] Create match list UI in `apps/web/src/components/round-robin-games.component.ts`
+- [x] T026 [US3] Render match list in `apps/web/src/pages/round-robin-simul-page.component.ts`
+- [x] T027 [US3] Add deep link handling for games in `apps/web/src/app.component.ts`
 
 **Checkpoint**: User Story 3 fully functional and testable independently
 
@@ -97,10 +97,10 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T028 [P] Add realtime roster subscription in `apps/web/src/services/round-robin-realtime.service.ts`
-- [ ] T029 [P] Add realtime game status subscription in `apps/web/src/services/round-robin-realtime.service.ts`
-- [ ] T030 Update Edge Function error responses and CORS headers in `supabase/functions/simul-sessions/index.ts`
-- [ ] T031 Update `specs/001-round-robin-simul/quickstart.md` with any new setup or steps
+- [x] T028 [P] Add realtime roster subscription in `apps/web/src/services/round-robin-realtime.service.ts`
+- [x] T029 [P] Add realtime game status subscription in `apps/web/src/services/round-robin-realtime.service.ts`
+- [x] T030 Update Edge Function error responses and CORS headers in `supabase/functions/simul-sessions/index.ts`
+- [x] T031 Update `specs/001-round-robin-simul/quickstart.md` with any new setup or steps
 - [ ] T032 Run `npm run lint`, `npm run format:check`, and `npm test`
 
 ---

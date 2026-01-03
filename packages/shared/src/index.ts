@@ -37,4 +37,5 @@ export function formatPlayerProfile(profile: PlayerProfile): string {
 }
 
 export * from './types/hydra.types';
+export * from './simul-round-robin.types';
 export * from '@supabase/types/database.types';

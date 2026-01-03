@@ -1,0 +1,182 @@
+openapi: 3.0.3
+info:
+  title: Round Robin Simul Sessions
+  version: 1.0.0
+  description: Contracts for private round-robin simul sessions.
+servers:
+  - url: https://<project>.supabase.co/functions/v1
+paths:
+  /simul-sessions:
+    post:
+      summary: Create a private simul session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name:
+                  type: string
+                  description: Optional organizer display name override.
+      responses:
+        '201':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulSession'
+  /simul-sessions/{sessionId}/join:
+    post:
+      summary: Join a simul session via invite code
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [invite_code]
+              properties:
+                invite_code:
+                  type: string
+      responses:
+        '200':
+          description: Joined session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulSession'
+        '409':
+          description: Already joined or session locked
+  /simul-sessions/{sessionId}/start:
+    post:
+      summary: Start the round-robin and generate games
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session started and games generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  game_count:
+                    type: integer
+  /simul-sessions/{sessionId}:
+    get:
+      summary: Get session details and roster
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulSessionDetail'
+  /simul-sessions/{sessionId}/games:
+    get:
+      summary: List games for the current user in the session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimulGame'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    SimulSession:
+      type: object
+      properties:
+        id:
+          type: string
+        organizer_id:
+          type: string
+        invite_code:
+          type: string
+        status:
+          type: string
+          enum: [draft, started, completed]
+        created_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+    SimulParticipant:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        joined_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, left]
+    SimulSessionDetail:
+      allOf:
+        - $ref: '#/components/schemas/SimulSession'
+        - type: object
+          properties:
+            participants:
+              type: array
+              items:
+                $ref: '#/components/schemas/SimulParticipant'
+    SimulGame:
+      type: object
+      properties:
+        id:
+          type: string
+        session_id:
+          type: string
+        game_id:
+          type: string
+        white_id:
+          type: string
+        black_id:
+          type: string
+        status:
+          type: string

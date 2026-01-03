@@ -1,0 +1,11 @@
+[functions.join-queue]
+verify_jwt = false
+
+[functions.leave-queue]
+verify_jwt = false
+
+[functions.accept-invite]
+verify_jwt = false
+
+[functions.hydra-matchmaking]
+verify_jwt = false

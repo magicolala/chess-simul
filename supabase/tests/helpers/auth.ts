@@ -24,7 +24,10 @@ export async function createTestUser(prefix = 'test-user'): Promise<TestUser> {
     user_metadata: { purpose: 'integration-test' }
   });
 
-  assert(!createError && user, `Unable to create test user: ${createError?.message ?? 'unknown error'}`);
+  assert(
+    !createError && user,
+    `Unable to create test user: ${createError?.message ?? 'unknown error'}`
+  );
 
   await serviceClient.from('profiles').upsert(
     {
@@ -39,7 +42,10 @@ export async function createTestUser(prefix = 'test-user'): Promise<TestUser> {
     password
   });
 
-  assert(!signInError && sessionData.session, `Unable to sign in test user: ${signInError?.message ?? 'unknown error'}`);
+  assert(
+    !signInError && sessionData.session,
+    `Unable to sign in test user: ${signInError?.message ?? 'unknown error'}`
+  );
 
   const accessToken = sessionData.session.access_token;
   const client = createClientWithToken(accessToken);

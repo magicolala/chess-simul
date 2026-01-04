@@ -90,7 +90,11 @@ export class SimulService {
       throw new Error('Simultanée introuvable');
     }
     if (simul.status !== 'open') {
-      console.warn('[SimulService] joinSimul failed: simul not open', { simulId, status: simul.status, user });
+      console.warn('[SimulService] joinSimul failed: simul not open', {
+        simulId,
+        status: simul.status,
+        user
+      });
       throw new Error('Cette simultanée a déjà commencé');
     }
 

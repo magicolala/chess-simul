@@ -34,13 +34,15 @@ export class RoundRobinRealtimeService {
       },
       (payload: RealtimePostgresChangesPayload<any>) => {
         const current = this.rosterSubject.value;
-        const next = current.filter((p) => p.id !== payload.old?.id);
-        if (payload.new?.id) {
+        const oldRow = (payload.old ?? null) as Record<string, unknown> | null;
+        const newRow = (payload.new ?? null) as Record<string, unknown> | null;
+        const next = current.filter((p) => p.id !== (oldRow?.id as string | undefined));
+        if (newRow?.id) {
           next.push({
-            id: payload.new.id,
-            userId: payload.new.user_id,
-            status: payload.new.status,
-            joinedAt: payload.new.joined_at
+            id: newRow.id as string,
+            userId: newRow.user_id as string,
+            status: newRow.status as RoundRobinParticipant['status'],
+            joinedAt: newRow.joined_at as string
           });
         }
         this.rosterSubject.next(next);
@@ -65,11 +67,14 @@ export class RoundRobinRealtimeService {
     channel.on(
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'games', filter },
-      (payload: RealtimePostgresChangesPayload<RoundRobinGameSummary>) => {
-        if (!payload.new?.id || !payload.new?.status) return;
+      (payload: RealtimePostgresChangesPayload<any>) => {
+        const newRow = (payload.new ?? null) as Record<string, unknown> | null;
+        const id = newRow?.id as string | undefined;
+        const status = newRow?.status as string | undefined;
+        if (!id || !status) return;
         this.gamesSubject.next({
           ...this.gamesSubject.value,
-          [payload.new.id]: payload.new.status as string
+          [id]: status
         });
       }
     );

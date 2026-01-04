@@ -219,14 +219,14 @@ export class HydraGameEngineService {
     if (legalMoves.length > 0) {
       const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
       // Bot makes a move, so set opponentJustMoved to true for this game
-        this.gamesMap.update((currentMap) => {
-          const newMap = new Map(currentMap);
-          newMap.forEach((g, id) => {
-            newMap.set(id, { ...g, opponentJustMoved: false });
-          });
-          console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-            clearedGameIds: Array.from(newMap.keys())
-          });
+      this.gamesMap.update((currentMap) => {
+        const newMap = new Map(currentMap);
+        newMap.forEach((g, id) => {
+          newMap.set(id, { ...g, opponentJustMoved: false });
+        });
+        console.debug('[HydraGameEngine] opponentJustMoved toggled', {
+          clearedGameIds: Array.from(newMap.keys())
+        });
         newMap.set(gameId, { ...newMap.get(gameId)!, opponentJustMoved: true });
         console.debug('[HydraGameEngine] opponentJustMoved toggled', {
           activeGame: gameId,

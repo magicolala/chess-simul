@@ -55,7 +55,10 @@ describe('SimulService', () => {
   });
 
   it('creates a public simul and adds it to the list', () => {
-    const id = service.createSimul({ timeMinutes: 10, incrementSeconds: 5, opponentCount: 2, difficulty: 'pvp' }, false);
+    const id = service.createSimul(
+      { timeMinutes: 10, incrementSeconds: 5, opponentCount: 2, difficulty: 'pvp' },
+      false
+    );
 
     const simuls = service.simuls();
     expect(simuls).toHaveLength(1);
@@ -65,7 +68,10 @@ describe('SimulService', () => {
   });
 
   it('creates a private simul without adding it to the public list', () => {
-    const id = service.createSimul({ timeMinutes: 10, incrementSeconds: 5, opponentCount: 2, difficulty: 'pvp' }, true);
+    const id = service.createSimul(
+      { timeMinutes: 10, incrementSeconds: 5, opponentCount: 2, difficulty: 'pvp' },
+      true
+    );
 
     expect(service.simuls()).toHaveLength(0);
     expect(service.currentSimul()?.id).toBe(id);
@@ -76,7 +82,10 @@ describe('SimulService', () => {
     authMock.currentUser.mockReturnValue(null);
 
     expect(() =>
-      service.createSimul({ timeMinutes: 5, incrementSeconds: 0, opponentCount: 1, difficulty: 'pvp' }, false)
+      service.createSimul(
+        { timeMinutes: 5, incrementSeconds: 0, opponentCount: 1, difficulty: 'pvp' },
+        false
+      )
     ).toThrowError('Must be logged in');
     expect(service.simuls()).toHaveLength(0);
     expect(service.currentSimul()).toBeNull();

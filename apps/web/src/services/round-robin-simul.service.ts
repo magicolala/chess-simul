@@ -156,4 +156,22 @@ export class RoundRobinSimulService {
       this.loading.set(false);
     }
   }
+
+  async deleteSession(sessionId: string) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      await this.request<{ success: boolean }>(`/${sessionId}`, { method: 'DELETE' });
+      this.session.set(null);
+      this.inviteLink.set(null);
+      this.games.set([]);
+      return true;
+    } catch (error: any) {
+      this.error.set(error.message ?? 'Erreur de suppression');
+      return false;
+    } finally {
+      this.loading.set(false);
+    }
+  }
 }

@@ -168,7 +168,13 @@ export class AppComponent {
           this.closeAuthModals();
         }
         if (!user) {
-          const publicViews: ViewState[] = ['login', 'register', 'forgot-password', 'landing'];
+          const publicViews: ViewState[] = [
+            'login',
+            'register',
+            'forgot-password',
+            'landing',
+            'round-robin-simul'
+          ];
           if (!publicViews.includes(this.currentView())) {
             this.currentView.set('landing');
           }

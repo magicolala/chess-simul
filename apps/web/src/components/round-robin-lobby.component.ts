@@ -63,13 +63,22 @@ import { SupabaseClientService } from '../services/supabase-client.service';
       }
 
       @if (isOrganizer()) {
-        <button
-          class="ui-btn ui-btn-dark px-6 py-3"
-          [disabled]="session()?.status !== 'draft' || participantCount() < 2 || loading()"
-          (click)="startSession()"
-        >
-          {{ loading() ? 'Démarrage...' : 'Lancer les parties' }}
-        </button>
+        <div class="flex flex-col gap-2">
+          <button
+            class="ui-btn ui-btn-dark px-6 py-3"
+            [disabled]="session()?.status !== 'draft' || participantCount() < 2 || loading()"
+            (click)="startSession()"
+          >
+            {{ loading() ? 'Démarrage...' : 'Lancer les parties' }}
+          </button>
+          <button
+            class="ui-btn ui-btn-ghost px-6 py-3"
+            [disabled]="session()?.status !== 'draft' || loading()"
+            (click)="deleteSession()"
+          >
+            Supprimer la session
+          </button>
+        </div>
       }
     </div>
   `
@@ -108,5 +117,12 @@ export class RoundRobinLobbyComponent {
     const session = this.session();
     if (!session) return;
     await this.simulService.startSession(session.id);
+  }
+
+  async deleteSession() {
+    const session = this.session();
+    if (!session) return;
+    if (!confirm('Supprimer cette session ?')) return;
+    await this.simulService.deleteSession(session.id);
   }
 }

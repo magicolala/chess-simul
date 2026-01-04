@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RoundRobinLobbyComponent } from '../components/round-robin-lobby.component';
 import { RoundRobinGamesComponent } from '../components/round-robin-games.component';
 import { RoundRobinSimulService } from '../services/round-robin-simul.service';
 import { RoundRobinRealtimeService } from '../services/round-robin-realtime.service';
 import { Subscription } from 'rxjs';
+import { SupabaseClientService } from '../services/supabase-client.service';
 
 @Component({
   selector: 'app-round-robin-simul-page',
@@ -21,9 +22,20 @@ import { Subscription } from 'rxjs';
           </p>
         </div>
         @if (!session()) {
-          <button class="ui-btn ui-btn-dark px-6 py-3" (click)="createSession()">
-            {{ loading() ? 'Création...' : 'Créer une session' }}
-          </button>
+          <div class="flex flex-col items-start gap-2">
+            <button
+              class="ui-btn ui-btn-dark px-6 py-3"
+              [disabled]="!canCreateSession() || loading()"
+              (click)="createSession()"
+            >
+              {{ loading() ? 'Création...' : 'Créer une session' }}
+            </button>
+            @if (!canCreateSession()) {
+              <p class="text-xs text-gray-500">
+                La création nécessite un compte (mode classé uniquement).
+              </p>
+            }
+          </div>
         }
       </div>
 
@@ -46,6 +58,10 @@ import { Subscription } from 'rxjs';
               Rejoindre via code
             </button>
           </div>
+          <label class="flex items-center gap-2 text-xs text-gray-600">
+            <input type="checkbox" [(ngModel)]="guestMode" />
+            Mode non classé (invité)
+          </label>
         </div>
       }
 
@@ -61,13 +77,20 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
   error = this.simulService.error;
 
   manualInviteCode = '';
+  guestMode = false;
   private subscriptions = new Subscription();
   private activeSessionId: string | null = null;
+  private inviteAutoGuest = false;
 
   constructor(
     private simulService: RoundRobinSimulService,
-    private realtimeService: RoundRobinRealtimeService
+    private realtimeService: RoundRobinRealtimeService,
+    private supabaseClient: SupabaseClientService
   ) {}
+
+  currentUser = this.supabaseClient.currentUserSignal;
+  isAnonymous = computed(() => this.supabaseClient.isAnonymousUser(this.currentUser()));
+  canCreateSession = computed(() => Boolean(this.currentUser()) && !this.isAnonymous());
 
   ngOnInit(): void {
     const params = new URLSearchParams(window.location.search);
@@ -76,6 +99,8 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
     const inviteParam = params.get('rr_invite');
 
     if (inviteParam) {
+      this.guestMode = true;
+      this.inviteAutoGuest = true;
       void this.handleInvite(inviteParam);
       return;
     }
@@ -108,6 +133,10 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
   }
 
   async createSession() {
+    if (!this.canCreateSession()) {
+      this.simulService.error.set('Connexion requise pour créer une session.');
+      return;
+    }
     const session = await this.simulService.createSession();
     if (session) {
       this.manualInviteCode = session.inviteCode ?? '';
@@ -170,6 +199,19 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
   }
 
   private async handleInvite(inviteCode: string) {
+    if (!this.currentUser()) {
+      if (!this.guestMode && !this.inviteAutoGuest) {
+        this.simulService.error.set('Connectez-vous ou activez le mode non classé.');
+        return;
+      }
+      try {
+        await this.supabaseClient.ensureAnonymousSession();
+      } catch {
+        this.simulService.error.set('Impossible d’ouvrir une session invité.');
+        return;
+      }
+    }
+
     const resolved = await this.simulService.fetchSessionByInvite(inviteCode);
     if (!resolved) return;
 

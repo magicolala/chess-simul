@@ -16,6 +16,9 @@ const getUserOrFail = async (req: Request) => {
   return { supabase, user: data.user } as const;
 };
 
+const isAnonymousUser = (user: { app_metadata?: Record<string, unknown>; is_anonymous?: boolean }) =>
+  Boolean(user.is_anonymous || user.app_metadata?.provider === 'anonymous');
+
 const readBody = async (req: Request) => {
   try {
     return await req.json();
@@ -109,6 +112,9 @@ serve(async (req) => {
   if (req.method === 'POST' && !sessionId) {
     const auth = await getUserOrFail(req);
     if ('error' in auth) return auth.error;
+    if (isAnonymousUser(auth.user)) {
+      return jsonResponse({ error: 'guest_not_allowed' }, 403);
+    }
 
     const { session, inviteCode, error: sessionError } = await createSessionWithInvite(
       auth.supabase,
@@ -160,6 +166,44 @@ serve(async (req) => {
     const inviteLink = origin ? `${origin}/?rr_invite=${inviteCode}` : null;
 
     return jsonResponse({ session: normalized, inviteLink }, 201);
+  }
+
+  if (req.method === 'DELETE' && sessionId && !action) {
+    const auth = await getUserOrFail(req);
+    if ('error' in auth) return auth.error;
+    if (isAnonymousUser(auth.user)) {
+      return jsonResponse({ error: 'guest_not_allowed' }, 403);
+    }
+
+    const { data: session, error: sessionError } = await auth.supabase
+      .from('simul_round_robin_sessions')
+      .select('id, organizer_id, status')
+      .eq('id', sessionId)
+      .single();
+
+    if (sessionError || !session) {
+      return jsonResponse({ error: 'session_not_found' }, 404);
+    }
+
+    if (session.organizer_id !== auth.user.id) {
+      return jsonResponse({ error: 'forbidden' }, 403);
+    }
+
+    if (session.status !== 'draft') {
+      return jsonResponse({ error: 'session_locked' }, 409);
+    }
+
+    const { error: deleteError } = await auth.supabase
+      .from('simul_round_robin_sessions')
+      .delete()
+      .eq('id', session.id);
+
+    if (deleteError) {
+      console.error('RR delete session error', deleteError);
+      return jsonResponse({ error: 'unable_to_delete_session' }, 500);
+    }
+
+    return jsonResponse({ success: true });
   }
 
   if (req.method === 'GET' && sessionId && !action) {

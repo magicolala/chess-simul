@@ -42,6 +42,29 @@ export class SupabaseClientService {
     await this.supabase.auth.signOut();
   }
 
+  isAnonymousUser(user?: User | null) {
+    const target = user ?? this.userSubject.value;
+    if (!target) return false;
+    const metadata = target.app_metadata as Record<string, unknown> | undefined;
+    return Boolean((target as any).is_anonymous || metadata?.provider === 'anonymous');
+  }
+
+  async ensureAnonymousSession() {
+    const { data } = await this.supabase.auth.getSession();
+    if (data.session) {
+      await this.ensureCurrentUserProfile(data.session.user);
+      return data.session;
+    }
+
+    const { data: signInData, error } = await this.supabase.auth.signInAnonymously();
+    if (error || !signInData?.session) {
+      throw error ?? new Error('anonymous_signin_failed');
+    }
+
+    await this.ensureCurrentUserProfile(signInData.session.user);
+    return signInData.session;
+  }
+
   async ensureCurrentUserProfile(user?: User | null) {
     let resolvedUser = user ?? this.userSubject.value;
     if (!resolvedUser) {

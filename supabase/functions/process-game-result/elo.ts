@@ -31,6 +31,12 @@ export const scoreForOutcome = (outcome: Outcome, isWhite: boolean) => {
   return 0;
 };
 
+export const hydraScoreForOutcome = (outcome: Outcome, isWhite: boolean) => {
+  if (outcome === 'draw') return 1;
+  if ((outcome === 'white_won' && isWhite) || (outcome === 'black_won' && !isWhite)) return 3;
+  return -1;
+};
+
 export const calculateEloDelta = (
   playerElo: number,
   opponentElo: number,

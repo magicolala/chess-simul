@@ -3,6 +3,7 @@ import {
   calculateEloDelta,
   calculateExpectedScore,
   determineKFactor,
+  hydraScoreForOutcome,
   scoreForOutcome
 } from './elo.ts';
 import { Outcome } from './types.ts';
@@ -47,4 +48,19 @@ Deno.test('calculateEloDelta applies symmetric deltas for win/loss/draw', () => 
 
   const drawDelta = calculateEloDelta(whiteElo, blackElo, 'draw', kFactor, true);
   assertEquals(drawDelta, 0);
+});
+
+Deno.test('hydraScoreForOutcome keeps Hydra tournament scoring', () => {
+  const cases: Array<{ outcome: Outcome; isWhite: boolean; expected: number }> = [
+    { outcome: 'white_won', isWhite: true, expected: 3 },
+    { outcome: 'white_won', isWhite: false, expected: -1 },
+    { outcome: 'black_won', isWhite: true, expected: -1 },
+    { outcome: 'black_won', isWhite: false, expected: 3 },
+    { outcome: 'draw', isWhite: true, expected: 1 },
+    { outcome: 'draw', isWhite: false, expected: 1 }
+  ];
+
+  for (const testCase of cases) {
+    assertEquals(hydraScoreForOutcome(testCase.outcome, testCase.isWhite), testCase.expected);
+  }
 });

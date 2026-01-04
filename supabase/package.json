@@ -7,6 +7,9 @@
     "stop": "supabase stop",
     "reset": "supabase db reset --use-migra --seed supabase/seed.sql",
     "db:push": "supabase db push --use-migra",
-    "gen:types": "supabase gen types typescript --linked --schema public > types/database.types.ts"
+    "gen:types": "if [ -n \"$SUPABASE_DB_URL\" ]; then supabase gen types typescript --db-url $SUPABASE_DB_URL --schema public > types/database.types.ts; else supabase gen types typescript --linked --schema public > types/database.types.ts; fi"
+  },
+  "devDependencies": {
+    "supabase": "^2.70.5"
   }
 }

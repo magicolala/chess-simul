@@ -101,7 +101,7 @@
 - [x] T029 [P] Add realtime game status subscription in `apps/web/src/services/round-robin-realtime.service.ts`
 - [x] T030 Update Edge Function error responses and CORS headers in `supabase/functions/simul-sessions/index.ts`
 - [x] T031 Update `specs/001-round-robin-simul/quickstart.md` with any new setup or steps
-- [ ] T032 Run `npm run lint`, `npm run format:check`, and `npm test`
+- [x] T032 Run `npm run lint`, `npm run format:check`, and `npm test`
 
 ---
 

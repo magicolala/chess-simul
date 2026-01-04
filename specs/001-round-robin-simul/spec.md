@@ -96,6 +96,7 @@ As a participant, I want to see and access the games created for me so I can pla
 - **FR-010**: System MUST NOT auto-start sessions; the organizer starts them manually.
 
 Assumptions & Dependencies:
+
 - Sessions are intended to be private and accessed only through the invite link (no public discovery).
 - Each participant has a stable identity (account or declared display name) so games can be attributed correctly.
 

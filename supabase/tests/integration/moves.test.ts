@@ -1,5 +1,10 @@
 import { assertEquals, assert } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import { cleanupGamesById, cleanupGamesForUsers, createTestGame, cleanupMovesForGame } from '../helpers/test-db.ts';
+import {
+  cleanupGamesById,
+  cleanupGamesForUsers,
+  createTestGame,
+  cleanupMovesForGame
+} from '../helpers/test-db.ts';
 import { createTestUser, deleteTestUser, type TestUser } from '../helpers/auth.ts';
 import { serviceClient } from '../helpers/client.ts';
 
@@ -24,7 +29,10 @@ Deno.test('submit-move updates the game and move history', async () => {
       .select('move_count,turn,last_move_uci,fen')
       .eq('id', game.id);
 
-    assert(!gameFetchError, `Unable to read updated game: ${gameFetchError?.message ?? 'unknown error'}`);
+    assert(
+      !gameFetchError,
+      `Unable to read updated game: ${gameFetchError?.message ?? 'unknown error'}`
+    );
     assertEquals(updatedGames?.length, 1);
     assertEquals(updatedGames?.[0].move_count, 1);
     assertEquals(updatedGames?.[0].turn, 'b');
@@ -35,7 +43,10 @@ Deno.test('submit-move updates the game and move history', async () => {
       .select('ply,uci,played_by')
       .eq('game_id', game.id);
 
-    assert(!moveQueryError, `Unable to query recorded moves: ${moveQueryError?.message ?? 'unknown error'}`);
+    assert(
+      !moveQueryError,
+      `Unable to query recorded moves: ${moveQueryError?.message ?? 'unknown error'}`
+    );
     assertEquals(recordedMoves?.length, 1);
     assertEquals(recordedMoves?.[0].uci, 'e2e4');
   } finally {

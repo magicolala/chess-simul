@@ -160,20 +160,18 @@ describe('HydraGameComponent', () => {
     ]);
     expect(component.getGridClass()).toBe('grid-cols-3');
 
-    gameEngine.gamesSignal.set(
-      [
-        createGame(),
-        createGame({ id: '2' }),
-        createGame({ id: '3' }),
-        createGame({ id: '4' }),
-        createGame({ id: '5' }),
-        createGame({ id: '6' }),
-        createGame({ id: '7' }),
-        createGame({ id: '8' }),
-        createGame({ id: '9' }),
-        createGame({ id: '10' })
-      ]
-    );
+    gameEngine.gamesSignal.set([
+      createGame(),
+      createGame({ id: '2' }),
+      createGame({ id: '3' }),
+      createGame({ id: '4' }),
+      createGame({ id: '5' }),
+      createGame({ id: '6' }),
+      createGame({ id: '7' }),
+      createGame({ id: '8' }),
+      createGame({ id: '9' }),
+      createGame({ id: '10' })
+    ]);
     expect(component.getGridClass()).toBe('grid-cols-4');
   });
 });

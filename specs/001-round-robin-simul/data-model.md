@@ -40,14 +40,14 @@
   - `black_id` (user identifier)
   - `created_at`
 - **Validation Rules**:
-  - For a session with N participants, there must be exactly N*(N-1)/2 rows.
+  - For a session with N participants, there must be exactly N\*(N-1)/2 rows.
   - Each unique `(white_id, black_id)` pair appears only once per session.
 
 ## Relationships
 
-- SimulSession 1..* SimulParticipant
-- SimulSession 1..* SimulGameLink
-- SimulGameLink *..1 Game (existing game table)
+- SimulSession 1..\* SimulParticipant
+- SimulSession 1..\* SimulGameLink
+- SimulGameLink \*..1 Game (existing game table)
 
 ## State Transitions
 

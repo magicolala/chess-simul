@@ -17,7 +17,10 @@ Deno.test('realtime channels receive game updates', async () => {
     channel = serviceClient.channel(`public:games:id=eq.${game.id}`);
 
     const eventPromise = new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => reject(new Error('Realtime event not received in time')), 8000);
+      const timeoutId = setTimeout(
+        () => reject(new Error('Realtime event not received in time')),
+        8000
+      );
 
       channel!.on(
         'postgres_changes',

@@ -1,4 +1,13 @@
-import { Component, inject, ElementRef, viewChild, effect, output } from '@angular/core';
+import {
+  Component,
+  inject,
+  ElementRef,
+  viewChild,
+  effect,
+  output,
+  OnInit,
+  OnDestroy
+} from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HistoryService } from '../services/history.service';
 import * as d3 from 'd3';
@@ -22,6 +31,22 @@ import * as d3 from 'd3';
           </button>
         }
       </div>
+
+      @if (historyService.error()) {
+        <div class="mb-6 p-4 border-2 border-red-200 bg-red-50 text-red-700 flex items-center justify-between">
+          <span class="font-bold">{{ historyService.error() }}</span>
+          <button (click)="historyService.fetchHistoryFromSupabase()" class="ui-btn ui-btn-secondary text-xs">
+            Réessayer
+          </button>
+        </div>
+      }
+
+      @if (historyService.loading()) {
+        <div class="mb-6 flex items-center text-sm text-gray-600 font-bold">
+          <span class="w-3 h-3 mr-2 rounded-full border-2 border-[#1D1C1C] border-t-transparent animate-spin"></span>
+          Mise à jour de l'historique...
+        </div>
+      }
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -90,7 +115,7 @@ import * as d3 from 'd3';
           </h3>
         </div>
 
-        @if (historyService.history().length === 0) {
+        @if (historyService.history().length === 0 && !historyService.loading()) {
           <div
             class="p-12 text-center text-gray-400 font-medium italic border-2 border-dashed border-gray-200 m-4"
           >
@@ -158,27 +183,35 @@ import * as d3 from 'd3';
     </div>
   `
 })
-export class HistoryComponent {
+export class HistoryComponent implements OnInit, OnDestroy {
   historyService = inject(HistoryService);
   chartContainer = viewChild<ElementRef>('chartContainer');
 
   review = output<string>();
 
-  stats = this.historyService.getStats.bind(this.historyService);
-  hydraStats = this.historyService.getHydraStats.bind(this.historyService);
+  stats = this.historyService.stats;
+  hydraStats = this.historyService.hydraStats;
 
   constructor() {
     effect(() => {
       // Redraw chart when history changes
       const data = this.historyService.history();
       const el = this.chartContainer()?.nativeElement;
-      if (el && data.length > 0) {
-        this.renderChart(el);
+      if (el) {
+        this.renderChart(el, data.length > 0);
       }
     });
   }
 
-  renderChart(element: HTMLElement) {
+  ngOnInit() {
+    void this.historyService.fetchHistoryFromSupabase();
+  }
+
+  ngOnDestroy() {
+    void this.historyService.teardownRealtime();
+  }
+
+  renderChart(element: HTMLElement, hasData: boolean) {
     // Cast d3 to any to avoid type errors
     const d3Any: any = d3;
 
@@ -186,7 +219,7 @@ export class HistoryComponent {
     d3Any.select(element).selectAll('*').remove();
 
     const stats = this.stats();
-    if (stats.wins + stats.losses + stats.draws === 0) return;
+    if (!hasData || stats.wins + stats.losses + stats.draws === 0) return;
 
     const width = 200;
     const height = 128;

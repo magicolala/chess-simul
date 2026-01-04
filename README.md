@@ -1,97 +1,100 @@
 # Chess Simul Monorepo
 
-A minimal monorepo housing the Angular web client and a Supabase backend workspace.
+Plateforme de simul d'echecs en monorepo (Angular + Supabase) avec partage de types et scripts
+outilles.
 
-## Structure
-
-- `apps/web`: Angular application.
-- `packages/shared`: Reusable types and helpers shared across packages.
-- `supabase`: Database migrations, seed data, and generated types.
-
-## Prerequisites
-
-- Node.js 20+
-- npm 10+ (using npm workspaces)
-- (Optional) Docker + Supabase CLI for local database work
-
-## Installation
+## Demarrage rapide
 
 ```bash
 npm install
-```
-
-## Local development
-
-```bash
 npm run dev
 ```
 
-The Angular dev server runs on http://localhost:3000 by default.
+Le serveur Angular tourne sur http://localhost:3000 par defaut.
 
-## Build
+## Organisation du repo
+
+- `apps/web`: client Angular.
+- `packages/shared`: types et helpers partages entre workspaces.
+- `supabase`: migrations, seed data, types generes.
+- `scripts`: scripts repo-wide (env, types Supabase, migrations).
+- `docs`: notes produit/tech.
+- `specs`: specifications fonctionnelles.
+
+## Prerequis
+
+- Node.js 20+
+- npm 10+ (npm workspaces)
+- (Optionnel) Docker + Supabase CLI pour la base locale
+
+## Commandes utiles
 
 ```bash
+# Dev / build
+npm run dev
 npm run build
-```
+npm run generate:env
 
-Le build injecte les variables Supabase via `scripts/generate-env.mjs` (voir `DEPLOY.md`).
-
-## Lint, format, and type-check
-
-```bash
+# Qualite
 npm run lint
+npm run format
 npm run format:check
-npm run typecheck
+npm test
+
+# Supabase
+npm run supabase:start
+npm run supabase:stop
+npm run supabase:reset
+npm run supabase:migrate:up
+npm run supabase:db:push
+npm run supabase:gen:types
+npm run supabase:types:check
 ```
 
-## CI et déploiement
+Notes:
+- `npm run build` injecte les variables Supabase via `scripts/generate-env.mjs` (voir `DEPLOY.md`).
+- `npm test` lance le typecheck et les tests unitaires (`vitest run`) du workspace web.
 
-- GitHub Actions exécute `npm run lint`, `npm test` et `npm run build` sur chaque push/PR.
+## CI et deploiement
+
+- GitHub Actions execute `npm run lint`, `npm test` et `npm run build` sur chaque push/PR.
 - Le guide complet pour Netlify/Vercel/Cloudflare Pages + Supabase est dans `DEPLOY.md`.
 
-## Environment variables
+## Variables d'environnement
 
-Create a `.env.local` at the repo root for web-only secrets (e.g., `GEMINI_API_KEY`).
-When running Supabase locally, the CLI will generate `.env` files inside `supabase/`—do not commit them.
+Creez un `.env.local` a la racine pour les secrets web (ex: `GEMINI_API_KEY`).
+En local, la CLI Supabase genere des `.env` dans `supabase/` — ne pas commit.
 
-For the Angular client, configure your Supabase public credentials in `apps/web/src/environments/`:
+Pour le client Angular, configurez vos credentials publics Supabase dans
+`apps/web/src/environments/`:
 
-- `environment.ts` (production defaults)
-- `environment.development.ts` (used by `ng serve`)
+- `environment.ts` (production)
+- `environment.development.ts` (dev `ng serve`)
 
-Only ever expose the public `anon` key in these files. Never ship or commit the `service_role` key to the browser.
+N'exposez que la cle publique `anon` dans ces fichiers. Ne committez jamais
+`service_role` dans le navigateur.
 
-## Supabase quick start
+## Supabase: demarrage local
 
-1. Install and authenticate the Supabase CLI: `supabase login`.
-2. Link to your project: `supabase link --project-ref <ref>`.
-3. Start local stack: `npm run supabase:start` (requires Docker).
-4. Apply migrations: `npm run supabase:db:push`.
-5. Seed local data (optional): `npm run supabase:reset`.
-6. Generate TypeScript types: `npm run supabase:gen:types` (writes `supabase/types/database.types.ts`).
+1. Authentifiez-vous: `supabase login`.
+2. Liez le projet: `supabase link --project-ref <ref>`.
+3. Demarrez la stack locale: `npm run supabase:start` (Docker requis).
+4. Appliquez les migrations: `npm run supabase:db:push` (ou `npm run supabase:migrate:up`).
+5. (Optionnel) Resetez et seed: `npm run supabase:reset`.
+6. Generez les types: `npm run supabase:gen:types`.
 
-## Next steps for Supabase
+## Realtime et securite (resume)
 
-- Model chess simul entities (players, sessions, games) and add first migration in `supabase/migrations`.
-- Generate typed client artifacts into `supabase/types` and expose them via `@chess-simul/shared`.
-- Add Supabase auth and RPC calls to the Angular app once schemas are stable.
+- `RealtimeGameService` ecoute `games` (UPDATE) et `moves` (INSERT) avec presence sur
+  `game:{gameId}`; les lobbies reutilisent `simul:{simulId}`.
+- Les payloads de presence sont limites a `{ user_id, username }` exposes via `onlinePlayers$`.
+- Les clients ne modifient pas `games`/`moves` directement; l'Edge Function `submit-move`
+  valide et persiste les coups.
 
-## Supabase Realtime quick usage
+### Notes performance
 
-- `RealtimeGameService` (Angular) listens to Postgres changes on `games` (UPDATE) and `moves` (INSERT) while tracking presence on `game:{gameId}`.
-- Simul lobbies reuse the same service on `simul:{simulId}` to stream board updates for all hosted tables.
-- Presence payloads are limited to `{ user_id, username }` and exposed via `onlinePlayers$`.
-- Verify RLS policies by subscribing with a user that does **not** pass your row filters: the channel should not emit rows for games the session cannot `select`.
-
-## Secure move submission
-
-- Clients may no longer update `games` or insert `moves` directly; RLS allows write access only to the service role.
-- Use the `submit-move` Edge Function to validate the authenticated player, apply the UCI move with `chess.js`, and persist both the new move row and updated game state.
-- Angular example: `supabase.functions.invoke('submit-move', { body: { game_id, uci } })` (see the Realtime sandbox component for a ready-made tester).
-
-### Performance notes
-
-- Filter early: listen only to `UPDATE`/`INSERT` events and apply `filter` parameters such as `id=eq.{gameId}` or `simul_id=eq.{simulId}`.
-- Keep payloads lean: restrict columns in your `select` queries that seed the client and avoid heavy computed fields in realtime payloads.
-- Paginate historical moves instead of streaming the full table—use `preloadMoves()` with the latest page and let Realtime append.
-- Prefer differential updates (incremental `updated_at`, `fen` slices) over full board snapshots to minimize websocket bandwidth.
+- Filtrer tot: limiter les events et ajouter `filter` (`id=eq.{gameId}` ou
+  `simul_id=eq.{simulId}`).
+- Reduire les payloads: restreindre les colonnes dans les `select` de seed.
+- Paginer l'historique des coups et laisser Realtime append.
+- Preferer les updates differencielles plutot que des snapshots complets.

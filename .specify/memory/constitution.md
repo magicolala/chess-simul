@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report
-- Version change: N/A (template) -> 1.0.0
-- Modified principles: template principle 1 -> I. Workspace Ownership; template principle 2 -> II. Security & Privileged Operations; template principle 3 -> III. Quality Gates (Non-Negotiable); template principle 4 -> IV. Spec-Driven Delivery; template principle 5 -> V. Realtime & Performance Discipline
-- Added sections: Environment & Deployment Constraints; Development Workflow & Review
+- Version change: 1.0.0 -> 1.0.1
+- Modified principles: III. Quality Gates (Non-Negotiable)
+- Added sections: None
 - Removed sections: None
 - Templates requiring updates: ✅ .specify/templates/plan-template.md; ✅ .specify/templates/spec-template.md (no changes needed); ✅ .specify/templates/tasks-template.md (no changes needed); ⚠ .specify/templates/commands/*.md (directory missing)
 - Follow-up TODOs: TODO(RATIFICATION_DATE)
@@ -32,7 +32,7 @@ Sync Impact Report
 ### III. Quality Gates (Non-Negotiable)
 
 - Before review or merge, changes MUST pass `npm run lint`, `npm run format:check`,
-  and `npm test` (TypeScript typecheck).
+  and `npm test` (typecheck + unit tests for the web workspace).
 - Code MUST follow `.editorconfig` and Prettier formatting; do not bypass tooling.
   Rationale: Automated checks keep the monorepo consistent and prevent regressions.
 
@@ -79,4 +79,4 @@ Sync Impact Report
 - Reviews MUST include a constitution check; violations require explicit approval
   and a mitigation plan.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date not found in repo. | **Last Amended**: 2025-12-29
+**Version**: 1.0.1 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date not found in repo. | **Last Amended**: 2026-01-05

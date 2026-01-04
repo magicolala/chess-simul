@@ -80,6 +80,25 @@ export class RoundRobinSimulService {
     }
   }
 
+  async fetchSessionByInvite(inviteCode: string) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      const payload = await this.request<RoundRobinJoinResponse>(`/invite/${inviteCode}`, {
+        method: 'GET'
+      });
+      this.session.set(payload.session ?? null);
+      return payload.session;
+    } catch (error: any) {
+      this.error.set(error.message ?? 'Erreur de chargement');
+      this.session.set(null);
+      return null;
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   async joinSession(sessionId: string, inviteCode: string) {
     this.loading.set(true);
     this.error.set(null);

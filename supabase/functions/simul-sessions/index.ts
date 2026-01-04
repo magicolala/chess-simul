@@ -24,7 +24,37 @@ const readBody = async (req: Request) => {
   }
 };
 
-const createInviteCode = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+const inviteAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const createInviteCode = (length = 8) => {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (value) => inviteAlphabet[value % inviteAlphabet.length]).join('');
+};
+
+const createSessionWithInvite = async (supabase: ReturnType<typeof createSupabaseClient>, userId: string) => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const inviteCode = createInviteCode();
+    const { data: session, error } = await supabase
+      .from('simul_round_robin_sessions')
+      .insert({
+        organizer_id: userId,
+        invite_code: inviteCode,
+        status: 'draft'
+      })
+      .select('id, organizer_id, invite_code, status, created_at, started_at')
+      .single();
+
+    if (!error && session) {
+      return { session, inviteCode };
+    }
+
+    if (error && error.code !== '23505') {
+      return { error };
+    }
+  }
+
+  return { error: { message: 'invite_code_conflict' } };
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -41,20 +71,49 @@ serve(async (req) => {
   const sessionId = parts[1] ?? null;
   const action = parts[2] ?? null;
 
+  if (req.method === 'GET' && sessionId === 'invite' && action) {
+    const auth = await getUserOrFail(req);
+    if ('error' in auth) return auth.error;
+
+    const inviteCode = action.trim();
+    const { data, error } = await auth.supabase
+      .from('simul_round_robin_sessions')
+      .select(
+        'id, organizer_id, invite_code, status, created_at, started_at, simul_round_robin_participants(id, user_id, status, joined_at)'
+      )
+      .eq('invite_code', inviteCode)
+      .single();
+
+    if (error || !data) {
+      return jsonResponse({ error: 'session_not_found' }, 404);
+    }
+
+    const normalized = {
+      id: data.id,
+      organizerId: data.organizer_id,
+      inviteCode: data.invite_code,
+      status: data.status,
+      createdAt: data.created_at,
+      startedAt: data.started_at,
+      participants: (data.simul_round_robin_participants ?? []).map((participant) => ({
+        id: participant.id,
+        userId: participant.user_id,
+        status: participant.status,
+        joinedAt: participant.joined_at
+      }))
+    };
+
+    return jsonResponse({ session: normalized });
+  }
+
   if (req.method === 'POST' && !sessionId) {
     const auth = await getUserOrFail(req);
     if ('error' in auth) return auth.error;
 
-    const inviteCode = createInviteCode();
-    const { data: session, error: sessionError } = await auth.supabase
-      .from('simul_round_robin_sessions')
-      .insert({
-        organizer_id: auth.user.id,
-        invite_code: inviteCode,
-        status: 'draft'
-      })
-      .select('id, organizer_id, invite_code, status, created_at, started_at')
-      .single();
+    const { session, inviteCode, error: sessionError } = await createSessionWithInvite(
+      auth.supabase,
+      auth.user.id
+    );
 
     if (sessionError || !session) {
       console.error('RR create session error', sessionError);
@@ -98,7 +157,7 @@ serve(async (req) => {
     };
 
     const origin = req.headers.get('origin') ?? '';
-    const inviteLink = origin ? `${origin}/?rr_session=${session.id}&invite=${inviteCode}` : null;
+    const inviteLink = origin ? `${origin}/?rr_invite=${inviteCode}` : null;
 
     return jsonResponse({ session: normalized, inviteLink }, 201);
   }

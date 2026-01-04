@@ -146,10 +146,14 @@ export class AppComponent {
   constructor() {
     const params = new URLSearchParams(window.location.search);
     const rrSession = params.get('rr_session');
+    const rrInvite = params.get('rr_invite');
     const rrGame = params.get('rr_game');
     if (rrGame) {
       this.viewParam.set(rrGame);
       this.currentView.set('game-room');
+    } else if (rrInvite) {
+      this.currentView.set('round-robin-simul');
+      this.viewParam.set(rrInvite);
     } else if (rrSession) {
       this.currentView.set('round-robin-simul');
       this.viewParam.set(rrSession);

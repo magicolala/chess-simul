@@ -12,6 +12,7 @@ export interface User {
   onboardingCompleted: boolean;
   twoFactorEnabled?: boolean;
   elo: number;
+  isAnonymous: boolean;
 }
 
 @Injectable({
@@ -46,7 +47,8 @@ export class AuthService {
             session.user.email_confirmed_at !== null,
           onboardingCompleted: session.user.user_metadata['onboarding_completed'] || false,
           twoFactorEnabled: (session.user as any).two_factor_enabled || false,
-          elo: 1200 // Default value, will be updated by profile fetch
+          elo: 1200, // Default value, will be updated by profile fetch
+          isAnonymous: session.user.is_anonymous || false
         };
 
         // Fetch ELO from profiles table

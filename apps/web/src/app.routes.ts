@@ -8,7 +8,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { GuestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'settings', pathMatch: 'full' },
+  { path: '', children: [] },
   { path: 'login', canActivate: [GuestGuard], component: LoginPageComponent },
   { path: 'register', canActivate: [GuestGuard], component: RegisterPageComponent },
   { path: 'settings', canActivate: [AuthGuard], component: SettingsPageComponent },
@@ -17,6 +17,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     component: HydraTournamentPageComponent
   },
-  { path: 'round-robin-simul', canActivate: [AuthGuard], component: RoundRobinSimulPageComponent },
-  { path: '**', redirectTo: 'settings' }
+  { path: 'round-robin-simul', component: RoundRobinSimulPageComponent },
+  { path: '**', redirectTo: '' }
 ];

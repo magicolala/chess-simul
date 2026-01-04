@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { createSupabaseClient } from '../_shared/supabase-client.ts';
-import { calculateEloDelta, determineKFactor } from './elo.ts';
+import { calculateEloDelta, determineKFactor, hydraScoreForOutcome } from './elo.ts';
 import { Outcome, PlayerContext } from './types.ts';
 
 // This function processes a completed game, updates player ELOs and Hydra scores.
@@ -18,7 +18,12 @@ serve(async (req) => {
     // However, in a production environment, proper authorization is crucial.
 
     const body = await req.json().catch(() => ({}));
-    const { game_id, outcome } = body as { game_id?: string; outcome?: Outcome };
+    const { game_id, outcome, tournament_mode, hydra_mode } = body as {
+      game_id?: string;
+      outcome?: Outcome;
+      tournament_mode?: string;
+      hydra_mode?: boolean;
+    };
 
     if (!game_id) {
       return new Response(JSON.stringify({ error: 'game_id and outcome are required.' }), {
@@ -131,23 +136,27 @@ serve(async (req) => {
       );
     }
 
-    const whiteK = determineKFactor(whiteContext.elo, whiteContext.gamesPlayed, whiteContext.age);
-    const blackK = determineKFactor(blackContext.elo, blackContext.gamesPlayed, blackContext.age);
+    const isHydraTournament = tournament_mode === 'hydra' || hydra_mode === true;
 
-    const whiteDelta = calculateEloDelta(
-      whiteContext.elo,
-      blackContext.elo,
-      outcome,
-      whiteK,
-      true
-    );
-    const blackDelta = calculateEloDelta(
-      blackContext.elo,
-      whiteContext.elo,
-      outcome,
-      blackK,
-      false
-    );
+    const whiteDelta = isHydraTournament
+      ? hydraScoreForOutcome(outcome, true)
+      : calculateEloDelta(
+          whiteContext.elo,
+          blackContext.elo,
+          outcome,
+          determineKFactor(whiteContext.elo, whiteContext.gamesPlayed, whiteContext.age),
+          true
+        );
+
+    const blackDelta = isHydraTournament
+      ? hydraScoreForOutcome(outcome, false)
+      : calculateEloDelta(
+          blackContext.elo,
+          whiteContext.elo,
+          outcome,
+          determineKFactor(blackContext.elo, blackContext.gamesPlayed, blackContext.age),
+          false
+        );
 
     const newWhiteElo = whiteContext.elo + whiteDelta;
     const newBlackElo = blackContext.elo + blackDelta;

@@ -1,6 +1,8 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { createSupabaseClient } from '../_shared/supabase-client.ts';
+import { calculateEloDelta, determineKFactor } from './elo.ts';
+import { Outcome, PlayerContext } from './types.ts';
 
 // This function processes a completed game, updates player ELOs and Hydra scores.
 serve(async (req) => {
@@ -16,13 +18,25 @@ serve(async (req) => {
     // However, in a production environment, proper authorization is crucial.
 
     const body = await req.json().catch(() => ({}));
-    const { game_id, outcome } = body; // outcome: 'white_won', 'black_won', 'draw'
+    const { game_id, outcome } = body as { game_id?: string; outcome?: Outcome };
 
-    if (!game_id || !outcome) {
+    if (!game_id) {
       return new Response(JSON.stringify({ error: 'game_id and outcome are required.' }), {
         status: 400,
         headers: corsHeaders
       });
+    }
+
+    const validOutcomes: Outcome[] = ['white_won', 'black_won', 'draw'];
+
+    if (!outcome || !validOutcomes.includes(outcome)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid outcome. Expect white_won, black_won, or draw.' }),
+        {
+          status: 400,
+          headers: corsHeaders
+        }
+      );
     }
 
     // Fetch game details
@@ -46,53 +60,97 @@ serve(async (req) => {
       });
     }
 
-    // Determine score points based on Hydra rules
-    let whiteScoreChange = 0;
-    let blackScoreChange = 0;
+    const getPlayerProfile = async (playerId: string) => {
+      const profileQuery = await supabase
+        .from('profiles')
+        .select('elo, age, games_played')
+        .eq('id', playerId)
+        .single();
 
-    switch (outcome) {
-      case 'white_won':
-        whiteScoreChange = 3;
-        blackScoreChange = -1;
-        break;
-      case 'black_won':
-        whiteScoreChange = -1;
-        blackScoreChange = 3;
-        break;
-      case 'draw':
-        whiteScoreChange = 1;
-        blackScoreChange = 1;
-        break;
-      default:
-        return new Response(JSON.stringify({ error: 'Invalid game outcome.' }), {
-          status: 400,
-          headers: corsHeaders
-        });
-    }
+      if (profileQuery.error?.code === '42703') {
+        const fallbackProfileQuery = await supabase
+          .from('profiles')
+          .select('elo')
+          .eq('id', playerId)
+          .single();
 
-    // Update player ELOs (simple direct update for Hydra scoring)
-    const { data: whiteProfile, error: whiteProfileError } = await supabase
-      .from('profiles')
-      .select('elo')
-      .eq('id', game.white_id)
-      .single();
+        return {
+          data: fallbackProfileQuery.data
+            ? { elo: fallbackProfileQuery.data.elo, age: null, games_played: null }
+            : null,
+          error: fallbackProfileQuery.error
+        } as { data: { elo: number; age: number | null; games_played: number | null } | null; error: unknown };
+      }
 
-    const { data: blackProfile, error: blackProfileError } = await supabase
-      .from('profiles')
-      .select('elo')
-      .eq('id', game.black_id)
-      .single();
+      return profileQuery as unknown as {
+        data: { elo: number; age: number | null; games_played: number | null } | null;
+        error: unknown;
+      };
+    };
 
-    if (whiteProfileError || blackProfileError || !whiteProfile || !blackProfile) {
-      console.error('Error fetching player profiles:', whiteProfileError, blackProfileError);
+    const getGamesPlayed = async (playerId: string) => {
+      const { count, error } = await supabase
+        .from('games')
+        .select('id', { count: 'exact', head: true })
+        .or(`white_id.eq.${playerId},black_id.eq.${playerId}`)
+        .in('status', ['white_won', 'black_won', 'draw']);
+
+      if (error) {
+        console.error('Error counting player games:', error);
+        return null;
+      }
+
+      return count ?? null;
+    };
+
+    const mapToPlayerContext = async (playerId: string): Promise<PlayerContext | null> => {
+      const { data, error } = await getPlayerProfile(playerId);
+
+      if (error || !data) {
+        console.error('Error fetching player profile:', error);
+        return null;
+      }
+
+      const gamesPlayed =
+        data.games_played ?? (await getGamesPlayed(playerId)) ?? 0;
+
+      return {
+        elo: data.elo,
+        age: typeof data.age === 'number' ? data.age : null,
+        gamesPlayed
+      };
+    };
+
+    const whiteContext = await mapToPlayerContext(game.white_id);
+    const blackContext = await mapToPlayerContext(game.black_id);
+
+    if (!whiteContext || !blackContext) {
       return new Response(
         JSON.stringify({ error: 'Error fetching player profiles for ELO update.' }),
         { status: 500, headers: corsHeaders }
       );
     }
 
-    const newWhiteElo = whiteProfile.elo + whiteScoreChange;
-    const newBlackElo = blackProfile.elo + blackScoreChange;
+    const whiteK = determineKFactor(whiteContext.elo, whiteContext.gamesPlayed, whiteContext.age);
+    const blackK = determineKFactor(blackContext.elo, blackContext.gamesPlayed, blackContext.age);
+
+    const whiteDelta = calculateEloDelta(
+      whiteContext.elo,
+      blackContext.elo,
+      outcome,
+      whiteK,
+      true
+    );
+    const blackDelta = calculateEloDelta(
+      blackContext.elo,
+      whiteContext.elo,
+      outcome,
+      blackK,
+      false
+    );
+
+    const newWhiteElo = whiteContext.elo + whiteDelta;
+    const newBlackElo = blackContext.elo + blackDelta;
 
     const { error: updateWhiteError } = await supabase
       .from('profiles')
@@ -130,8 +188,8 @@ serve(async (req) => {
       JSON.stringify({
         message: 'Game result processed successfully.',
         game_id: game_id,
-        white_elo_change: whiteScoreChange,
-        black_elo_change: blackScoreChange,
+        white_elo_change: whiteDelta,
+        black_elo_change: blackDelta,
         new_white_elo: newWhiteElo,
         new_black_elo: newBlackElo
       }),

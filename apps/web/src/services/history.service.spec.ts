@@ -1,6 +1,29 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HistoryService, type GameResult } from './history.service';
+import { SupabaseClientService } from './supabase-client.service';
+
+const createSupabaseStub = () => {
+  const fakeChannel = {
+    on: () => fakeChannel,
+    subscribe: () => fakeChannel
+  } as any;
+
+  return {
+    currentUser: () => null,
+    client: {
+      from: () => ({
+        select: () => ({
+          or: () => ({
+            in: async () => ({ data: [], error: null })
+          })
+        })
+      }),
+      removeChannel: async () => {},
+      channel: () => fakeChannel
+    }
+  } as unknown as SupabaseClientService;
+};
 
 const createResult = (overrides: Partial<GameResult> = {}): GameResult => ({
   id: '1',
@@ -17,7 +40,7 @@ const createResult = (overrides: Partial<GameResult> = {}): GameResult => ({
 describe('HistoryService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [HistoryService]
+      providers: [HistoryService, { provide: SupabaseClientService, useFactory: createSupabaseStub }]
     });
     localStorage.clear();
   });

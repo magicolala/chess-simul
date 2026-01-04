@@ -22,7 +22,8 @@
     "supabase:reset": "npm run reset -w @chess-simul/supabase",
     "supabase:migrate:up": "node scripts/supabase-auto-migrate.mjs",
     "supabase:db:push": "npm run db:push -w @chess-simul/supabase",
-    "supabase:gen:types": "npm run gen:types -w @chess-simul/supabase"
+    "supabase:gen:types": "npm run gen:types -w @chess-simul/supabase",
+    "supabase:types:check": "node scripts/check-supabase-types.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

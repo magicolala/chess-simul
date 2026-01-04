@@ -10,6 +10,7 @@ export type Database = {
           username: string;
           avatar_url: string | null;
           bio: string | null;
+          elo: number;
           created_at: string;
         };
         Insert: {
@@ -17,12 +18,14 @@ export type Database = {
           username: string;
           avatar_url?: string | null;
           bio?: string | null;
+          elo?: number;
           created_at?: string;
         };
         Update: {
           username?: string;
           avatar_url?: string | null;
           bio?: string | null;
+          elo?: number;
           created_at?: string;
         };
         Relationships: [];

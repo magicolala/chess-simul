@@ -184,9 +184,9 @@ export class AppComponent {
         const emailVerified = user.emailVerified;
         const onboardingCompleted = user.onboardingCompleted;
 
-        if (!emailVerified) {
+        if (!emailVerified && !user.isAnonymous) {
           this.currentView.set('verify-email');
-        } else if (!onboardingCompleted) {
+        } else if (!onboardingCompleted && !user.isAnonymous) {
           this.currentView.set('onboarding');
         } else {
           const authViews: ViewState[] = [

@@ -30,3 +30,4 @@ supabase/.branches
 supabase/.temp
 apps/web/src/environments/environment.development.ts
 apps/web/src/environments/environment.ts
+coverage

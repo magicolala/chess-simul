@@ -29,7 +29,15 @@ export interface GameState {
   history: string[];
   fenHistory: string[];
   viewIndex: number;
-  status: 'active' | 'checkmate' | 'draw' | 'resigned' | 'timeout' | 'waiting' | 'aborted';
+  status:
+    | 'active'
+    | 'checkmate'
+    | 'stalemate'
+    | 'draw'
+    | 'resigned'
+    | 'timeout'
+    | 'waiting'
+    | 'aborted';
   turn: 'w' | 'b';
   lastMove: { from: string; to: string } | null;
 
@@ -352,27 +360,29 @@ export class ChessSimulService {
     const game = this.gamesMap.get(gameId);
     if (!game) return;
 
-    const maxIndex = game.fenHistory.length - 1;
-    let currentIndex = game.viewIndex === -1 ? maxIndex : game.viewIndex;
+    const lastHistoricalIndex = Math.max(0, game.fenHistory.length - 2);
+    const atLatestPosition = game.viewIndex === -1;
+    let nextIndex = game.viewIndex;
 
     switch (direction) {
       case 'start':
-        currentIndex = 0;
+        nextIndex = 0;
         break;
       case 'prev':
-        currentIndex = Math.max(0, currentIndex - 1);
+        nextIndex = atLatestPosition
+          ? Math.max(0, game.fenHistory.length - 3)
+          : Math.max(0, game.viewIndex - 1);
         break;
       case 'next':
-        currentIndex = Math.min(maxIndex, currentIndex + 1);
+        if (atLatestPosition) return;
+        nextIndex = game.viewIndex + 1 > lastHistoricalIndex ? -1 : game.viewIndex + 1;
         break;
       case 'end':
-        currentIndex = -1;
+        nextIndex = -1;
         break;
     }
 
-    if (currentIndex === maxIndex) currentIndex = -1;
-
-    game.viewIndex = currentIndex;
+    game.viewIndex = nextIndex;
     this.gamesMap.set(gameId, { ...game });
     this.games.set([...this.gamesMap.values()]);
   }
@@ -520,7 +530,8 @@ export class ChessSimulService {
   }
 
   private handleGameOver(game: GameState) {
-    if (['checkmate', 'draw', 'timeout', 'resigned', 'aborted'].includes(game.status)) return;
+    if (['checkmate', 'stalemate', 'draw', 'timeout', 'resigned', 'aborted'].includes(game.status))
+      return;
 
     if (game.chess.isCheckmate()) {
       game.status = 'checkmate';
@@ -533,6 +544,10 @@ export class ChessSimulService {
       }
 
       this.recordGame(game, isWin ? 'win' : 'loss');
+    } else if (game.chess.isStalemate()) {
+      game.status = 'stalemate';
+      game.systemMessage = 'Pat. Match nul.';
+      this.recordGame(game, 'draw');
     } else if (game.chess.isDraw()) {
       game.status = 'draw';
       game.systemMessage = 'Match nul.';
@@ -547,15 +562,12 @@ export class ChessSimulService {
   }
 
   private recordGame(game: GameState, result: 'win' | 'loss' | 'draw') {
-    if (game.mode === 'online' || game.mode === 'simul-player') {
+    const currentUser = this.auth.currentUser();
+    if (currentUser) {
       const delta = this.calculateEloDelta(result, game.playerRating, game.opponentRating);
       game.eloChange = delta;
       game.playerRating = Math.round(game.playerRating + delta);
-
-      const currentUser = this.auth.currentUser();
-      if (currentUser) {
-        this.auth.updateElo(game.playerRating);
-      }
+      this.auth.updateElo(game.playerRating);
     }
 
     const hydraPoints = this.calculateHydraPoints(result);

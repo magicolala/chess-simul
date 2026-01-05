@@ -249,7 +249,10 @@ export class AuthService {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-      await this.supabase.signOut();
+      const { error } = await this.supabase.signOut();
+      if (error) {
+        throw new Error(error.message || 'Erreur de déconnexion.');
+      }
     } catch (e: any) {
       this.error.set(e.message || 'Erreur de déconnexion.');
     } finally {

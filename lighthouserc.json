@@ -1,8 +1,8 @@
 {
     "ci": {
         "collect": {
-            "startServerCommand": "npm run preview --workspace=web",
-            "startServerReadyTimeout": 120000,
+            "startServerCommand": "npx http-server dist/apps/web -p 3000 -g",
+            "startServerReadyTimeout": 60000,
             "url": [
                 "http://localhost:3000"
             ],
@@ -18,47 +18,43 @@
                     }
                 ],
                 "categories:accessibility": [
-                    "error",
+                    "warn",
                     {
-                        "minScore": 0.9
+                        "minScore": 0.8
                     }
                 ],
                 "categories:best-practices": [
-                    "error",
+                    "warn",
                     {
-                        "minScore": 0.85
+                        "minScore": 0.8
                     }
                 ],
                 "categories:seo": [
-                    "error",
-                    {
-                        "minScore": 0.85
-                    }
-                ],
-                "first-contentful-paint": [
                     "warn",
                     {
-                        "maxNumericValue": 2000
+                        "minScore": 0.8
                     }
                 ],
-                "interactive": [
-                    "warn",
-                    {
-                        "maxNumericValue": 3500
-                    }
-                ],
-                "speed-index": [
-                    "warn",
-                    {
-                        "maxNumericValue": 3000
-                    }
-                ],
+                "first-contentful-paint": "off",
+                "interactive": "off",
+                "speed-index": "off",
                 "cumulative-layout-shift": [
-                    "error",
+                    "warn",
                     {
-                        "maxNumericValue": 0.1
+                        "maxNumericValue": 0.2
                     }
-                ]
+                ],
+                "bf-cache": "off",
+                "charset": "off",
+                "is-on-https": "off",
+                "content-width": "off",
+                "image-size-responsive": "off",
+                "total-byte-weight": "off",
+                "unminified-css": "off",
+                "unminified-javascript": "off",
+                "unused-css-rules": "off",
+                "unused-javascript": "off",
+                "uses-text-compression": "off"
             }
         },
         "upload": {

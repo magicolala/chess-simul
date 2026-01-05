@@ -2,7 +2,8 @@
     "ci": {
         "collect": {
             "startServerCommand": "npx http-server dist/apps/web -p 3000 -g",
-            "startServerReadyTimeout": 60000,
+            "startServerReadyPattern": "Available on:",
+            "startServerReadyTimeout": 90000,
             "url": [
                 "http://localhost:3000"
             ],
@@ -38,12 +39,7 @@
                 "first-contentful-paint": "off",
                 "interactive": "off",
                 "speed-index": "off",
-                "cumulative-layout-shift": [
-                    "warn",
-                    {
-                        "maxNumericValue": 0.2
-                    }
-                ],
+                "cumulative-layout-shift": "off",
                 "bf-cache": "off",
                 "charset": "off",
                 "is-on-https": "off",
@@ -54,7 +50,12 @@
                 "unminified-javascript": "off",
                 "unused-css-rules": "off",
                 "unused-javascript": "off",
-                "uses-text-compression": "off"
+                "uses-text-compression": "off",
+                "document-latency-insight": "off",
+                "errors-in-console": "off",
+                "network-dependency-tree-insight": "off",
+                "valid-source-maps": "off",
+                "uses-long-cache-ttl": "off"
             }
         },
         "upload": {

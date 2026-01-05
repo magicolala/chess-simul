@@ -244,6 +244,17 @@ describe('MultiplayerService', () => {
     });
 
     describe('Matchmaking', () => {
+        const originalRandom = Math.random;
+
+        beforeEach(() => {
+            // Ensure successful matchmaking by default (value < 0.9)
+            Math.random = () => 0.5;
+        });
+
+        afterEach(() => {
+            Math.random = originalRandom;
+        });
+
         it('should find opponent successfully', async () => {
             const promise = service.startMatchmaking({ mode: 'blitz' });
 
@@ -258,9 +269,8 @@ describe('MultiplayerService', () => {
         });
 
         it('should handle matchmaking timeout', async () => {
-            // Mock Math.random to force timeout
-            const originalRandom = Math.random;
-            Math.random = () => 0.95; // Will trigger timeout
+            // Force timeout (value > 0.9)
+            Math.random = () => 0.95;
 
             const promise = service.startMatchmaking({ mode: 'bullet' });
 
@@ -268,8 +278,6 @@ describe('MultiplayerService', () => {
 
             await expect(promise).rejects.toThrow('Aucun adversaire trouvé');
             expect(service.isMatchmaking()).toBe(false);
-
-            Math.random = originalRandom;
         });
 
         it('should use correct time controls for mode', async () => {

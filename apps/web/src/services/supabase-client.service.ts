@@ -39,7 +39,7 @@ export class SupabaseClientService {
   }
 
   async signOut() {
-    await this.supabase.auth.signOut();
+    return this.supabase.auth.signOut();
   }
 
   isAnonymousUser(user?: User | null) {

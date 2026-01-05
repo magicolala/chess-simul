@@ -55,6 +55,9 @@ export class RoundRobinSimulService {
       return payload.session;
     } catch (error: any) {
       this.error.set(error.message ?? 'Erreur de création');
+      if (error?.message === 'Connexion requise') {
+        throw error;
+      }
       return null;
     } finally {
       this.loading.set(false);

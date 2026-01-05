@@ -10,13 +10,13 @@
     "typecheck": "ng build --configuration=development --output-path ./dist/apps/web",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:headed": "playwright test --headed",
-    "test:a11y": "playwright test accessibility.spec.ts",
-    "test:visual": "playwright test visual-regression.spec.ts",
-    "test:visual:update": "playwright test visual-regression.spec.ts --update-snapshots"
+    "test:e2e": "playwright test --config ../../playwright.config.ts",
+    "test:e2e:ui": "playwright test --ui --config ../../playwright.config.ts",
+    "test:e2e:debug": "playwright test --debug --config ../../playwright.config.ts",
+    "test:e2e:headed": "playwright test --headed --config ../../playwright.config.ts",
+    "test:a11y": "playwright test accessibility.spec.ts --config ../../playwright.config.ts",
+    "test:visual": "playwright test visual-regression.spec.ts --config ../../playwright.config.ts",
+    "test:visual:update": "playwright test visual-regression.spec.ts --update-snapshots --config ../../playwright.config.ts"
   },
   "dependencies": {
     "@angular/build": "^21.0.0",

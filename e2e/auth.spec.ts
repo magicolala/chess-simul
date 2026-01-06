@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { createTestUser, type TestUser } from '../helpers/test-data';
+import { createTestUser, type TestUser } from './helpers/test-data';
 
 /**
  * Tests E2E pour le flux d'authentification complet

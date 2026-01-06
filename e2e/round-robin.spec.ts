@@ -1,5 +1,5 @@
 import { test, expect, chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
-import { createTestUser, generateInviteCode, waitForAnimation } from '../helpers/test-data';
+import { createTestUser, generateInviteCode, waitForAnimation } from './helpers/test-data';
 
 /**
  * Tests E2E pour le flux Round Robin

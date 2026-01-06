@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gameConfigs, waitForAnimation } from '../helpers/test-data';
+import { gameConfigs, waitForAnimation } from './helpers/test-data';
 
 /**
  * Tests E2E pour les parties locales (PvP local)

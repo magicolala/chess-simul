@@ -15,7 +15,7 @@
 
 **Purpose**: Add the necessary database schema changes for the feature.
 
-- [ ] T001 Create a new migration script in `supabase/migrations/` to add the `game_mode` column to the `games` table.
+- [X] T001 Create a new migration script in `supabase/migrations/` to add the `game_mode` column to the `games` table.
 
 ---
 
@@ -25,8 +25,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 Create the `stockfish.service.ts` file in `apps/web/src/services/`.
-- [ ] T003 Implement the `StockfishService` class to manage the Stockfish.js Web Worker, including methods for initialization, getting the best move, and termination.
+- [X] T002 Create the `stockfish.service.ts` file in `apps/web/src/services/`.
+- [X] T003 Implement the `StockfishService` class to manage the Stockfish.js Web Worker, including methods for initialization, getting the best move, and termination.
 
 ---
 
@@ -38,13 +38,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Extend the client-side game state management (e.g., in `apps/web/src/state/game.store.ts`) to include the `ForcedPieceState` (`brainStatus`, `brainForcedFromSquare`, `brainForcedForPosition`).
-- [ ] T005 [US1] In the main game component (e.g., `apps/web/src/pages/game/game.page.tsx`), import and initialize the `StockfishService`.
-- [ ] T006 [US1] In the game logic, when a new turn begins for a human player in "Forced-Piece" mode, call the `StockfishService` to get the best move and update the game state with the forced piece details.
-- [ ] T007 [P] [US1] Create a new component `forced-piece-overlay.component.tsx` in `apps/web/src/components/game/` to visually highlight the forced piece on the board based on the game state.
-- [ ] T008 [US1] Integrate the `ForcedPieceOverlay` component into the main game view.
-- [ ] T009 [US1] Modify the board's input handling logic to check the game state. If a piece is forced, reject any move attempts that do not originate from the `brainForcedFromSquare`.
-- [ ] T010 [US1] Display a message (e.g., using a toast or a small text element) when a player attempts to move a non-forced piece.
+- [X] T004 [US1] Extend the client-side game state management (e.g., in `apps/web/src/state/game.store.ts`) to include the `ForcedPieceState` (`brainStatus`, `brainForcedFromSquare`, `brainForcedForPosition`).
+- [X] T005 [US1] In the main game component (e.g., `apps/web/src/pages/game/game.page.tsx`), import and initialize the `StockfishService`.
+- [X] T006 [US1] In the game logic, when a new turn begins for a human player in "Forced-Piece" mode, call the `StockfishService` to get the best move and update the game state with the forced piece details.
+- [X] T007 [P] [US1] Create a new component `forced-piece-overlay.component.tsx` in `apps/web/src/components/game/` to visually highlight the forced piece on the board based on the game state.
+- [X] T008 [US1] Integrate the `ForcedPieceOverlay` component into the main game view.
+- [X] T009 [US1] Modify the board's input handling logic to check the game state. If a piece is forced, reject any move attempts that do not originate from the `brainForcedFromSquare`.
+- [X] T010 [US1] Display a message (e.g., using a toast or a small text element) when a player attempts to move a non-forced piece.
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently.
 
@@ -58,9 +58,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] In the main game component (`apps/web/src/pages/game/game.page.tsx`), add logic to detect changes to the official board position (e.g., from a Supabase realtime event).
-- [ ] T012 [US2] When a board change is detected, compare the new position's FEN with the `brainForcedForPosition` from the game state.
-- [ ] T013 [US2] If the FENs do not match, immediately trigger a recalculation by calling the `StockfishService` with the new position.
+- [X] T011 [US2] In the main game component (`apps/web/src/pages/game/game.page.tsx`), add logic to detect changes to the official board position (e.g., from a Supabase realtime event).
+- [X] T012 [US2] When a board change is detected, compare the new position's FEN with the `brainForcedForPosition` from the game state.
+- [X] T013 [US2] If the FENs do not match, immediately trigger a recalculation by calling the `StockfishService` with the new position.
 
 **Checkpoint**: At this point, the game should be resilient to desynchronization events.
 
@@ -70,9 +70,9 @@
 
 **Purpose**: Final improvements for user experience and robustness.
 
-- [ ] T014 [P] Implement a visual indicator in the UI that shows the `brainStatus` (e.g., a "thinking..." spinner or message).
-- [ ] T015 [P] Add robust error handling to the `StockfishService` in case the engine fails to load or the Web Worker crashes.
-- [ ] T016 [P] Update the "New Game" screen to allow players to select the "Forced-Piece" game mode.
+- [X] T014 [P] Implement a visual indicator in the UI that shows the `brainStatus` (e.g., a "thinking..." spinner or message).
+- [X] T015 [P] Add robust error handling to the `StockfishService` in case the engine fails to load or the Web Worker crashes.
+- [X] T016 [P] Update the "New Game" screen to allow players to select the "Forced-Piece" game mode.
 
 ---
 

@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, output } from '@angular/core';
+import { Component, inject, computed, signal, output, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -76,10 +76,21 @@ import { PreferencesService } from '../services/preferences.service';
                 [allowedColor]="'w'"
                 [orientation]="'w'"
                 [allowPremoves]="prefs.gameSettings().allowPremoves"
+                [forcedFromSquare]="game()!.brainForcedFromSquare"
+                [brainStatus]="game()!.brainStatus"
                 (move)="onMove($event)"
+                (forcedMoveRejected)="handleForcedMoveRejected($event)"
               >
               </app-chess-board>
             </div>
+
+            @if (brainMessage()) {
+              <div
+                class="absolute left-1/2 -translate-x-1/2 bottom-4 bg-[#1D1C1C] text-white text-xs font-black px-4 py-2 rounded-[2px] border border-white z-30"
+              >
+                {{ brainMessage() }}
+              </div>
+            }
 
             <!-- Game Over Overlay (Online Specific) -->
             @if (game()!.status !== 'active' && game()!.status !== 'waiting') {
@@ -233,6 +244,7 @@ export class OnlineGameComponent {
     return allGames.length > 0 ? allGames[0] : null;
   });
   chatInput = signal('');
+  brainMessage = signal<string | null>(null);
 
   constructor() {
     // Initialize a game based on the lobby room configuration
@@ -255,12 +267,30 @@ export class OnlineGameComponent {
         opponentColor: opponentColor
       });
     }
+
+    effect(() => {
+      const current = this.game();
+      if (!current) return;
+
+      if (
+        current.gameMode === 'forced_piece' &&
+        current.brainForcedForPosition &&
+        current.brainForcedForPosition !== current.fen
+      ) {
+        this.logic.recalculateForcedPiece(current.id);
+      }
+    });
   }
 
   onMove(move: { from: string; to: string }) {
     if (this.game()) {
       this.logic.makeMove(this.game()!.id, move.from, move.to);
     }
+  }
+
+  handleForcedMoveRejected(message: string) {
+    this.brainMessage.set(message);
+    setTimeout(() => this.brainMessage.set(null), 1500);
   }
 
   sendChat() {

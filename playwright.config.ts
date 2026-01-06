@@ -40,7 +40,7 @@ export default defineConfig({
     /* Configuration partagée pour tous les projets */
     use: {
         /* URL de base */
-        baseURL: 'http://localhost:4200',
+        baseURL: 'http://localhost:3000',
 
         /* Collecter des traces en cas d'échec */
         trace: 'on-first-retry',
@@ -83,7 +83,7 @@ export default defineConfig({
     /* Démarrer le serveur de dev avant les tests */
     webServer: {
         command: 'npm run dev',
-        url: 'http://localhost:4200',
+        url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
         timeout: 300 * 1000
     }

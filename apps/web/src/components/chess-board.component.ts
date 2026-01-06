@@ -12,16 +12,25 @@ import {
 import { CommonModule } from '@angular/common';
 import { Chess } from 'chess.js';
 import { PreferencesService } from '../services/preferences.service';
+import { ForcedPieceOverlayComponent } from './game/forced-piece-overlay.component';
 
 @Component({
   selector: 'app-chess-board',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ForcedPieceOverlayComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="relative w-full aspect-square select-none rounded-[2px] overflow-hidden border-2 border-[#1D1C1C]"
     >
+      @if (forcedFromSquare() || brainStatus() !== 'idle') {
+        <app-forced-piece-overlay
+          class="absolute inset-0 pointer-events-none"
+          [square]="forcedFromSquare()"
+          [orientation]="orientation()"
+          [status]="brainStatus()"
+        ></app-forced-piece-overlay>
+      }
       <!-- Board Grid -->
       <div class="grid grid-cols-8 grid-rows-8 w-full h-full">
         @for (rank of currentRanks(); track rank) {
@@ -145,8 +154,11 @@ export class ChessBoardComponent {
   allowedColor = input<'w' | 'b' | 'both'>('w');
   isFocused = input<boolean>(false);
   allowPremoves = input<boolean>(false);
+  forcedFromSquare = input<string | null>(null);
+  brainStatus = input<'idle' | 'thinking' | 'ready'>('idle');
 
   move = output<{ from: string; to: string }>();
+  forcedMoveRejected = output<string>();
 
   private baseRanks = [8, 7, 6, 5, 4, 3, 2, 1];
   private baseFiles = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -174,6 +186,26 @@ export class ChessBoardComponent {
   draggingSquare = signal<string | null>(null);
   legalMoves = signal<string[]>([]);
   pendingPremove = signal<{ from: string; to: string } | null>(null);
+
+  private isForcedPieceActive(): boolean {
+    return this.brainStatus() === 'ready' && !!this.forcedFromSquare();
+  }
+
+  private isForcedMoveBlocked(square: string): boolean {
+    return this.isForcedPieceActive() && square !== this.forcedFromSquare();
+  }
+
+  private emitForcedWarning() {
+    const square = this.forcedFromSquare();
+    const status = this.brainStatus();
+    if (status === 'thinking') {
+      this.forcedMoveRejected.emit('Le cerveau calcule encore le coup imposé.');
+      return;
+    }
+    if (square) {
+      this.forcedMoveRejected.emit(`Vous devez jouer depuis ${square}.`);
+    }
+  }
 
   constructor() {
     effect(() => {
@@ -251,6 +283,12 @@ export class ChessBoardComponent {
 
     if (!interactive && !premoveMode) return;
 
+    if (this.isForcedMoveBlocked(square)) {
+      this.emitForcedWarning();
+      this.deselect();
+      return;
+    }
+
     const piece = game.get(square as any);
     const selected = this.selectedSquare();
     const isPlayersPiece = piece && (allowed === 'both' ? true : piece.color === allowed);
@@ -285,6 +323,12 @@ export class ChessBoardComponent {
     const interactive = this.isInteractive();
     const piece = game.get(square as any);
     const isPlayersPiece = piece && (allowed === 'both' ? true : piece.color === allowed);
+
+    if (this.isForcedMoveBlocked(square)) {
+      this.emitForcedWarning();
+      e.preventDefault();
+      return;
+    }
 
     if ((!interactive && !(this.canUsePremoves() && isPlayersPiece)) || !piece || !isPlayersPiece) {
       e.preventDefault();
@@ -341,6 +385,11 @@ export class ChessBoardComponent {
     const allowed = this.allowedColor();
     const game = this.chess();
     const isPlayerTurn = isActiveTurn && (allowed === 'both' || allowed === game.turn());
+
+    if (this.isForcedPieceActive() && from !== this.forcedFromSquare()) {
+      this.emitForcedWarning();
+      return false;
+    }
 
     try {
       if (isPlayerTurn) {

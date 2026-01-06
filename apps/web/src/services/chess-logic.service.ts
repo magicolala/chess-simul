@@ -3,12 +3,14 @@ import { Chess, Move } from 'chess.js';
 import { HistoryService } from './history.service';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
+import { StockfishService } from './stockfish.service';
 
 export interface GameConfig {
   timeMinutes: number;
   incrementSeconds: number;
   opponentCount: number;
   difficulty: 'pvp';
+  gameMode?: 'standard' | 'forced_piece';
 }
 
 export interface ChatMessage {
@@ -23,6 +25,7 @@ export interface GameState {
   id: number;
   sessionId: string;
   mode: 'local' | 'online' | 'simul-host' | 'simul-player';
+  gameMode: 'standard' | 'forced_piece';
   chess: Chess;
   fen: string;
   pgn: string;
@@ -66,6 +69,11 @@ export interface GameState {
   isHostTurn: boolean;
   requiresAttention?: boolean;
 
+  // Forced-Piece mode state
+  brainStatus: 'idle' | 'thinking' | 'ready';
+  brainForcedFromSquare: string | null;
+  brainForcedForPosition: string | null;
+
   // Online Specific
   eloChange?: number;
   rematchOfferedBy?: 'me' | 'opponent';
@@ -77,6 +85,8 @@ export interface GameState {
 })
 export class ChessSimulService {
   private gamesMap = new Map<number, GameState>();
+  private stockfish = inject(StockfishService);
+  private brainRequests = new Map<number, number>();
 
   // Reactive State
   games = signal<GameState[]>([]);
@@ -89,7 +99,8 @@ export class ChessSimulService {
     timeMinutes: 10,
     incrementSeconds: 0,
     opponentCount: 1,
-    difficulty: 'pvp'
+    difficulty: 'pvp',
+    gameMode: 'standard'
   };
 
   hydraScoreboard = signal({
@@ -145,6 +156,7 @@ export class ChessSimulService {
         id: i,
         sessionId: `simul-${Date.now()}-${i}`,
         mode: 'simul-host',
+        gameMode: config.gameMode ?? 'standard',
         chess: chess,
         fen: chess.fen(),
         pgn: chess.pgn(),
@@ -177,13 +189,22 @@ export class ChessSimulService {
         blackTime: baseTimeMs,
         lastMoveTime: Date.now(),
         isHostTurn: hostIsWhite,
-        requiresAttention: false
+        requiresAttention: false,
+        brainStatus: 'idle',
+        brainForcedFromSquare: null,
+        brainForcedForPosition: null
       };
 
       this.gamesMap.set(i, game);
       newGames.push(game);
     }
     this.games.set(newGames);
+
+    newGames.forEach((g) => {
+      if (g.gameMode === 'forced_piece') {
+        void this.refreshForcedPiece(g.id);
+      }
+    });
   }
 
   /**
@@ -213,6 +234,10 @@ export class ChessSimulService {
 
     newGames.push(this.gamesMap.get(0)!);
     this.games.set(newGames);
+
+    if (game.gameMode === 'forced_piece') {
+      void this.refreshForcedPiece(game.id);
+    }
   }
 
   private createGameInstance(internalId: number, config: GameConfig, mode: 'local' | 'online') {
@@ -223,6 +248,7 @@ export class ChessSimulService {
       id: internalId,
       sessionId: `pending-${Date.now()}`,
       mode: mode,
+      gameMode: config.gameMode ?? 'standard',
       chess: chess,
       fen: chess.fen(),
       pgn: chess.pgn(),
@@ -247,7 +273,10 @@ export class ChessSimulService {
       blackTime: baseTimeMs,
       lastMoveTime: Date.now(),
       isHostTurn: true,
-      requiresAttention: false
+      requiresAttention: false,
+      brainStatus: 'idle',
+      brainForcedFromSquare: null,
+      brainForcedForPosition: null
     };
 
     this.gamesMap.set(internalId, game);
@@ -260,6 +289,12 @@ export class ChessSimulService {
 
     if (game.mode === 'simul-host') {
       game.requiresAttention = false;
+    }
+
+    if (this.shouldRejectMove(game, from)) {
+      game.systemMessage = `Cerveau : vous devez jouer la pièce en ${game.brainForcedFromSquare}.`;
+      this.games.set([...this.gamesMap.values()]);
+      return;
     }
 
     if (game.turn === 'w') game.whiteTime += this.config.incrementSeconds * 1000;
@@ -527,6 +562,80 @@ export class ChessSimulService {
 
     this.gamesMap.set(gameId, { ...game });
     this.games.set([...this.gamesMap.values()]);
+
+    void this.refreshForcedPiece(gameId);
+  }
+
+  recalculateForcedPiece(gameId: number) {
+    void this.refreshForcedPiece(gameId);
+  }
+
+  private shouldRejectMove(game: GameState, from: string): boolean {
+    if (game.gameMode !== 'forced_piece') return false;
+    if (game.brainStatus !== 'ready') return false;
+    if (!game.brainForcedFromSquare) return false;
+    if (game.brainForcedForPosition && game.brainForcedForPosition !== game.fen) {
+      void this.refreshForcedPiece(game.id);
+      return true;
+    }
+    return game.brainForcedFromSquare !== from;
+  }
+
+  private resetBrainState(game: GameState) {
+    game.brainStatus = 'idle';
+    game.brainForcedFromSquare = null;
+    game.brainForcedForPosition = null;
+  }
+
+  private async refreshForcedPiece(gameId: number) {
+    const game = this.gamesMap.get(gameId);
+    if (!game) return;
+
+    if (game.gameMode !== 'forced_piece' || game.status !== 'active') {
+      this.resetBrainState(game);
+      this.gamesMap.set(gameId, { ...game });
+      this.games.set([...this.gamesMap.values()]);
+      return;
+    }
+
+    const requestId = Date.now();
+    this.brainRequests.set(gameId, requestId);
+
+    game.brainStatus = 'thinking';
+    game.brainForcedFromSquare = null;
+    game.brainForcedForPosition = null;
+    this.gamesMap.set(gameId, { ...game });
+    this.games.set([...this.gamesMap.values()]);
+
+    try {
+      const bestMove = await this.stockfish.getBestMove(game.fen);
+      const latestGame = this.gamesMap.get(gameId);
+      if (!latestGame) return;
+
+      if (this.brainRequests.get(gameId) !== requestId) return;
+
+      if (bestMove) {
+        latestGame.brainStatus = 'ready';
+        latestGame.brainForcedFromSquare = bestMove.from;
+        latestGame.brainForcedForPosition = latestGame.fen;
+      } else {
+        this.resetBrainState(latestGame);
+      }
+
+      this.gamesMap.set(gameId, { ...latestGame });
+      this.games.set([...this.gamesMap.values()]);
+    } catch (error) {
+      console.error('Stockfish recalculation failed', error);
+      const latestGame = this.gamesMap.get(gameId);
+      if (!latestGame) return;
+
+      latestGame.brainStatus = 'idle';
+      latestGame.brainForcedFromSquare = null;
+      latestGame.brainForcedForPosition = null;
+      latestGame.systemMessage = 'Le moteur de calcul est indisponible pour le moment.';
+      this.gamesMap.set(gameId, { ...latestGame });
+      this.games.set([...this.gamesMap.values()]);
+    }
   }
 
   private handleGameOver(game: GameState) {

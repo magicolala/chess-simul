@@ -120,12 +120,14 @@ export class AppComponent {
 
   focusedGameId = signal<number | null>(null);
   isBoardFlipped = signal(false);
+  forcedPieceMessage = signal<string | null>(null);
 
   newGameConfig = signal<GameConfig>({
     timeMinutes: 10,
     incrementSeconds: 0,
     opponentCount: 1,
-    difficulty: 'pvp'
+    difficulty: 'pvp',
+    gameMode: 'standard'
   });
 
   games = this.logicService.games;
@@ -204,6 +206,19 @@ export class AppComponent {
       },
       { allowSignalWrites: true }
     );
+
+    effect(() => {
+      const game = this.focusedGame();
+      if (!game) return;
+
+      if (
+        game.gameMode === 'forced_piece' &&
+        game.brainForcedForPosition &&
+        game.brainForcedForPosition !== game.fen
+      ) {
+        this.logicService.recalculateForcedPiece(game.id);
+      }
+    });
   }
 
   onMove(gameId: number, move: { from: string; to: string }) {
@@ -219,6 +234,11 @@ export class AppComponent {
     ) {
       setTimeout(() => this.showGameOverModal.set(game), 1000);
     }
+  }
+
+  handleForcedMoveRejected(message: string) {
+    this.forcedPieceMessage.set(message);
+    setTimeout(() => this.forcedPieceMessage.set(null), 1500);
   }
 
   // --- Helpers ---
@@ -262,7 +282,8 @@ export class AppComponent {
       timeMinutes: config.time,
       incrementSeconds: config.inc,
       opponentCount: 1,
-      difficulty: 'pvp'
+      difficulty: 'pvp',
+      gameMode: this.newGameConfig().gameMode
     });
     this.startNewSession();
   }
@@ -272,7 +293,8 @@ export class AppComponent {
       timeMinutes: config.time,
       incrementSeconds: config.inc,
       opponentCount: 1,
-      difficulty: 'pvp'
+      difficulty: 'pvp',
+      gameMode: this.newGameConfig().gameMode
     });
     this.logicService.startPvpSession(this.newGameConfig());
     this.enterFocusMode(0);
@@ -431,6 +453,10 @@ export class AppComponent {
   handleLogout() {
     this.closeAuthModals();
     this.auth.signOut();
+  }
+
+  updateGameMode(mode: 'standard' | 'forced_piece') {
+    this.newGameConfig.update((c) => ({ ...c, gameMode: mode }));
   }
 
   updateTimeConfig(minutes: number) {

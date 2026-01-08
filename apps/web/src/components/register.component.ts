@@ -11,7 +11,7 @@ import { AuthService } from '../services/auth.service';
     <div class="min-h-screen flex items-center justify-center bg-nano-banana p-4 font-sans">
       <div class="ui-card w-full max-w-md relative">
         <button
-          (click)="goToLogin.emit()"
+          (click)="close.emit()"
           class="ui-btn ui-btn-ghost absolute -top-12 left-0 text-sm px-3 py-1"
         >
           ← Retour
@@ -88,6 +88,7 @@ export class RegisterComponent {
   private fb: FormBuilder = inject(FormBuilder);
 
   goToLogin = output<void>();
+  close = output<void>();
 
   registerForm = this.fb.group({
     name: ['', Validators.required],

@@ -15,6 +15,7 @@ import { PreferencesService } from './services/preferences.service';
 import { MultiplayerService } from './services/multiplayer.service';
 import { SupabaseSimulService } from './services/supabase-simul.service';
 import { SupabaseSocialService } from './services/supabase-social.service';
+import { SupabaseMatchmakingService } from './services/supabase-matchmaking.service';
 import { AnalysisService } from './services/analysis.service';
 
 import { ChessBoardComponent } from './components/chess-board.component';
@@ -107,6 +108,7 @@ export class AppComponent {
   mpService = inject(MultiplayerService);
   simulService = inject(SupabaseSimulService);
   socialService = inject(SupabaseSocialService);
+  matchmakingService = inject(SupabaseMatchmakingService);
   analysisService = inject(AnalysisService);
 
   currentView = signal<ViewState>('landing');
@@ -203,8 +205,7 @@ export class AppComponent {
             this.currentView.set('dashboard');
           }
         }
-      },
-      { allowSignalWrites: true }
+      }
     );
 
     effect(() => {
@@ -217,6 +218,28 @@ export class AppComponent {
         game.brainForcedForPosition !== game.fen
       ) {
         this.logicService.recalculateForcedPiece(game.id);
+      }
+    });
+
+    // Watch for incoming invites
+    effect(() => {
+      const invites = this.matchmakingService.incomingInvites();
+      if (invites.length > 0) {
+        // Find if there's a NEW invite (status === 'pending')
+        const pending = invites.filter(i => i.status === 'pending');
+        if (pending.length > 0) {
+          // In a real app we'd use a toast. Here we just show a badge or log.
+          console.log('New invitations received:', pending.length);
+        }
+      }
+    });
+
+    // Watch for matchmaking match
+    effect(() => {
+      const gameId = this.matchmakingService.activeGameId();
+      if (gameId && this.currentView() !== 'online-game' && this.currentView() !== 'game-room') {
+        this.viewParam.set(gameId);
+        this.currentView.set('game-room');
       }
     });
   }

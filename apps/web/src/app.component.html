@@ -595,10 +595,10 @@
   </div>
 } @else {
   <!-- Public / Onboarding Flows -->
-  @if (currentView() === 'landing') {
+  @if (currentView() === 'landing' || authModalModeState()) {
     <app-landing
-      (goToLogin)="switchView('login')"
-      (goToRegister)="switchView('register')"
+      (goToLogin)="openLoginModal()"
+      (goToRegister)="openRegisterModal()"
     ></app-landing>
 
     @if (authModalModeState() === 'login') {
@@ -611,6 +611,7 @@
           <app-login
             (goToRegister)="openRegisterModal()"
             (goToForgot)="openForgotPassword()"
+            (close)="closeAuthModals()"
           ></app-login>
         </div>
       </div>
@@ -623,7 +624,10 @@
           (click)="closeAuthModals()"
         ></div>
         <div class="relative z-10 w-full max-w-lg animate-in fade-in zoom-in duration-200">
-          <app-register (goToLogin)="openLoginModal()"></app-register>
+          <app-register 
+            (goToLogin)="openLoginModal()"
+            (close)="closeAuthModals()"
+          ></app-register>
         </div>
       </div>
     }
@@ -631,9 +635,13 @@
     <app-login
       (goToRegister)="switchView('register')"
       (goToForgot)="switchView('forgot-password')"
+      (close)="switchView('landing')"
     ></app-login>
   } @else if (currentView() === 'register') {
-    <app-register (goToLogin)="switchView('login')"></app-register>
+    <app-register 
+      (goToLogin)="switchView('login')"
+      (close)="switchView('landing')"
+    ></app-register>
   } @else if (currentView() === 'forgot-password') {
     <app-forgot-password (back)="switchView('login')"></app-forgot-password>
   } @else if (currentView() === 'verify-email') {
@@ -666,52 +674,6 @@
 
         <app-round-robin-simul-page></app-round-robin-simul-page>
       </div>
-    </div>
-  } @else {
-    <div class="relative min-h-screen bg-nano-banana text-[#1D1C1C] font-sans">
-      <app-landing
-        (goToLogin)="openLoginModal()"
-        (goToRegister)="openRegisterModal()"
-      ></app-landing>
-
-      @if (authModalModeState() === 'login') {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            class="absolute inset-0 bg-[#1D1C1C]/70 backdrop-blur-sm"
-            (click)="closeAuthModals()"
-          ></div>
-          <div class="relative z-10 w-full max-w-lg animate-in fade-in zoom-in duration-200">
-            <app-login
-              (goToRegister)="openRegisterModal()"
-              (goToForgot)="openForgotPassword()"
-            ></app-login>
-          </div>
-        </div>
-      }
-
-      @if (authModalModeState() === 'register') {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            class="absolute inset-0 bg-[#1D1C1C]/70 backdrop-blur-sm"
-            (click)="closeAuthModals()"
-          ></div>
-          <div class="relative z-10 w-full max-w-lg animate-in fade-in zoom-in duration-200">
-            <app-register (goToLogin)="openLoginModal()"></app-register>
-          </div>
-        </div>
-      }
-
-      @if (currentView() === 'forgot-password') {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            class="absolute inset-0 bg-[#1D1C1C]/70 backdrop-blur-sm"
-            (click)="backToLoginModal()"
-          ></div>
-          <div class="relative z-10 w-full max-w-lg animate-in fade-in zoom-in duration-200">
-            <app-forgot-password (back)="backToLoginModal()"></app-forgot-password>
-          </div>
-        </div>
-      }
     </div>
   }
 }

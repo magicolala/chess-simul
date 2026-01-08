@@ -12,7 +12,7 @@ import { AuthService } from '../services/auth.service';
       <!-- Card Container -->
       <div class="ui-card w-full max-w-md relative">
         <button
-          (click)="goToRegister.emit()"
+          (click)="close.emit()"
           class="ui-btn ui-btn-ghost absolute -top-12 left-0 text-sm px-3 py-1"
         >
           ← Retour
@@ -105,6 +105,7 @@ export class LoginComponent {
 
   goToRegister = output<void>();
   goToForgot = output<void>();
+  close = output<void>();
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],

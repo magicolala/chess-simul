@@ -51,17 +51,19 @@ export class AuthService {
           isAnonymous: session.user.is_anonymous || false
         };
 
-        // Fetch ELO from profiles table
+        // Fetch ELO and onboarding status from profiles table
         this.supabase.client
           .from('profiles')
-          .select('elo')
+          .select('elo, onboarding_completed')
           .eq('id', session.user.id)
           .maybeSingle()
           .then(({ data, error }) => {
             if (error) {
-              console.error('Error fetching user ELO:', error);
+              console.error('Error fetching user profile data:', error);
             } else if (data) {
               user.elo = data.elo;
+              // Metadata takes precedence if set to true, but DB is the source of truth
+              user.onboardingCompleted = data.onboarding_completed || user.onboardingCompleted;
             }
             this.finishAuth(user);
           });
@@ -139,18 +141,34 @@ export class AuthService {
     this.error.set(null);
 
     try {
-      const { error } = await this.supabase.client.auth.updateUser({
+      // 1. Update Auth Metadata
+      const { error: authError } = await this.supabase.client.auth.updateUser({
         data: {
           user_name: updates.name || current.name,
           avatar_url: updates.avatar || current.avatar,
-          bio: updates.bio || current.bio
+          bio: updates.bio || current.bio,
+          onboarding_completed: updates.onboardingCompleted ?? current.onboardingCompleted
         }
       });
 
-      if (error) {
-        throw new Error(error.message);
+      if (authError) throw authError;
+
+      // 2. Update Public Profile
+      const { error: profileError } = await this.supabase.client
+        .from('profiles')
+        .update({
+          username: updates.name || current.name,
+          avatar_url: updates.avatar || current.avatar,
+          bio: updates.bio || current.bio,
+          onboarding_completed: updates.onboardingCompleted ?? current.onboardingCompleted
+        })
+        .eq('id', current.id);
+
+      if (profileError) {
+        console.error('Error updating profiles table:', profileError);
       }
-      // The session listener in the constructor will update currentUser signal
+
+      // The session listener in the constructor will update currentUser signal via metadata update
     } catch (e: any) {
       this.error.set(e.message || 'Erreur lors de la mise à jour du profil.');
     } finally {
@@ -212,12 +230,40 @@ export class AuthService {
   async completeOnboarding(updates: { avatar: string; name: string }): Promise<boolean> {
     this.isLoading.set(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // 1. Update Auth Metadata
+      const { error: authError } = await this.supabase.client.auth.updateUser({
+        data: {
+          user_name: updates.name,
+          avatar_url: updates.avatar,
+          onboarding_completed: true
+        }
+      });
+
+      if (authError) throw authError;
+
+      // 2. Update Public Profile
+      const { error: profileError } = await this.supabase.client
+        .from('profiles')
+        .update({
+          username: updates.name,
+          avatar_url: updates.avatar,
+          onboarding_completed: true
+        })
+        .eq('id', this.currentUser()?.id);
+
+      if (profileError) {
+        console.error('Error updating profiles table during onboarding:', profileError);
+        // We don't throw here to avoid blocking the user if only the profile update fails
+      }
+
       const user = this.currentUser();
       if (user) {
         this.finishAuth({ ...user, ...updates, onboardingCompleted: true });
       }
       return true;
+    } catch (e: any) {
+      this.error.set(e.message || 'Erreur lors de la finalisation du profil.');
+      return false;
     } finally {
       this.isLoading.set(false);
     }

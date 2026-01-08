@@ -8,6 +8,7 @@
     "build": "node ../../scripts/generate-env.mjs && ng build",
     "preview": "ng serve --configuration=production",
     "typecheck": "node ../../scripts/generate-env.mjs && ng build --configuration=development --output-path ./dist/apps/web",
+    "pretest:e2e": "playwright install --with-deps",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test --config ../../playwright.config.ts",

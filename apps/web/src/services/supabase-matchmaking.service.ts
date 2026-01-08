@@ -28,8 +28,7 @@ export class SupabaseMatchmakingService {
         }
 
         this.refreshInvites();
-      },
-      { allowSignalWrites: true }
+      }
     );
   }
 
@@ -95,25 +94,29 @@ export class SupabaseMatchmakingService {
 
   async sendInvite(toUserId: string, timeControl: string) {
     const user = this.ensureUser();
+    console.log('[MatchmakingService] Sending invite from:', user?.id, 'to:', toUserId, 'TC:', timeControl);
     if (!user) return;
 
     const target = toUserId.trim();
     const cadence = timeControl.trim();
     if (!target || !cadence) {
+      console.warn('[MatchmakingService] Missing target or cadence:', { target, cadence });
       this.notify("Complétez l'identifiant et la cadence.");
       return;
     }
 
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from('invites')
-      .insert({ from_user: user.id, to_user: target, time_control: cadence });
+      .insert({ from_user: user.id, to_user: target, time_control: cadence })
+      .select();
 
     if (error) {
-      console.error('sendInvite error', error);
+      console.error('[MatchmakingService] sendInvite error:', error);
       this.notify('Invitation impossible pour le moment.');
       return;
     }
 
+    console.log('[MatchmakingService] Invite sent successfully, data:', data);
     this.notify('Invitation envoyée.');
     await this.refreshInvites();
   }

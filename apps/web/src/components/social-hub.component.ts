@@ -2,6 +2,7 @@ import { Component, inject, signal, output, computed, OnInit } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseSocialService } from '../services/supabase-social.service';
+import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
 
 @Component({
   selector: 'app-social-hub',
@@ -206,28 +207,76 @@ import { SupabaseSocialService } from '../services/supabase-social.service';
               </button>
             </div>
           </div>
-        } @else {
-          <div
-            class="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center"
-          >
-            <div class="text-6xl mb-4 opacity-20">💬</div>
-            <p class="font-bold text-lg uppercase">
-              Sélectionnez un ami ou envoyez une invitation pour chatter.
-            </p>
-          </div>
         }
       </div>
+
+      <!-- Challenge Modal -->
+      @if (challengingFriendId()) {
+        <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div
+            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            (click)="challengingFriendId.set(null)"
+          ></div>
+          <div
+            class="bg-white dark:bg-[#1a1a1a] w-full max-w-sm border-2 border-[#1D1C1C] dark:border-white relative z-10 p-6 animate-in fade-in zoom-in duration-200"
+          >
+            <h3 class="font-black text-xl uppercase mb-4 text-[#1D1C1C] dark:text-white">
+              ⚔️ Défier {{ challengingFriendName() }}
+            </h3>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="ui-label block mb-2">Cadence</label>
+                <select 
+                  [ngModel]="selectedTimeControl()" 
+                  (ngModelChange)="selectedTimeControl.set($event)"
+                  class="ui-input font-bold"
+                >
+                  <option value="3+2">3+2 Blitz</option>
+                  <option value="5+0">5+0 Blitz</option>
+                  <option value="10+0">10+0 Rapide</option>
+                </select>
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  (click)="confirmChallenge()"
+                  class="ui-btn ui-btn-dark flex-1 py-3 text-sm font-black"
+                >
+                  Envoyer le défi
+                </button>
+                <button
+                  (click)="challengingFriendId.set(null)"
+                  class="ui-btn ui-btn-ghost px-4 py-3 text-sm font-bold"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `
 })
 export class SocialHubComponent implements OnInit {
   social = inject(SupabaseSocialService);
+  matchmaking = inject(SupabaseMatchmakingService);
   goToProfile = output<string>();
   goToGame = output<string>();
 
   selectedFriendId = signal<string | null>(null);
   showAddInput = signal(false);
   messageInput = signal('');
+
+  // Challenge state
+  challengingFriendId = signal<string | null>(null);
+  selectedTimeControl = signal('5+0');
+
+  challengingFriendName = computed(() => {
+    const id = this.challengingFriendId();
+    return this.social.friends().find(f => f.id === id)?.name || 'Joueur';
+  });
 
   selectedFriend = computed(
     () => this.social.friends().find((f) => f.id === this.selectedFriendId()) || null
@@ -293,13 +342,37 @@ export class SocialHubComponent implements OnInit {
         this.messageInput.set('');
       } catch (error) {
         console.error(error);
-        alert('Unable to send message.');
+        if (error instanceof Error && error.message) {
+          alert(error.message);
+        } else {
+          alert('Unable to send message.');
+        }
       }
     }
   }
 
   challenge(id: string) {
-    alert(`Défi envoyé à ${id} ! (Redirection vers Lobby Ami...)`);
-    // In real app: create friend lobby with specific config and redirect
+    console.log('[SocialHub] Challenging friend:', id);
+    this.challengingFriendId.set(id);
+  }
+
+  async confirmChallenge() {
+    const friendId = this.challengingFriendId();
+    const timeControl = this.selectedTimeControl();
+    console.log('[SocialHub] Confirm challenge for:', friendId, 'with TC:', timeControl);
+    
+    if (friendId && timeControl) {
+      try {
+        await this.matchmaking.sendInvite(friendId, timeControl);
+        console.log('[SocialHub] Challenge invitation sent successfully');
+        this.challengingFriendId.set(null);
+        alert('Défi envoyé ! Retrouvez vos invitations dans l\'onglet Multijoueur.');
+      } catch (error) {
+        console.error('[SocialHub] Error sending challenge:', error);
+        alert('Erreur lors de l\'envoi du défi.');
+      }
+    } else {
+      console.warn('[SocialHub] Missing friendId or timeControl:', { friendId, timeControl });
+    }
   }
 }

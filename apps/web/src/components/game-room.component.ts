@@ -196,8 +196,7 @@ export class GameRoomComponent {
         if (room && room.status === 'playing') {
           this.gameStarted.emit();
         }
-      },
-      { allowSignalWrites: true }
+      }
     );
   }
 

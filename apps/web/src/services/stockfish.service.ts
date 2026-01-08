@@ -27,7 +27,7 @@ export class StockfishService {
 
     this.readyPromise = new Promise((resolve, reject) => {
       try {
-        this.worker = new Worker('https://cdn.jsdelivr.net/npm/stockfish@16.1.2/src/stockfish.js');
+        this.worker = new Worker('/assets/stockfish-worker.js');
       } catch (error) {
         this.initError =
           error instanceof Error ? error : new Error('Unable to initialize Stockfish worker.');

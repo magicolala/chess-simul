@@ -38,15 +38,9 @@ alter table public.simul_round_robin_sessions enable row level security;
 alter table public.simul_round_robin_participants enable row level security;
 alter table public.simul_round_robin_game_links enable row level security;
 
--- Sessions: organizer can manage; participants can view
+-- Sessions: public read, restricted write
 create policy "RR sessions selectable" on public.simul_round_robin_sessions
-  for select using (
-    organizer_id = auth.uid()
-    or exists (
-      select 1 from public.simul_round_robin_participants p
-      where p.session_id = simul_round_robin_sessions.id and p.user_id = auth.uid()
-    )
-  );
+  for select using (true);
 
 create policy "RR sessions insert by organizer" on public.simul_round_robin_sessions
   for insert with check (organizer_id = auth.uid());

@@ -65,30 +65,35 @@ serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const parts = url.pathname.split('/').filter(Boolean);
+  const segments = url.pathname.split('/').filter(Boolean);
+  const simulIndex = segments.indexOf('simul-sessions');
+  const startIndex = simulIndex !== -1 ? simulIndex + 1 : 0;
 
-  if (parts[0] !== 'simul-sessions') {
-    return jsonResponse({ error: 'not_found' }, 404);
-  }
-
-  const sessionId = parts[1] ?? null;
-  const action = parts[2] ?? null;
+  const sessionId = segments[startIndex] ?? null;
+  const action = segments[startIndex + 1] ?? null;
 
   if (req.method === 'GET' && sessionId === 'invite' && action) {
     const auth = await getUserOrFail(req);
     if ('error' in auth) return auth.error;
 
     const inviteCode = action.trim();
-    const { data, error } = await auth.supabase
+    const { data: sessArray, error } = await auth.supabase
       .from('simul_round_robin_sessions')
       .select(
         'id, organizer_id, invite_code, status, created_at, started_at, simul_round_robin_participants(id, user_id, status, joined_at)'
       )
       .eq('invite_code', inviteCode)
-      .single();
+      .limit(1);
 
-    if (error || !data) {
-      return jsonResponse({ error: 'session_not_found' }, 404);
+    if (error) {
+       console.error('Session fetch error', error);
+       return jsonResponse({ error: 'database_error', details: error.message }, 500);
+    }
+
+    const data = sessArray?.[0];
+
+    if (!data) {
+      return jsonResponse({ error: 'session_not_found', code: inviteCode }, 404);
     }
 
     const normalized = {

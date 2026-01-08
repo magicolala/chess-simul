@@ -107,14 +107,36 @@ export class SupabaseClientService {
 
     const avatarUrl = (user.user_metadata?.avatar_url as string | undefined | null) ?? null;
 
-    const { error } = await this.supabase.from('profiles').upsert(
-      {
+    // Check if profile exists first to avoid 406/409 errors
+    const { data: profiles, error: fetchError } = await this.supabase
+      .from('profiles')
+      .select('id, username, avatar_url, elo, onboarding_completed, bio')
+      .eq('id', user.id)
+      .limit(1);
+
+    if (profiles && profiles.length > 0) {
+      // Update metadata if needed or just return
+      return;
+    }
+
+    let finalUsername = username;
+
+    const performInsert = async (name: string) => {
+      return this.supabase.from('profiles').insert({
         id: user.id,
-        username,
+        username: name,
         avatar_url: avatarUrl
-      },
-      { onConflict: 'id' }
-    );
+      });
+    };
+
+    let { error } = await performInsert(finalUsername);
+
+    // If username is taken, try a fallback with some randomization
+    if (error?.code === '23505' && error.message?.includes('profiles_username_key')) {
+      finalUsername = `${username}-${Math.floor(Math.random() * 1000)}`;
+      const { error: retryError } = await performInsert(finalUsername);
+      error = retryError;
+    }
 
     if (error) {
       console.error('Error ensuring profile exists:', error);

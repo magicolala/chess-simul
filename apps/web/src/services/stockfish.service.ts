@@ -11,8 +11,18 @@ export class StockfishService {
   private initError?: Error;
   private currentRequestId = 0;
 
+  /**
+   * Reset the service to allow reinitialization after a failure
+   */
+  reset() {
+    this.terminate();
+    this.initError = undefined;
+  }
+
   async initialize(): Promise<void> {
     if (this.initError) {
+      // Allow callers to reset and retry
+      console.warn('Stockfish previously failed to initialize:', this.initError.message);
       throw this.initError;
     }
 
@@ -31,6 +41,7 @@ export class StockfishService {
       } catch (error) {
         this.initError =
           error instanceof Error ? error : new Error('Unable to initialize Stockfish worker.');
+        this.readyPromise = undefined; // Allow retry
         return reject(this.initError);
       }
 
@@ -41,6 +52,9 @@ export class StockfishService {
 
       const handleError = (event: ErrorEvent) => {
         cleanup();
+        this.worker?.terminate();
+        this.worker = undefined;
+        this.readyPromise = undefined; // Allow retry
         this.initError = new Error(event.message || 'Stockfish worker error.');
         reject(this.initError);
       };

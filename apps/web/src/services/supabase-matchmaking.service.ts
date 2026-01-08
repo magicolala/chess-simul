@@ -105,6 +105,21 @@ export class SupabaseMatchmakingService {
       return;
     }
 
+    // Check for existing pending invite first
+    const { data: existing } = await this.supabase
+      .from('invites')
+      .select('id')
+      .eq('from_user', user.id)
+      .eq('to_user', target)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    if (existing) {
+      console.log('[MatchmakingService] Pending invite already exists:', existing.id);
+      this.notify('Une invitation est déjà en attente pour ce joueur.');
+      return;
+    }
+
     const { data, error } = await this.supabase
       .from('invites')
       .insert({ from_user: user.id, to_user: target, time_control: cadence })
@@ -112,6 +127,11 @@ export class SupabaseMatchmakingService {
 
     if (error) {
       console.error('[MatchmakingService] sendInvite error:', error);
+      // Handle duplicate constraint violation gracefully
+      if (error.code === '23505') {
+        this.notify('Une invitation est déjà en attente pour ce joueur.');
+        return;
+      }
       this.notify('Invitation impossible pour le moment.');
       return;
     }

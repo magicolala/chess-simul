@@ -18,7 +18,14 @@
             },
             "browser": "apps/web/index.tsx",
             "index": "apps/web/index.html",
-            "tsConfig": "apps/web/tsconfig.json"
+            "tsConfig": "apps/web/tsconfig.json",
+            "assets": [
+              "apps/web/src/favicon.png",
+              "apps/web/src/assets"
+            ],
+            "styles": [
+              "apps/web/src/styles.css"
+            ]
           },
           "configurations": {
             "production": {

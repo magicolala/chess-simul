@@ -197,14 +197,20 @@ export class SupabaseSocialService {
     const trimmed = text.trim();
     if (!trimmed) return;
 
+    if (friendId === senderId) {
+      throw new Error('Cannot send a message to yourself.');
+    }
+
     const { data, error } = await this.supabase.rpc('send_message', {
       receiver_id: friendId,
       content: trimmed
     });
 
     if (error) {
+      const details = [error.details, error.hint].filter(Boolean).join(' ');
+      const message = details ? `${error.message} ${details}` : error.message;
       console.error('Error sending message:', error);
-      throw error;
+      throw new Error(message || 'Unable to send message.');
     }
 
     const response = Array.isArray(data) ? data[0] : data;

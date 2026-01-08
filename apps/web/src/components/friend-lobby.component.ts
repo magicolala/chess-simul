@@ -1,7 +1,8 @@
-import { Component, signal, output } from '@angular/core';
+import { Component, signal, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { SupabaseSocialService } from '../services/supabase-social.service';
+import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
 @Component({
   selector: 'app-friend-lobby',
   standalone: true,
@@ -100,24 +101,74 @@ import { FormsModule } from '@angular/forms';
         </div>
 
         <!-- Join/Info Panel -->
-        <div
-          class="ui-card p-8 flex flex-col items-center justify-center text-center opacity-90 hover:opacity-100 transition-opacity border-dashed"
-        >
-          <h3
-            class="text-xl font-bold font-display text-[#1D1C1C] dark:text-gray-300 uppercase mb-4"
+        <div class="space-y-6">
+          <div
+            class="ui-card p-8 flex flex-col items-center justify-center text-center opacity-90 hover:opacity-100 transition-opacity border-dashed"
           >
-            Lien d'invitation
-          </h3>
-          <div class="ui-card p-4 w-full mb-4 flex items-center justify-between">
-            <code class="text-sm font-mono text-gray-500 truncate"
-              >https://chessmaster.app/play/{{ generateCode() }}</code
+            <h3
+              class="text-xl font-bold font-display text-[#1D1C1C] dark:text-gray-300 uppercase mb-4"
             >
-            <button class="ui-btn ui-btn-dark ml-2 text-xs px-2 py-1">Copier</button>
+              Inviter un ami en ligne
+            </h3>
+            <div class="w-full space-y-4">
+              <div class="relative">
+                <input 
+                  type="text" 
+                  [ngModel]="searchQuery()"
+                  (ngModelChange)="searchQuery.set($event)"
+                  (keyup.enter)="searchFriends()"
+                  placeholder="Rechercher un pseudo..." 
+                  class="ui-input w-full pr-10" 
+                />
+                <button 
+                  (click)="searchFriends()"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-xl"
+                  [disabled]="isSearching()"
+                >
+                  {{ isSearching() ? '⏳' : '🔍' }}
+                </button>
+              </div>
+
+              @if (foundUsers().length > 0) {
+                <div class="space-y-2 mt-4">
+                  @for (user of foundUsers(); track user.id) {
+                    <div class="ui-card p-3 flex items-center justify-between bg-white dark:bg-[#1a1a1a]">
+                      <div class="flex items-center space-x-3">
+                        <img [src]="user.avatar" class="w-8 h-8 rounded-full border border-black" />
+                        <span class="font-bold text-sm">{{ user.name }}</span>
+                      </div>
+                      <button 
+                        (click)="invitePlayer(user.id)"
+                        class="ui-btn ui-btn-dark px-3 py-1 text-xs"
+                      >
+                        Inviter
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
-          <p class="text-sm text-gray-500 max-w-xs">
-            Partagez ce lien (simulation). Pour l'instant, le mode "Pass & Play" est activé sur cet
-            appareil.
-          </p>
+
+          <div
+            class="ui-card p-8 flex flex-col items-center justify-center text-center opacity-90 hover:opacity-100 transition-opacity border-dashed"
+          >
+            <h3
+              class="text-xl font-bold font-display text-[#1D1C1C] dark:text-gray-300 uppercase mb-4"
+            >
+              Lien d'invitation (Simulation)
+            </h3>
+            <div class="ui-card p-4 w-full mb-4 flex items-center justify-between bg-white dark:bg-[#1a1a1a]">
+              <code class="text-sm font-mono text-gray-500 truncate"
+                >https://chessmaster.app/play/{{ generateCode() }}</code
+              >
+              <button class="ui-btn ui-btn-dark ml-2 text-xs px-2 py-1">Copier</button>
+            </div>
+            <p class="text-sm text-gray-500 max-w-xs">
+              Partagez ce lien (simulation). Pour l'instant, le mode "Pass & Play" est activé sur cet
+              appareil.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -126,9 +177,58 @@ import { FormsModule } from '@angular/forms';
 export class FriendLobbyComponent {
   start = output<{ time: number; inc: number; color: 'w' | 'b' | 'random' }>();
 
+  social = inject(SupabaseSocialService);
+  matchmaking = inject(SupabaseMatchmakingService);
+
   timeMinutes = signal(10);
   incrementSeconds = signal(0);
   selectedColor = signal<'w' | 'b' | 'random'>('random');
+
+  searchQuery = signal('');
+  foundUsers = signal<{ id: string; name: string; avatar: string }[]>([]);
+  isSearching = signal(false);
+
+  async searchFriends() {
+    const query = this.searchQuery().trim();
+    if (query.length < 3) return;
+
+    this.isSearching.set(true);
+    try {
+      // For this demo/impl, we search in the friends list first, then maybe globally
+      const matches = this.social.friends().filter(f => 
+        f.name.toLowerCase().includes(query.toLowerCase())
+      ).map(f => ({ id: f.id, name: f.name, avatar: f.avatar }));
+      
+      this.foundUsers.set(matches);
+      
+      // If no friends found, we could try a global search if the service supports it
+      if (matches.length === 0) {
+        const userId = await this.social.getUserIdByUsername(query);
+        if (userId) {
+          const profile = await this.social.getProfile(userId);
+          if (profile) {
+            this.foundUsers.set([{ id: profile.id, name: profile.name, avatar: profile.avatar }]);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.isSearching.set(false);
+    }
+  }
+
+  async invitePlayer(userId: string) {
+    const timeControl = `${this.timeMinutes()}+${this.incrementSeconds()}`;
+    try {
+      await this.matchmaking.sendInvite(userId, timeControl);
+      alert('Invitation envoyée !');
+      this.searchQuery.set('');
+      this.foundUsers.set([]);
+    } catch (e) {
+      alert('Erreur lors de l\'envoi de l\'invitation.');
+    }
+  }
 
   generateCode() {
     return Math.random().toString(36).substring(7);

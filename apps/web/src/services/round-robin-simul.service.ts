@@ -39,7 +39,7 @@ export class RoundRobinSimulService {
     const text = await response.text();
     try {
       if (text) payload = JSON.parse(text);
-    } catch (e) {
+    } catch {
       console.error('[RoundRobinSimulService] Failed to parse response JSON', { text, path });
     }
 

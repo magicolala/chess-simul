@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
 import { OnlineGameComponent } from '../components/online-game.component';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
-import { effect, Injector, runInInjectionContext } from '@angular/core';
+import { effect, Injector } from '@angular/core';
 
 @Component({
   selector: 'app-round-robin-simul-page',

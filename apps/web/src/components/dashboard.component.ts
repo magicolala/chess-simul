@@ -112,11 +112,16 @@ import { ChessBoardComponent } from './chess-board.component';
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex justify-between items-start mb-1">
-                        <div class="flex items-center space-x-2 truncate">
-                           <img [src]="getOpponentAvatar(game)" class="w-5 h-5 rounded-full border border-gray-100" />
-                           <h4 class="font-bold font-display text-xs md:text-sm truncate">
-                             {{ getOpponentName(game) }}
-                           </h4>
+                        <div class="flex flex-col truncate">
+                           <div class="flex items-center space-x-2">
+                              <img [src]="getOpponentAvatar(game)" class="w-4 h-4 rounded-full border border-gray-100" />
+                              <h4 class="font-bold font-display text-xs truncate">
+                                {{ getOpponentName(game) }}
+                              </h4>
+                           </div>
+                           @if (game.game_mode === 'simul') {
+                             <span class="text-[8px] bg-[#FFF48D] text-[#1D1C1C] px-1 font-black w-fit uppercase mt-0.5">Simultanée</span>
+                           }
                         </div>
                         <span
                           class="text-[10px] font-mono font-black px-1.5 py-0.5 rounded"

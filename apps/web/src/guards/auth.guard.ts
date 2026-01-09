@@ -8,7 +8,7 @@ export const AuthGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   return combineLatest([supabase.session$, supabase.sessionReady$]).pipe(
-    filter(([, ready]) => ready),
+    filter((ready) => !!ready),
     take(1),
     map(([session]) => (session ? true : router.createUrlTree(['/login'])))
   );

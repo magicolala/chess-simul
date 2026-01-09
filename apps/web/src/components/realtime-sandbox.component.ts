@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { PresenceUser } from '../models/realtime.model';
@@ -89,7 +89,7 @@ import { SupabaseClientService } from '../services/supabase-client.service';
           <h4 class="ui-label mb-2">Game state (UPDATE)</h4>
           <pre
             class="max-h-48 overflow-auto border-2 border-[#1D1C1C] bg-white p-3 text-[11px] leading-tight"
-            >{{ game$ | async | json }}</pre
+            >{{ game() | json }}</pre
           >
         </div>
         <div class="ui-card p-3 bg-gray-50 space-y-2">
@@ -98,12 +98,12 @@ import { SupabaseClientService } from '../services/supabase-client.service';
             <button
               (click)="loadMoreMoves()"
               class="ui-btn ui-btn-ghost px-2 py-1 text-[10px]"
-              [disabled]="(loadingMoves$ | async) || !(hasMoreMoves$ | async)"
+              [disabled]="loadingMoves() || !hasMoreMoves()"
             >
               Charger plus d'historique
             </button>
-            <span *ngIf="loadingMoves$ | async" class="animate-pulse">Chargement...</span>
-            <span *ngIf="!(hasMoreMoves$ | async)" class="text-emerald-600"
+            <span *ngIf="loadingMoves()" class="animate-pulse">Chargement...</span>
+            <span *ngIf="!hasMoreMoves()" class="text-emerald-600"
               >Tous les coups chargés</span
             >
           </div>
@@ -111,7 +111,7 @@ import { SupabaseClientService } from '../services/supabase-client.service';
             class="space-y-1 overflow-auto border-2 border-[#1D1C1C] bg-white p-3 text-[11px] leading-tight max-h-48"
           >
             <div
-              *ngFor="let move of moves$ | async; trackBy: trackById"
+              *ngFor="let move of moves(); trackBy: trackById"
               class="flex items-center justify-between"
             >
               <span class="font-mono"
@@ -119,7 +119,7 @@ import { SupabaseClientService } from '../services/supabase-client.service';
               >
               <span class="text-[10px] text-gray-500">{{ move.created_at || 'now' }}</span>
             </div>
-            <p *ngIf="(moves$ | async)?.length === 0" class="text-[11px] text-gray-500">
+            <p *ngIf="moves().length === 0" class="text-[11px] text-gray-500">
               En attente d'un coup...
             </p>
           </div>
@@ -130,13 +130,13 @@ import { SupabaseClientService } from '../services/supabase-client.service';
             class="space-y-1 overflow-auto border-2 border-[#1D1C1C] bg-white p-3 text-[11px] leading-tight max-h-48"
           >
             <div
-              *ngFor="let player of onlinePlayers$ | async"
+              *ngFor="let player of onlinePlayers()"
               class="flex items-center justify-between"
             >
               <span class="font-semibold">{{ player.username || player.user_id }}</span>
               <span class="text-[10px] text-emerald-600">online</span>
             </div>
-            <p *ngIf="(onlinePlayers$ | async)?.length === 0" class="text-[11px] text-gray-500">
+            <p *ngIf="onlinePlayers().length === 0" class="text-[11px] text-gray-500">
               Personne en ligne.
             </p>
           </div>
@@ -199,11 +199,11 @@ export class RealtimeSandboxComponent implements OnDestroy {
   moveResponse: unknown = null;
   user: PresenceUser = { user_id: 'anon', username: 'invite' };
 
-  game$ = this.realtime.game$;
-  moves$ = this.realtime.moves$;
-  onlinePlayers$ = this.realtime.onlinePlayers$;
-  loadingMoves$ = this.realtime.loadingMoves$;
-  hasMoreMoves$ = this.realtime.hasMoreMoves$;
+  game = this.realtime.game;
+  moves = this.realtime.moves;
+  onlinePlayers = this.realtime.onlinePlayers;
+  loadingMoves = this.realtime.loadingMoves;
+  hasMoreMoves = this.realtime.hasMoreMoves;
 
   simulTables$ = this.simulRealtime.tables$;
   simulPresence$ = this.simulRealtime.presence$;

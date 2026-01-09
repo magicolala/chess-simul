@@ -61,6 +61,7 @@ type ViewState =
   | 'multiplayer-lobby'
   | 'online-game'
   | 'social-hub'
+  | 'game-room'
   | 'public-profile'
   | 'analysis';
 
@@ -234,7 +235,7 @@ export class AppComponent {
       const gameId = this.matchmakingService.activeGameId();
       console.log('[AppComponent] 🎮 Matchmaking activeGameId changed:', gameId);
       console.log('[AppComponent] 📏 Current view:', this.currentView());
-      if (gameId && this.currentView() !== 'online-game') {
+      if (gameId && this.currentView() !== 'online-game' && this.currentView() !== 'round-robin-simul') {
         console.log('[AppComponent] ➡️ Navigating to online-game with ID:', gameId);
         this.viewParam.set(gameId);
         this.currentView.set('online-game');
@@ -334,7 +335,7 @@ export class AppComponent {
       gameMode: this.newGameConfig().gameMode
     });
     this.logicService.startPvpSession(this.newGameConfig());
-    this.enterFocusMode(0);
+    this.enterFocusMode('0');
     this.isBoardFlipped.set(config.color === 'b');
   }
 

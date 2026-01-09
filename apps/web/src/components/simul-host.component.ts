@@ -364,7 +364,8 @@ export class SimulHostComponent implements OnChanges, OnDestroy {
     return simul.simul_tables
       .filter(table => table.game_id && table.status === 'playing')
       .map(table => {
-        return this.transformToHostGame(table, gameRow);
+        const game = this.gamesData().get(table.game_id!);
+        return this.transformToHostGame(table, game);
       })
       .sort((a, b) => a.seatNo - b.seatNo);
   });
@@ -424,7 +425,7 @@ export class SimulHostComponent implements OnChanges, OnDestroy {
     const user = this.supabaseClient.currentUser();
     this.realtimeSimulService.subscribe(this.simulId, user ? {
        user_id: user.id,
-       username: user.name
+       username: user.user_metadata?.user_name ?? user.email ?? 'Unknown'
     } : undefined);
 
     this.loading.set(true); // Wait, loading should probably be false now

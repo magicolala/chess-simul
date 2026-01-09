@@ -8,7 +8,7 @@ export const GuestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   return combineLatest([supabase.session$, supabase.sessionReady$]).pipe(
-    filter(([, ready]) => ready),
+    filter((ready) => !!ready),
     take(1),
     map(([session]) => (session ? router.createUrlTree(['/settings']) : true))
   );

@@ -2,12 +2,14 @@ import { Injectable, effect, inject, signal } from '@angular/core';
 import { SupabaseClientService } from './supabase-client.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import type { InviteRow } from '@chess-simul/shared';
+import { RealtimeGameService } from './realtime-game.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SupabaseMatchmakingService {
   private supabaseService = inject(SupabaseClientService);
+  private realtimeGame = inject(RealtimeGameService);
   private supabase = this.supabaseService.client;
 
   queueStatus = signal<'idle' | 'searching' | 'matched'>('idle');
@@ -219,6 +221,7 @@ export class SupabaseMatchmakingService {
 
     if (data?.game) {
       console.log('[MatchmakingService] ✅ Game created:', data.game);
+      this.realtimeGame.preloadGame(data.game);
       this.activeGameId.set(data.game.id);
       this.queueStatus.set('matched');
       this.notify('Invitation acceptée, partie créée.');

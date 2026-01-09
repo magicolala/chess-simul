@@ -1,1 +1,1 @@
-importScripts('./stockfish-nnue-16.js');
+importScripts('./stockfish-nnue-16-single.js');

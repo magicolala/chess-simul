@@ -15,11 +15,12 @@ export default tseslint.config(
     }
   },
   rules: {
-    'no-console': 'off',
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
     'no-empty': 'warn',
     'no-useless-escape': 'warn',
-    'prefer-const': 'warn',
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-unused-vars': 'warn'
+    'prefer-const': 'error',
+    'eqeqeq': 'error',
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-unused-vars': 'error'
   }
 });

@@ -39,6 +39,9 @@ describe('AuthService', () => {
                         eq: vi.fn(() => ({
                             maybeSingle: vi.fn(async () => ({ data: { elo: 1200 }, error: null }))
                         }))
+                    })),
+                    update: vi.fn(() => ({
+                        eq: vi.fn(async () => ({ error: null }))
                     }))
                 })),
                 auth: {

@@ -63,7 +63,7 @@ describe('RoundRobinSimulService', () => {
 
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => mockResponse
+                text: async () => JSON.stringify(mockResponse)
             });
 
             const session = await service.createSession();
@@ -79,7 +79,7 @@ describe('RoundRobinSimulService', () => {
         it('should handle creation errors', async () => {
             fetchMock.mockResolvedValue({
                 ok: false,
-                json: async () => ({ error: 'Creation failed' })
+                text: async () => JSON.stringify({ error: 'Creation failed' })
             });
 
             const session = await service.createSession();
@@ -97,7 +97,7 @@ describe('RoundRobinSimulService', () => {
                             () =>
                                 resolve({
                                     ok: true,
-                                    json: async () => ({ session: createMockSession() })
+                                    text: async () => JSON.stringify({ session: createMockSession() })
                                 }),
                             100
                         )
@@ -120,7 +120,7 @@ describe('RoundRobinSimulService', () => {
 
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => mockResponse
+                text: async () => JSON.stringify(mockResponse)
             });
 
             const session = await service.fetchSession('session-456');
@@ -137,7 +137,7 @@ describe('RoundRobinSimulService', () => {
 
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => mockResponse
+                text: async () => JSON.stringify(mockResponse)
             });
 
             const session = await service.fetchSessionByInvite('XYZ789');
@@ -149,7 +149,7 @@ describe('RoundRobinSimulService', () => {
         it('should handle fetch errors', async () => {
             fetchMock.mockResolvedValue({
                 ok: false,
-                json: async () => ({ error: 'Session not found' })
+                text: async () => JSON.stringify({ error: 'Session not found' })
             });
 
             const session = await service.fetchSession('invalid-id');
@@ -170,7 +170,7 @@ describe('RoundRobinSimulService', () => {
 
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => mockResponse
+                text: async () => JSON.stringify(mockResponse)
             });
 
             const session = await service.joinSession('session-123', 'ABC123');
@@ -189,7 +189,7 @@ describe('RoundRobinSimulService', () => {
         it('should handle join errors', async () => {
             fetchMock.mockResolvedValue({
                 ok: false,
-                json: async () => ({ error: 'Invalid invite code' })
+                text: async () => JSON.stringify({ error: 'Invalid invite code' })
             });
 
             const session = await service.joinSession('session-123', 'WRONG');
@@ -212,15 +212,15 @@ describe('RoundRobinSimulService', () => {
             fetchMock
                 .mockResolvedValueOnce({
                     ok: true,
-                    json: async () => mockStartResponse
+                    text: async () => JSON.stringify(mockStartResponse)
                 })
                 .mockResolvedValueOnce({
                     ok: true,
-                    json: async () => ({ session: mockSession })
+                    text: async () => JSON.stringify({ session: mockSession })
                 })
                 .mockResolvedValueOnce({
                     ok: true,
-                    json: async () => ({ games: mockGames })
+                    text: async () => JSON.stringify({ games: mockGames })
                 });
 
             const result = await service.startSession('session-123');
@@ -234,7 +234,7 @@ describe('RoundRobinSimulService', () => {
         it('should handle start errors', async () => {
             fetchMock.mockResolvedValue({
                 ok: false,
-                json: async () => ({ error: 'Not enough participants' })
+                text: async () => JSON.stringify({ error: 'Not enough participants' })
             });
 
             const result = await service.startSession('session-123');
@@ -254,7 +254,7 @@ describe('RoundRobinSimulService', () => {
 
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => ({ games: mockGames })
+                text: async () => JSON.stringify({ games: mockGames })
             });
 
             const games = await service.fetchGames('session-123');
@@ -266,7 +266,7 @@ describe('RoundRobinSimulService', () => {
         it('should handle empty games list', async () => {
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => ({ games: [] })
+                text: async () => JSON.stringify({ games: [] })
             });
 
             const games = await service.fetchGames('session-123');
@@ -286,7 +286,7 @@ describe('RoundRobinSimulService', () => {
         it('should delete session and clear state', async () => {
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => ({ success: true })
+                text: async () => JSON.stringify({ success: true })
             });
 
             const result = await service.deleteSession('session-123');
@@ -300,7 +300,7 @@ describe('RoundRobinSimulService', () => {
         it('should handle delete errors', async () => {
             fetchMock.mockResolvedValue({
                 ok: false,
-                json: async () => ({ error: 'Permission denied' })
+                text: async () => JSON.stringify({ error: 'Permission denied' })
             });
 
             const result = await service.deleteSession('session-123');
@@ -323,7 +323,7 @@ describe('RoundRobinSimulService', () => {
         it('should include auth token in requests', async () => {
             fetchMock.mockResolvedValue({
                 ok: true,
-                json: async () => ({ session: createMockSession() })
+                text: async () => JSON.stringify({ session: createMockSession() })
             });
 
             await service.createSession();

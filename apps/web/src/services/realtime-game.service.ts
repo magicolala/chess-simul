@@ -63,9 +63,26 @@ export class RealtimeGameService implements OnDestroy {
     channel.on('presence', { event: 'join' }, () => this.refreshPresence(channel));
     channel.on('presence', { event: 'leave' }, () => this.refreshPresence(channel));
 
-    channel.subscribe((status) => {
+    channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
+        console.log('[RealtimeGameService] 📡 Subscribed to channel, loading initial data...');
         channel.track(presencePayload);
+        
+        // Fetch initial game state if not already set or if it's a different game
+        if (this.gameSubject.value?.id !== gameId) {
+          const { data, error } = await this.supabase
+            .from('games')
+            .select('*')
+            .eq('id', gameId)
+            .single();
+          
+          if (!error && data) {
+            this.gameSubject.next(this.coerceGameRow(data));
+          } else if (error) {
+            console.error('[RealtimeGameService] ❌ Failed to fetch initial game data:', error);
+          }
+        }
+
         void this.loadNextMovesPage();
       }
     });

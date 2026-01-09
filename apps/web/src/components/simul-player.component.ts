@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, effect, OnDestroy, Input, OnChanges } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -106,8 +107,8 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
   prefs = inject(PreferencesService);
 
   @Input() tableId?: string;
-
-  game = signal<GameRow | null>(null);
+  
+  game = toSignal(this.realtime.game$, { initialValue: null });
   simul = signal<any>(null);
 
   constructor() {
@@ -122,8 +123,6 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
         } : undefined);
       }
     }, { allowSignalWrites: true });
-
-    this.realtime.game$.subscribe(g => this.game.set(g));
   }
 
   async ngOnChanges() {

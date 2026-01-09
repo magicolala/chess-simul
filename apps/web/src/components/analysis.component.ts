@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
 import { AnalysisService, AnalysisNode } from '../services/analysis.service';
-import { Chess } from 'chess.js';
+import { Chess, Move } from 'chess.js';
 
 @Component({
   selector: 'app-analysis',
@@ -214,7 +214,7 @@ export class AnalysisComponent {
   chess = new Chess();
   currentFen = signal('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
   currentMoveIndex = signal(-1); // -1 = Start position
-  history: { fen: string; move: any }[] = [];
+  history: { fen: string; move: Move }[] = [];
 
   tab = signal<'moves' | 'pgn'>('moves');
   pgnInput = signal('');

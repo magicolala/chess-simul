@@ -2,6 +2,7 @@ import { Injectable, effect, inject, signal } from '@angular/core';
 import { SupabaseClientService } from './supabase-client.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import type { InviteRow } from '@chess-simul/shared';
+import { GameRow } from '../models/realtime.model';
 import { RealtimeGameService } from './realtime-game.service';
 
 @Injectable({
@@ -17,7 +18,7 @@ export class SupabaseMatchmakingService {
   activeGameId = signal<string | null>(null);
   incomingInvites = signal<InviteRow[]>([]);
   outgoingInvites = signal<InviteRow[]>([]);
-  activeGames = signal<any[]>([]);
+  activeGames = signal<GameRow[]>([]);
 
   private gamesChannel?: RealtimeChannel;
 
@@ -45,7 +46,7 @@ export class SupabaseMatchmakingService {
       this.supabase.removeChannel(this.gamesChannel);
     }
 
-    console.log('[MatchmakingService] 📡 Subscribing to real-time game updates for:', userId);
+
 
     this.gamesChannel = this.supabase
       .channel(`active-games-${userId}`)
@@ -57,10 +58,10 @@ export class SupabaseMatchmakingService {
           table: 'games'
         },
         (payload) => {
-          const game = payload.new as any;
+          const game = payload.new as GameRow;
           // Refresh if user is involved
           if (game && (game.white_id === userId || game.black_id === userId)) {
-             console.log('[MatchmakingService] 🔄 Real-time game update received, refreshing list...');
+
              this.refreshActiveGames();
           }
           // Also refresh on deletes if user was involved (handled by refresh)
@@ -101,18 +102,14 @@ export class SupabaseMatchmakingService {
       return null;
     }
 
-    console.log('[MatchmakingService] 🎮 Joining queue:', {
-      userId: user.id,
-      timeControl: trimmed,
-      timestamp: new Date().toISOString()
-    });
+
 
     this.queueStatus.set('searching');
     const { data, error } = await this.supabase.functions.invoke('join-queue', {
       body: { time_control: trimmed }
     });
 
-    console.log('[MatchmakingService] 📩 join-queue response:', { data, error });
+
 
     if (error) {
       console.error('[MatchmakingService] ❌ joinQueue error', error);
@@ -122,14 +119,14 @@ export class SupabaseMatchmakingService {
     }
 
     if (data?.matched && data.game) {
-      console.log('[MatchmakingService] ✅ Match found! Game created:', data.game);
+
       this.activeGameId.set(data.game.id);
       this.queueStatus.set('matched');
       this.notify('Adversaire trouvé ! La partie est prête.');
       return data.game;
     }
 
-    console.log('[MatchmakingService] ⏳ In queue, waiting for match...');
+
     this.notify('En attente d’un adversaire...');
     return null;
   }
@@ -152,7 +149,7 @@ export class SupabaseMatchmakingService {
 
   async sendInvite(toUserId: string, timeControl: string) {
     const user = this.ensureUser();
-    console.log('[MatchmakingService] Sending invite from:', user?.id, 'to:', toUserId, 'TC:', timeControl);
+
     if (!user) return;
 
     const target = toUserId.trim();
@@ -173,12 +170,12 @@ export class SupabaseMatchmakingService {
       .maybeSingle();
 
     if (existing) {
-      console.log('[MatchmakingService] Pending invite already exists:', existing.id);
+
       this.notify('Une invitation est déjà en attente pour ce joueur.');
       return;
     }
 
-    const { data, error } = await this.supabase
+    const { error } = await this.supabase
       .from('invites')
       .insert({ from_user: user.id, to_user: target, time_control: cadence })
       .select();
@@ -194,7 +191,7 @@ export class SupabaseMatchmakingService {
       return;
     }
 
-    console.log('[MatchmakingService] Invite sent successfully, data:', data);
+
     this.notify('Invitation envoyée.');
     await this.refreshInvites();
   }
@@ -202,7 +199,7 @@ export class SupabaseMatchmakingService {
   async acceptInvite(inviteId: string) {
     if (!this.ensureUser()) return null;
 
-    console.log('[MatchmakingService] 📤 Calling accept-invite for:', inviteId);
+
     
     const { data: rawData, error } = await this.supabase.functions.invoke('accept-invite', {
       body: { invite_id: inviteId }
@@ -211,7 +208,7 @@ export class SupabaseMatchmakingService {
     // Parse if response is a string
     const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
 
-    console.log('[MatchmakingService] 📥 accept-invite response:', { data, error });
+
 
     if (error) {
       console.error('acceptInvite error', error);
@@ -220,7 +217,7 @@ export class SupabaseMatchmakingService {
     }
 
     if (data?.game) {
-      console.log('[MatchmakingService] ✅ Game created:', data.game);
+
       this.realtimeGame.preloadGame(data.game);
       this.activeGameId.set(data.game.id);
       this.queueStatus.set('matched');
@@ -257,7 +254,7 @@ export class SupabaseMatchmakingService {
     const user = this.supabaseService.currentUser();
     if (!user) return;
 
-    console.log('[MatchmakingService] 🔄 Refreshing invites for user:', user.id);
+
 
     const { data, error } = await this.supabase
       .from('invites')
@@ -274,12 +271,7 @@ export class SupabaseMatchmakingService {
     const incoming = (data ?? []).filter((invite) => invite.to_user === user.id);
     const outgoing = (data ?? []).filter((invite) => invite.from_user === user.id);
 
-    console.log('[MatchmakingService] 📬 Invites refreshed:', {
-      total: data?.length ?? 0,
-      incoming: incoming.length,
-      outgoing: outgoing.length,
-      invites: data
-    });
+
 
     this.incomingInvites.set(incoming);
     this.outgoingInvites.set(outgoing);
@@ -289,7 +281,7 @@ export class SupabaseMatchmakingService {
     const user = this.supabaseService.currentUser();
     if (!user) return;
 
-    console.log('[MatchmakingService] 🎮 Refreshing active games for user:', user.id);
+
 
     const { data, error } = await this.supabase
       .from('games')
@@ -307,7 +299,7 @@ export class SupabaseMatchmakingService {
       return;
     }
 
-    console.log(`[MatchmakingService] ✅ Found ${data?.length ?? 0} active games:`, data);
+
     this.activeGames.set(data ?? []);
   }
 }

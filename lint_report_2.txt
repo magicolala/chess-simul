@@ -1,0 +1,188 @@
+
+> chess-simul-monorepo@0.1.0 lint
+> eslint apps packages --ext .ts,.tsx
+
+
+c:\projet\chess-simul\apps\web\src\app.component.ts
+  228:11  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  236:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  237:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  239:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\components\analysis.component.ts
+  217:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\chess-board.component.ts
+  267:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  292:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  324:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  375:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  376:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  396:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  432:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  438:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  453:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\dashboard.component.ts
+  385:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  392:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  399:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  405:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  407:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\friend-lobby.component.ts
+  214:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\history.component.ts
+  216:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  244:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  264:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\hydra-game.component.spec.ts
+  64:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  71:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\multiplayer-lobby.component.ts
+  203:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  205:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  219:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  220:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\components\online-game.component.ts
+  142:26  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  148:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  182:33  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  196:33  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  229:17  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  241:17  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\public-profile.component.ts
+  191:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  207:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\realtime-sandbox.component.ts
+  216:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\round-robin-lobby.component.ts
+  104:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  137:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\components\settings.component.ts
+  576:95  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  586:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  591:94  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  595:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\simul-host.component.ts
+  480:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  481:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\simul-list.component.ts
+  139:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  146:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\components\simul-lobby.component.ts
+  174:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\simul-player.component.ts
+  110:18  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  116:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  144:43  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  155:17  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  167:17  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\components\social-hub.component.ts
+  355:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  362:5  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  367:9  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\pages\round-robin-simul-page.component.ts
+  167:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  198:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  205:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  225:50  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\auth.service.spec.ts
+    8:69  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   28:23  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  143:26  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\services\chess-logic.service.spec.ts
+  129:13  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  385:39  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  392:39  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  399:39  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  405:46  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  406:47  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\chess-logic.service.ts
+  97:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\history.service.spec.ts
+  10:8  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\history.service.ts
+  167:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  175:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\hydra-game-engine.service.spec.ts
+  10:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\hydra-game-engine.service.ts
+  233:57  warning  Empty block statement  no-empty
+
+c:\projet\chess-simul\apps\web\src\services\realtime-game.service.ts
+   26:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+   75:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  154:41  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  200:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\services\round-robin-realtime.service.ts
+  30:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  40:48  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  41:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  55:9   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  60:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  79:48  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  92:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+
+c:\projet\chess-simul\apps\web\src\services\round-robin-simul.service.spec.ts
+  10:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  54:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\round-robin-simul.service.ts
+   38:18  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   68:21  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+   90:21  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  107:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  110:21  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  128:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  131:21  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  140:5   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
+  151:21  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  170:21  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+  189:21  error    Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\stockfish.service.ts
+  139:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\supabase-client.service.ts
+  49:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+c:\projet\chess-simul\apps\web\src\services\supabase-matchmaking.service.ts
+  178:13  error  'data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+c:\projet\chess-simul\apps\web\src\services\supabase-social.service.ts
+  101:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  176:13  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  245:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  264:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 113 problems (79 errors, 34 warnings)
+

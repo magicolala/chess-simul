@@ -171,7 +171,7 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
     const presence: PresenceUser | undefined = user
       ? {
           user_id: user.id,
-          username: (user.user_metadata as any)?.username || user.email || 'user'
+          username: (user.user_metadata as { username?: string })?.username || user.email || 'user'
         }
       : undefined;
 

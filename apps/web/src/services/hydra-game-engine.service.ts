@@ -51,11 +51,7 @@ export class HydraGameEngineService {
             ) {
               // Forfeit condition
               game.status = 'timeout'; // Use 'timeout' or introduce 'forfeit' status
-              console.debug('[HydraGameEngine] inactivity forfeit', {
-                gameId,
-                lastActivityTime: game.lastActivityTime,
-                currentTime
-              });
+
               // In a real application, you'd trigger a server-side function to record this forfeit
               // and update player Elo accordingly.
             }
@@ -68,22 +64,14 @@ export class HydraGameEngineService {
               if (newTimeRemaining.white <= 0) {
                 game.status = 'timeout';
                 newTimeRemaining.white = 0;
-                console.debug('[HydraGameEngine] timeout reached', {
-                  gameId,
-                  side: 'white',
-                  elapsedTime
-                });
+
               }
             } else {
               newTimeRemaining.black -= elapsedTime;
               if (newTimeRemaining.black <= 0) {
                 game.status = 'timeout';
                 newTimeRemaining.black = 0;
-                console.debug('[HydraGameEngine] timeout reached', {
-                  gameId,
-                  side: 'black',
-                  elapsedTime
-                });
+
               }
             }
             newMap.set(gameId, {
@@ -186,21 +174,13 @@ export class HydraGameEngineService {
           newMap.forEach((g, id) => {
             newMap.set(id, { ...g, opponentJustMoved: false });
           });
-          console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-            clearedGameIds: Array.from(newMap.keys())
-          });
+
           newMap.set(gameId, { ...newMap.get(gameId)!, opponentJustMoved: true });
-          console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-            activeGame: gameId,
-            activeValue: true
-          });
+
           return newMap;
         });
         const botDelayMs = 500 + Math.random() * 1500;
-        console.debug('[HydraGameEngine] scheduling bot move', {
-          gameId,
-          botDelayMs
-        });
+
         setTimeout(() => this.makeBotMove(gameId), botDelayMs); // Simulate thinking time
       }
       return true;
@@ -224,20 +204,12 @@ export class HydraGameEngineService {
         newMap.forEach((g, id) => {
           newMap.set(id, { ...g, opponentJustMoved: false });
         });
-        console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-          clearedGameIds: Array.from(newMap.keys())
-        });
+
         newMap.set(gameId, { ...newMap.get(gameId)!, opponentJustMoved: true });
-        console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-          activeGame: gameId,
-          activeValue: true
-        });
+
         return newMap;
       });
-      console.debug('[HydraGameEngine] executing bot move', {
-        gameId,
-        move: { from: randomMove.from, to: randomMove.to }
-      });
+
       this.makeMove(gameId, randomMove.from, randomMove.to, randomMove.promotion);
     } else {
       // If no legal moves, game is over (stalemate, checkmate)
@@ -259,11 +231,7 @@ export class HydraGameEngineService {
         const updatedGame = { ...existingGame, ...partialGame };
 
         if (existingGame.status !== updatedGame.status) {
-          console.debug('[HydraGameEngine] status change', {
-            gameId,
-            from: existingGame.status,
-            to: updatedGame.status
-          });
+          // Status changed logic
         }
 
         map.set(gameId, updatedGame);

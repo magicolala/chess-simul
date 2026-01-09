@@ -14,6 +14,8 @@ interface RpcError {
   message: string;
 }
 
+type SimulTableWithGame = SimulTable & { games: SimulGame };
+
 @Injectable({ providedIn: 'root' })
 export class SupabaseSimulService {
   private get supabase() {
@@ -35,7 +37,7 @@ export class SupabaseSimulService {
   gameStatus = computed((): GameStatus | null => this.activeGame()?.status ?? null);
 
   async fetchSimuls() {
-    console.log('[SupabaseSimulService] 🔍 Fetching simuls from database...');
+
     this.loading.set(true);
     this.error.set(null);
     const { data, error } = await this.supabase
@@ -44,10 +46,8 @@ export class SupabaseSimulService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('[SupabaseSimulService] ❌ fetchSimuls error:', error);
       this.error.set(error.message);
     } else {
-      console.log(`[SupabaseSimulService] ✅ Fetched ${data?.length ?? 0} simuls:`, data);
       this.simulList.set((data as SimulWithTables[]) ?? []);
     }
     this.loading.set(false);
@@ -274,18 +274,14 @@ export class SupabaseSimulService {
       return null;
     }
 
-    if (data && (data as any).games) {
-      this.activeGame.set((data as any).games as SimulGame);
-      this.activeTable.set({
-        id: (data as any).id,
-        simul_id: (data as any).simul_id,
-        challenger_id: (data as any).challenger_id,
-        game_id: (data as any).game_id,
-        seat_no: (data as any).seat_no,
-        status: (data as any).status,
-        created_at: (data as any).created_at,
-        updated_at: (data as any).updated_at
-      });
+    if (data) {
+      const tableData = data as unknown as SimulTableWithGame;
+      if (tableData.games) {
+        this.activeGame.set(tableData.games);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { games, ...table } = tableData;
+      this.activeTable.set(table as SimulTable);
     }
     return this.activeGame();
   }

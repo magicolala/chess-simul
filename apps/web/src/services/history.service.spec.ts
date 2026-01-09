@@ -7,6 +7,7 @@ const createSupabaseStub = () => {
   const fakeChannel = {
     on: () => fakeChannel,
     subscribe: () => fakeChannel
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 
   return {

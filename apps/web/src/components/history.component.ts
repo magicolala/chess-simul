@@ -213,6 +213,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   renderChart(element: HTMLElement, hasData: boolean) {
     // Cast d3 to any to avoid type errors
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const d3Any: any = d3;
 
     // Clean previous
@@ -241,6 +242,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
     const pie = d3Any
       .pie()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .value((d: any) => d.value)
       .sort(null);
 
@@ -261,6 +263,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
       .enter()
       .append('path')
       .attr('d', arc)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .attr('fill', (d: any) => color(d.data.key))
       .attr('stroke', '#1D1C1C')
       .style('stroke-width', '2px');

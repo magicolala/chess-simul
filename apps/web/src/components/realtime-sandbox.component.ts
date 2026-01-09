@@ -213,7 +213,7 @@ export class RealtimeSandboxComponent implements OnDestroy {
       if (u) {
         this.user = {
           user_id: u.id,
-          username: (u.user_metadata as any)?.username || u.email || 'user'
+          username: (u.user_metadata as { username?: string })?.username || u.email || 'user'
         };
       } else {
         this.user = { user_id: 'anon', username: 'invite' };

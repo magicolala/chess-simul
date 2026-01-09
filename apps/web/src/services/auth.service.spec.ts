@@ -5,6 +5,7 @@ import { SupabaseClientService } from './supabase-client.service';
 import { BehaviorSubject } from 'rxjs';
 import type { Session } from '@supabase/supabase-js';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockSession = (userId: string, email: string, metadata: any = {}): Session => ({
     access_token: 'mock-token',
     refresh_token: 'mock-refresh',
@@ -25,6 +26,7 @@ const createMockSession = (userId: string, email: string, metadata: any = {}): S
 
 describe('AuthService', () => {
     let service: AuthService;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let supabaseMock: any;
     let sessionSubject: BehaviorSubject<Session | null>;
 
@@ -140,7 +142,7 @@ describe('AuthService', () => {
             supabaseMock.signUp.mockResolvedValue({ error: null });
 
             const result = await service.register('NewUser', 'new@example.com', 'password123');
-            if (!result) console.log('Register failed with error:', service.error());
+            if (!result) console.error('Register failed with error:', service.error());
             expect(result).toBe(true);
             expect(supabaseMock.signUp).toHaveBeenCalledWith('new@example.com', 'password123');
             expect(service.error()).toBeNull();

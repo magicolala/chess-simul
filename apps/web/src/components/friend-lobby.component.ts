@@ -211,7 +211,7 @@ export class FriendLobbyComponent {
           }
         }
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
     } finally {
       this.isSearching.set(false);

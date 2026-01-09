@@ -126,7 +126,7 @@ describe('ChessSimulService', () => {
             service.makeMove(gameId, 'e2', 'e4');
 
             const game = service.games()[0];
-            console.log('Game history:', game.history);
+            // console.log('Game history:', game.history);
             expect(game.history).toHaveLength(1);
             expect(game.lastMove).toEqual({ from: 'e2', to: 'e4' });
         });
@@ -382,6 +382,7 @@ describe('ChessSimulService', () => {
 
     describe('ELO Calculation', () => {
         it('should calculate correct ELO delta for win', () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const delta = (service as any).calculateEloDelta('win', 1200, 1200);
 
             expect(delta).toBeGreaterThan(0);
@@ -389,6 +390,7 @@ describe('ChessSimulService', () => {
         });
 
         it('should calculate correct ELO delta for loss', () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const delta = (service as any).calculateEloDelta('loss', 1200, 1200);
 
             expect(delta).toBeLessThan(0);
@@ -396,13 +398,16 @@ describe('ChessSimulService', () => {
         });
 
         it('should calculate correct ELO delta for draw', () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const delta = (service as any).calculateEloDelta('draw', 1200, 1200);
 
             expect(Math.abs(delta)).toBeLessThan(1); // Should be close to 0
         });
 
         it('should give more points for beating higher-rated opponent', () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const deltaVsLower = (service as any).calculateEloDelta('win', 1200, 1000);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const deltaVsHigher = (service as any).calculateEloDelta('win', 1200, 1400);
 
             expect(deltaVsHigher).toBeGreaterThan(deltaVsLower);

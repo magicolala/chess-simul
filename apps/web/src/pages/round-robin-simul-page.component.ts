@@ -164,7 +164,6 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
       return;
     }
     const session = await this.simulService.createSession();
-    console.log('[RR Page] Session created', session);
     if (session) {
       this.manualInviteCode = session.inviteCode ?? '';
       this.setupRealtime(session.id);
@@ -195,14 +194,12 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
     if (current) {
       this.realtimeService.seedRoster(current.participants ?? []);
     }
-    console.log('[RR Page] Setting up realtime for session', sessionId);
     this.realtimeService.subscribeRoster(sessionId);
 
     this.subscriptions.add(
       this.realtimeService.roster$.subscribe((roster) => {
         const existing = this.session();
         if (!existing) return;
-        console.log('[RR Page] Updating session participants from realtime', roster);
         this.simulService.session.set({ ...existing, participants: roster });
       })
     );
@@ -222,6 +219,7 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
 
   private setupGameRealtime(games: { gameId?: string; id: string }[]) {
     const gameIds = games.map((game) => game.gameId ?? game.id).filter(Boolean) as string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.realtimeService.seedGameStatus(games as any);
     this.realtimeService.subscribeGames(gameIds);
     this.subscribeGameStatus();

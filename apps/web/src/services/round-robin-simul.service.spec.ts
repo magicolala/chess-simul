@@ -7,6 +7,7 @@ import type {
     RoundRobinGameSummary
 } from '@chess-simul/shared';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockSession = (overrides: any = {}) => ({
     id: 'session-123',
     hostId: 'user-1',
@@ -17,6 +18,7 @@ const createMockSession = (overrides: any = {}) => ({
     ...overrides
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockGame = (overrides: any = {}): RoundRobinGameSummary => ({
     id: 'game-1',
     gameId: 'game-1',
@@ -33,7 +35,9 @@ const createMockGame = (overrides: any = {}): RoundRobinGameSummary => ({
 
 describe('RoundRobinSimulService', () => {
     let service: RoundRobinSimulService;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let supabaseMock: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let fetchMock: any;
 
     beforeEach(() => {
@@ -51,6 +55,7 @@ describe('RoundRobinSimulService', () => {
             }
         };
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         service = new RoundRobinSimulService(supabaseMock as any);
     });
 

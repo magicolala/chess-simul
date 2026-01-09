@@ -94,7 +94,7 @@ export class ChessSimulService {
   private apiService = inject(ApiService);
   private historyService = inject(HistoryService);
   private auth = inject(AuthService);
-  private timerInterval: any;
+  private timerInterval?: ReturnType<typeof setTimeout>;
   private config: GameConfig = {
     timeMinutes: 10,
     incrementSeconds: 0,

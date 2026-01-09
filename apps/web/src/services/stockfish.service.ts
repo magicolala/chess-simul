@@ -136,8 +136,9 @@ export class StockfishService {
 
   private stringifyMessage(message: WorkerMessage): string {
     if (typeof message === 'string') return message;
-    if (message && typeof (message as any).data === 'string') {
-      return (message as any).data;
+    if (message && typeof message === 'object' && 'data' in message) {
+      const data = (message as { data?: unknown }).data;
+      return typeof data === 'string' ? data : '';
     }
     return '';
   }

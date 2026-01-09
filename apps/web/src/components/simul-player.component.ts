@@ -107,13 +107,13 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
   @Input() tableId?: string;
   
   game = this.realtime.game;
-  simul = signal<any>(null);
+  simul = signal<unknown | null>(null);
 
   constructor() {
     effect(() => {
       const gId = this.simulService.activeTable()?.game_id;
       if (gId) {
-        console.log('[SimulPlayer] Subscribing to game:', gId);
+        // console.log('[SimulPlayer] Subscribing to game:', gId);
         const user = this.auth.currentUser();
         this.realtime.subscribe(gId, user ? {
           user_id: user.id,
@@ -141,7 +141,7 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
   });
 
   myTime = computed(() => {
-    const clocks = this.game()?.clocks as any;
+    const clocks = this.game()?.clocks as { black: number } | undefined;
     return clocks?.black ?? 0;
   });
 
@@ -152,8 +152,8 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
     const uci = `${move.from}${move.to}${move.promotion || ''}`;
     try {
       await this.realtime.submitMove(gId, uci);
-    } catch (e: any) {
-      console.error('[SimulPlayer] Move failed:', e.message);
+    } catch (e: unknown) {
+      console.error('[SimulPlayer] Move failed:', (e as Error).message);
     }
   }
 
@@ -164,8 +164,8 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
 
     try {
         await this.realtime.resignGame(gId);
-    } catch (e: any) {
-        alert('Erreur: ' + e.message);
+    } catch (e: unknown) {
+        alert('Erreur: ' + (e as Error).message);
     }
   }
 

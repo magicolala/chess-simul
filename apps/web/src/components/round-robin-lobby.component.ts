@@ -101,13 +101,6 @@ export class RoundRobinLobbyComponent {
   participantCount = computed(() => this.session()?.participants?.length ?? 0);
   isOrganizer = computed(() => {
     const isOrg = this.session()?.organizerId === this.currentUserId();
-    console.log('[RoundRobinLobby] isOrganizer check', { 
-      organizerId: this.session()?.organizerId, 
-      currentUserId: this.currentUserId(), 
-      isOrganizer: isOrg,
-      participantCount: this.participantCount(),
-      sessionStatus: this.session()?.status
-    });
     return isOrg;
   });
 
@@ -134,10 +127,8 @@ export class RoundRobinLobbyComponent {
   }
 
   async startSession() {
-    console.log('[RoundRobinLobby] startSession clicked');
     const session = this.session();
     if (!session) {
-      console.error('[RoundRobinLobby] No session to start');
       return;
     }
     await this.simulService.startSession(session.id);

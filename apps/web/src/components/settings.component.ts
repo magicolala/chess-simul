@@ -573,8 +573,9 @@ export class SettingsComponent implements OnInit {
     this.auth.toggle2FA(!current);
   }
 
-  updateGameSetting(key: keyof import('../services/preferences.service').GameSettings, event: any) {
-    this.prefs.updateGameSettings({ [key]: event.target.checked });
+  updateGameSetting(key: keyof import('../services/preferences.service').GameSettings, event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.prefs.updateGameSettings({ [key]: target.checked });
   }
 
   updateInputMethod(method: 'drag' | 'click' | 'both') {
@@ -583,17 +584,20 @@ export class SettingsComponent implements OnInit {
 
   updateNotif(
     key: keyof import('../services/preferences.service').NotificationSettings,
-    event: any
+    event: Event
   ) {
-    this.prefs.updateNotifications({ [key]: event.target.checked });
+    const target = event.target as HTMLInputElement;
+    this.prefs.updateNotifications({ [key]: target.checked });
   }
 
-  updatePrivacy(key: keyof import('../services/preferences.service').PrivacySettings, event: any) {
-    this.prefs.updatePrivacy({ [key]: event.target.checked });
+  updatePrivacy(key: keyof import('../services/preferences.service').PrivacySettings, event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.prefs.updatePrivacy({ [key]: target.checked });
   }
 
-  updateChallengePrivacy(event: any) {
-    this.prefs.updatePrivacy({ allowChallenges: event.target.value });
+  updateChallengePrivacy(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    this.prefs.updatePrivacy({ allowChallenges: target.value as 'all' | 'friends' | 'none' });
   }
 
   async upgrade() {

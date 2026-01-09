@@ -139,13 +139,13 @@ export class OnlineGameComponent implements OnDestroy {
 
   // Subscriptions handled by service
   now = signal(Date.now());
-  private timerInterval: any;
+  private timerInterval: ReturnType<typeof setInterval> | undefined;
 
   constructor() {
     effect(() => {
       const gId = this.matchmaking.activeGameId();
       if (gId) {
-        console.log('[OnlineGame] Subscribing to game:', gId);
+        // console.log('[OnlineGame] Subscribing to game:', gId);
         const user = this.auth.currentUser();
         this.realtime.subscribe(gId, user ? {
           user_id: user.id,
@@ -179,7 +179,7 @@ export class OnlineGameComponent implements OnDestroy {
   // Clocks
   myTime = computed(() => {
     const g = this.game();
-    const clocks = g?.clocks as any;
+    const clocks = g?.clocks as { white: number; black: number } | undefined;
     if (!clocks) return 0;
     
     const baseTime = this.isMeWhite() ? clocks.white : clocks.black;
@@ -193,7 +193,7 @@ export class OnlineGameComponent implements OnDestroy {
 
   opponentTime = computed(() => {
     const g = this.game();
-    const clocks = g?.clocks as any;
+    const clocks = g?.clocks as { white: number; black: number } | undefined;
     if (!clocks) return 0;
     
     const baseTime = this.isMeWhite() ? clocks.black : clocks.white;
@@ -226,8 +226,8 @@ export class OnlineGameComponent implements OnDestroy {
     const uci = `${move.from}${move.to}${move.promotion || ''}`;
     try {
       await this.realtime.submitMove(gId, uci);
-    } catch (e: any) {
-      console.error('[OnlineGame] Move failed:', e.message);
+    } catch (e: unknown) {
+      console.error('[OnlineGame] Move failed:', (e as Error).message);
     }
   }
 
@@ -238,8 +238,8 @@ export class OnlineGameComponent implements OnDestroy {
 
     try {
       await this.realtime.resignGame(gId);
-    } catch (e: any) {
-      alert('Erreur lors de l\'abandon : ' + e.message);
+    } catch (e: unknown) {
+      alert('Erreur lors de l\'abandon : ' + (e as Error).message);
     }
   }
 

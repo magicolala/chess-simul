@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HydraGameEngineService } from './hydra-game-engine.service';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockChessInstances: any[] = [];
 
 vi.mock('chess.js', () => {
   return {
     Chess: class {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       historyMoves: any[] = [];
       currentTurn: 'w' | 'b' = 'w';
       noLegalMoves = false;
@@ -18,6 +20,7 @@ vi.mock('chess.js', () => {
         return `fen-${this.historyMoves.length}`;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       move({ from, to, promotion }: any) {
         if (this.noLegalMoves) return null;
         const move = { from, to, promotion };
@@ -82,9 +85,11 @@ describe('HydraGameEngineService', () => {
     vi.restoreAllMocks();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getGame = (id: string) => (service as any).gamesMap().get(id);
 
   it('updates countdown every 100ms', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.spyOn(service as any, 'generateGameId').mockReturnValue('game-countdown');
     service.createBotGame(0.1, 0, 'w', 'easy');
 
@@ -96,6 +101,7 @@ describe('HydraGameEngineService', () => {
   });
 
   it('applies increment after a player move', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.spyOn(service as any, 'generateGameId').mockReturnValue('game-increment');
     service.createBotGame(0.1, 2, 'w', 'easy');
 
@@ -108,6 +114,7 @@ describe('HydraGameEngineService', () => {
   });
 
   it('marks game as timeout when clock runs out', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.spyOn(service as any, 'generateGameId').mockReturnValue('game-timeout');
     service.createBotGame(0.001, 0, 'w', 'easy');
 
@@ -119,9 +126,11 @@ describe('HydraGameEngineService', () => {
   });
 
   it('forfeits games after inactivity at low ply counts', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.spyOn(service as any, 'generateGameId').mockReturnValue('game-inactivity');
     service.createBotGame(1, 0, 'w', 'easy');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (service as any).gamesMap.update((map: Map<string, any>) => {
       const game = map.get('game-inactivity');
       if (game) {
@@ -137,7 +146,9 @@ describe('HydraGameEngineService', () => {
   });
 
   it('enqueues a bot move when it becomes the bot turn', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.spyOn(service as any, 'generateGameId').mockReturnValue('game-bot');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const botMoveSpy = vi.spyOn(service as any, 'makeBotMove');
     vi.spyOn(Math, 'random').mockReturnValue(0);
 
@@ -155,6 +166,7 @@ describe('HydraGameEngineService', () => {
   });
 
   it('removes games cleanly without altering other ids', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const idSpy = vi.spyOn(service as any, 'generateGameId');
     idSpy.mockReturnValueOnce('game-one');
     idSpy.mockReturnValueOnce('game-two');

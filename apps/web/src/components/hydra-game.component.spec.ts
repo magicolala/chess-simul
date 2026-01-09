@@ -61,6 +61,7 @@ class ChessBoardStubComponent {
 }
 
 describe('HydraGameComponent', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let fixture: any;
   let component: HydraGameComponent;
   let gameEngine: HydraGameEngineServiceStub;
@@ -68,6 +69,7 @@ describe('HydraGameComponent', () => {
 
   const createGame = (overrides: Partial<HydraGame> = {}): HydraGame => ({
     id: 'game-1',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     chess: {} as any,
     fen: 'start',
     lastMove: null,

@@ -27,7 +27,7 @@ export class RoundRobinRealtimeService {
         return;
     }
     const channel = this.supabase.channel(`rr-roster:${sessionId}`);
-    console.log('[RR Realtime] Subscribing to roster channel', `rr-roster:${sessionId}`);
+    // console.log('[RR Realtime] Subscribing to roster channel', `rr-roster:${sessionId}`);
 
     channel.on(
       'postgres_changes',
@@ -37,8 +37,8 @@ export class RoundRobinRealtimeService {
         table: 'simul_round_robin_participants',
         filter: `session_id=eq.${sessionId}`
       },
-      (payload: RealtimePostgresChangesPayload<any>) => {
-        console.log('[RR Realtime] Roster payload received', payload);
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+        // console.log('[RR Realtime] Roster payload received', payload);
         const current = this.rosterSubject.value;
         const oldRow = (payload.old ?? null) as Record<string, unknown> | null;
         const newRow = (payload.new ?? null) as Record<string, unknown> | null;
@@ -52,12 +52,12 @@ export class RoundRobinRealtimeService {
           });
         }
         this.rosterSubject.next(next);
-        console.log('[RR Realtime] Roster updated', next);
+        // console.log('[RR Realtime] Roster updated', next);
       }
     );
 
-    channel.subscribe((status) => {
-      console.log(`[RR Realtime] Roster channel status for ${sessionId}:`, status);
+    channel.subscribe(() => {
+      // console.log(`[RR Realtime] Roster channel status for ${sessionId}:`, status);
     });
     this.rosterChannel = channel;
   }
@@ -76,7 +76,7 @@ export class RoundRobinRealtimeService {
     channel.on(
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'games', filter },
-      (payload: RealtimePostgresChangesPayload<any>) => {
+      (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         const newRow = (payload.new ?? null) as Record<string, unknown> | null;
         const id = newRow?.id as string | undefined;
         const status = newRow?.status as string | undefined;
@@ -88,8 +88,8 @@ export class RoundRobinRealtimeService {
       }
     );
 
-    channel.subscribe((status) => {
-      console.log(`[RR Realtime] Games channel status for ${gameIds.length} games:`, status);
+    channel.subscribe(() => {
+      // console.log(`[RR Realtime] Games channel status for ${gameIds.length} games:`, status);
     });
     this.gamesChannel = channel;
   }

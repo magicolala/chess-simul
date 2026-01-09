@@ -10,7 +10,7 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chess } from 'chess.js';
+import { Chess, Piece, Square } from 'chess.js';
 import { PreferencesService } from '../services/preferences.service';
 import { ForcedPieceOverlayComponent } from './game/forced-piece-overlay.component';
 
@@ -264,7 +264,7 @@ export class ChessBoardComponent {
   }
 
   getPiece(square: string) {
-    return this.chess().get(square as any);
+    return this.chess().get(square as Square);
   }
 
   getPieceUrl(piece: { type: string; color: 'w' | 'b' }): string {
@@ -289,7 +289,7 @@ export class ChessBoardComponent {
       return;
     }
 
-    const piece = game.get(square as any);
+    const piece = game.get(square as Square);
     const selected = this.selectedSquare();
     const isPlayersPiece = piece && (allowed === 'both' ? true : piece.color === allowed);
 
@@ -321,7 +321,7 @@ export class ChessBoardComponent {
     const game = this.chess();
     const allowed = this.allowedColor();
     const interactive = this.isInteractive();
-    const piece = game.get(square as any);
+    const piece = game.get(square as Square);
     const isPlayersPiece = piece && (allowed === 'both' ? true : piece.color === allowed);
 
     if (this.isForcedMoveBlocked(square)) {
@@ -372,8 +372,8 @@ export class ChessBoardComponent {
   private selectSquare(square: string, forPremove: boolean) {
     this.selectedSquare.set(square);
     const board = forPremove ? this.getPremoveBoard() : this.chess();
-    const moves = board?.moves({ square: square as any, verbose: true }) || [];
-    this.legalMoves.set(moves.map((m) => (m as any).to ?? m.to));
+    const moves = board?.moves({ square: square as Square, verbose: true }) || [];
+    this.legalMoves.set(moves.map((m) => m.to));
   }
 
   private deselect() {
@@ -393,7 +393,7 @@ export class ChessBoardComponent {
 
     try {
       if (isPlayerTurn) {
-        const moves = game.moves({ square: from as any, verbose: true });
+        const moves = game.moves({ square: from as Square, verbose: true });
         const move = moves.find((m) => m.to === to);
 
         if (move) {
@@ -429,13 +429,13 @@ export class ChessBoardComponent {
   private isPremoveLegal(from: string, to: string): boolean {
     const premoveBoard = this.getPremoveBoard();
     if (!premoveBoard) return false;
-    const moves = premoveBoard.moves({ square: from as any, verbose: true });
+    const moves = premoveBoard.moves({ square: from as Square, verbose: true });
     return moves.some((m) => m.to === to);
   }
 
   private isMoveLegalNow(from: string, to: string): boolean {
     try {
-      const moves = this.chess().moves({ square: from as any, verbose: true });
+      const moves = this.chess().moves({ square: from as Square, verbose: true });
       return moves.some((m) => m.to === to);
     } catch {
       return false;
@@ -450,7 +450,7 @@ export class ChessBoardComponent {
     return this.legalMoves().includes(square);
   }
 
-  isKingInCheck(piece: any): boolean {
+  isKingInCheck(piece: Piece): boolean {
     if (!piece) return false;
     return piece.type === 'k' && piece.color === this.chess().turn() && this.chess().inCheck();
   }

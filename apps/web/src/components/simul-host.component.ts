@@ -477,8 +477,8 @@ export class SimulHostComponent implements OnChanges, OnDestroy {
       isHostTurn,
       status: this.mapStatus(gameRow?.status),
       requiresAttention: isHostTurn && this.mapStatus(gameRow?.status) === 'active',
-      whiteTime: (gameRow?.clocks as any)?.white ?? 600000,
-      blackTime: (gameRow?.clocks as any)?.black ?? 600000,
+      whiteTime: (gameRow?.clocks as { white: number; black: number })?.white ?? 600000,
+      blackTime: (gameRow?.clocks as { white: number; black: number })?.black ?? 600000,
       history: [] // Would need moves lookup
     };
   }

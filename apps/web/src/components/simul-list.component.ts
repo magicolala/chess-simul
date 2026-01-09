@@ -136,14 +136,12 @@ export class SimulListComponent {
   filter = signal<'all' | 'open' | 'started'>('all');
 
   constructor() {
-    console.log('[SimulListComponent] 🛠️ Initializing with SupabaseSimulService (REAL DATA)');
     this.simulService.fetchSimuls();
   }
 
   filteredSimuls = computed(() => {
     const all = this.simulService.simulList();
     const f = this.filter();
-    console.log('[SimulListComponent] 📊 Filtering simuls:', { total: all.length, filter: f });
     if (f === 'all') return all;
     const statusFilter = f === 'started' ? 'running' : f;
     return all.filter((s) => s.status === statusFilter);

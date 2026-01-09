@@ -98,7 +98,7 @@ export class SupabaseSocialService {
       return;
     }
 
-    const requests = (data ?? []).map((req: any) => ({
+    const requests = (data ?? []).map((req: { requestor_id: string; username?: string; avatar_url?: string; created_at?: string }) => ({
       id: req.requestor_id,
       name: req.username ?? 'Unknown player',
       avatar: req.avatar_url ?? 'https://api.dicebear.com/7.x/notionists/svg?seed=chess-friend',
@@ -119,7 +119,7 @@ export class SupabaseSocialService {
     }
 
     const friends = (data ?? []).map(
-      (friend: any) =>
+      (friend: { friend_id: string; username?: string; avatar_url?: string }) =>
         ({
           id: friend.friend_id,
           name: friend.username ?? 'Unknown player',
@@ -173,7 +173,7 @@ export class SupabaseSocialService {
     }
 
     const chat = (data ?? []).map(
-      (msg: any) =>
+      (msg: { sender_id: string; content: string; created_at?: string }) =>
         ({
           senderId: msg.sender_id,
           text: msg.content,
@@ -242,7 +242,7 @@ export class SupabaseSocialService {
           filter: `receiver_id=eq.${userId}`
         },
         (payload) => {
-          const newMessage = payload.new as any;
+          const newMessage = payload.new as { sender_id: string; content: string; created_at?: string };
           this.appendMessage(newMessage.sender_id, {
             senderId: newMessage.sender_id,
             text: newMessage.content,
@@ -261,7 +261,7 @@ export class SupabaseSocialService {
           filter: `sender_id=eq.${userId}`
         },
         (payload) => {
-          const newMessage = payload.new as any;
+          const newMessage = payload.new as { receiver_id: string; sender_id: string; content: string; created_at?: string };
           this.appendMessage(newMessage.receiver_id, {
             senderId: newMessage.sender_id,
             text: newMessage.content,

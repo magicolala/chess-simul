@@ -46,7 +46,7 @@ export class SupabaseClientService {
     const target = user ?? this.user();
     if (!target) return false;
     const metadata = target.app_metadata as Record<string, unknown> | undefined;
-    return Boolean((target as any).is_anonymous || metadata?.provider === 'anonymous');
+    return Boolean((target as { is_anonymous?: boolean }).is_anonymous || metadata?.provider === 'anonymous');
   }
 
   async ensureAnonymousSession() {

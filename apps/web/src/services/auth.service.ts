@@ -46,7 +46,8 @@ export class AuthService {
             session.user.email_confirmed_at !== undefined &&
             session.user.email_confirmed_at !== null,
           onboardingCompleted: session.user.user_metadata['onboarding_completed'] || false,
-          twoFactorEnabled: (session.user as any).two_factor_enabled || false,
+          twoFactorEnabled:
+            (session.user as { two_factor_enabled?: boolean }).two_factor_enabled || false,
           elo: 1200, // Default value, will be updated by profile fetch
           isAnonymous: session.user.is_anonymous || false
         };
@@ -96,8 +97,8 @@ export class AuthService {
         throw new Error(error.message);
       }
       return true;
-    } catch (e: any) {
-      this.error.set(e.message || 'Erreur de connexion.');
+    } catch (e) {
+      this.error.set((e as Error).message || 'Erreur de connexion.');
       return false;
     } finally {
       this.isLoading.set(false);
@@ -125,8 +126,8 @@ export class AuthService {
       // For now, the user_metadata will be updated in the finishAuth based on session.user.user_metadata
 
       return true;
-    } catch (e: any) {
-      this.error.set(e.message);
+    } catch (e) {
+      this.error.set((e as Error).message);
       return false;
     } finally {
       this.isLoading.set(false);
@@ -169,8 +170,8 @@ export class AuthService {
       }
 
       // The session listener in the constructor will update currentUser signal via metadata update
-    } catch (e: any) {
-      this.error.set(e.message || 'Erreur lors de la mise à jour du profil.');
+    } catch (e) {
+      this.error.set((e as Error).message || 'Erreur lors de la mise à jour du profil.');
     } finally {
       this.isLoading.set(false);
     }
@@ -184,8 +185,8 @@ export class AuthService {
       const { error } = await this.supabase.client.auth.updateUser({ password: newP });
       if (error) throw new Error(error.message);
       return true;
-    } catch (e: any) {
-      this.error.set(e.message);
+    } catch (e) {
+      this.error.set((e as Error).message);
       return false;
     } finally {
       this.isLoading.set(false);
@@ -219,8 +220,8 @@ export class AuthService {
         this.finishAuth({ ...user, emailVerified: true });
       }
       return true;
-    } catch (e: any) {
-      this.error.set(e.message);
+    } catch (e) {
+      this.error.set((e as Error).message);
       return false;
     } finally {
       this.isLoading.set(false);
@@ -261,8 +262,8 @@ export class AuthService {
         this.finishAuth({ ...user, ...updates, onboardingCompleted: true });
       }
       return true;
-    } catch (e: any) {
-      this.error.set(e.message || 'Erreur lors de la finalisation du profil.');
+    } catch (e) {
+      this.error.set((e as Error).message || 'Erreur lors de la finalisation du profil.');
       return false;
     } finally {
       this.isLoading.set(false);
@@ -279,8 +280,8 @@ export class AuthService {
       });
       if (error) throw new Error(error.message);
       return true;
-    } catch (e: any) {
-      this.error.set(e.message);
+    } catch (e) {
+      this.error.set((e as Error).message);
       return false;
     } finally {
       this.isLoading.set(false);
@@ -299,8 +300,8 @@ export class AuthService {
       if (error) {
         throw new Error(error.message || 'Erreur de déconnexion.');
       }
-    } catch (e: any) {
-      this.error.set(e.message || 'Erreur de déconnexion.');
+    } catch (e) {
+      this.error.set((e as Error).message || 'Erreur de déconnexion.');
     } finally {
       this.isLoading.set(false);
     }

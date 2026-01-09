@@ -133,6 +133,8 @@ export class OnlineGameComponent implements OnDestroy {
   prefs = inject(PreferencesService);
   matchmaking = inject(SupabaseMatchmakingService);
 
+  leaveGame = output<void>();
+
   game = signal<GameRow | null>(null);
   moves = signal<MoveRow[]>([]);
   onlinePlayers = signal<any[]>([]);
@@ -149,7 +151,7 @@ export class OnlineGameComponent implements OnDestroy {
           username: user.name
         } : undefined);
       }
-    }, { allowSignalWrites: true });
+    });
 
     // Sync service observables to signals
     this.realtime.game$.subscribe(g => this.game.set(g));
@@ -218,6 +220,7 @@ export class OnlineGameComponent implements OnDestroy {
 
   leave() {
     this.matchmaking.activeGameId.set(null);
+    this.leaveGame.emit();
   }
 
   formatTime(ms: number | undefined): string {

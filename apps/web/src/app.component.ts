@@ -390,9 +390,17 @@ export class AppComponent {
     this.currentView.set('simul-player');
   }
 
-  enterFocusMode(gameId: number) {
-    this.focusedGameId.set(gameId);
-    this.currentView.set('focus');
+  enterFocusMode(gameId: string) {
+    this.handleMpJoined(gameId);
+  }
+
+  handleSimulNavigation(simulId?: string) {
+    if (simulId) {
+      this.viewParam.set(simulId);
+      this.currentView.set('simul-lobby');
+    } else {
+      this.switchView('simul-list');
+    }
   }
 
   exitFocusMode() {
@@ -508,6 +516,7 @@ export class AppComponent {
   handleMpJoined(gameId?: string | null) {
     if (gameId) {
       this.viewParam.set(gameId);
+      this.matchmakingService.activeGameId.set(gameId);
     }
     this.currentView.set('online-game');
   }

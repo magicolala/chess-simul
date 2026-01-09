@@ -290,7 +290,7 @@
           <app-dashboard
             (startQuickGame)="handleQuickPlay($event)"
             (resumeGame)="handleMpJoined($event)"
-            (goToSimul)="switchView('simul-list')"
+            (goToSimul)="handleSimulNavigation($event)"
             (goToHistory)="switchView('history')"
             (goToSocial)="switchView('social-hub')"
           >
@@ -299,7 +299,7 @@
 
         <!-- MULTIPLAYER VIEWS -->
         @else if (currentView() === 'multiplayer-lobby') {
-          <app-multiplayer-lobby (joined)="handleMpJoined($event)"></app-multiplayer-lobby>
+          <app-multiplayer-lobby></app-multiplayer-lobby>
         } @else if (currentView() === 'online-game') {
           <app-online-game (leaveGame)="switchView('dashboard')"></app-online-game>
         }

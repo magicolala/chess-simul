@@ -182,8 +182,6 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
 export class MultiplayerLobbyComponent {
   matchmaking = inject(SupabaseMatchmakingService);
 
-  joined = output<string | null>();
-
   selectedTimeControl = '3+2';
   inviteTimeControl = '5+0';
   friendId = '';
@@ -192,12 +190,7 @@ export class MultiplayerLobbyComponent {
     console.log('[MultiplayerLobby] 🚀 Starting quick play with time control:', this.selectedTimeControl);
     const game = await this.matchmaking.joinQueue(this.selectedTimeControl);
     console.log('[MultiplayerLobby] 🎯 joinQueue returned:', game);
-    if (game) {
-      console.log('[MultiplayerLobby] ✅ Emitting joined event with game ID:', game.id);
-      this.joined.emit(game.id ?? null);
-    } else {
-      console.log('[MultiplayerLobby] ⚠️ No game returned, still in queue');
-    }
+    // Navigation is handled by AppComponent effect watching activeGameId
   }
 
   cancelQueue() {
@@ -212,11 +205,8 @@ export class MultiplayerLobbyComponent {
   async accept(inviteId: string) {
     console.log('[MultiplayerLobby] Accepting invite:', inviteId);
     console.log('[MultiplayerLobby] Current incoming invites:', this.matchmaking.incomingInvites());
-    const game = await this.matchmaking.acceptInvite(inviteId);
-    console.log('[MultiplayerLobby] Accept result:', game);
-    if (game) {
-      this.joined.emit(game.id ?? null);
-    }
+    await this.matchmaking.acceptInvite(inviteId);
+    // Navigation is handled by AppComponent effect
   }
 
   decline(inviteId: string) {

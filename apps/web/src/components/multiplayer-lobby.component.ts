@@ -189,9 +189,14 @@ export class MultiplayerLobbyComponent {
   friendId = '';
 
   async startQuickPlay() {
+    console.log('[MultiplayerLobby] 🚀 Starting quick play with time control:', this.selectedTimeControl);
     const game = await this.matchmaking.joinQueue(this.selectedTimeControl);
+    console.log('[MultiplayerLobby] 🎯 joinQueue returned:', game);
     if (game) {
+      console.log('[MultiplayerLobby] ✅ Emitting joined event with game ID:', game.id);
       this.joined.emit(game.id ?? null);
+    } else {
+      console.log('[MultiplayerLobby] ⚠️ No game returned, still in queue');
     }
   }
 
@@ -205,7 +210,10 @@ export class MultiplayerLobbyComponent {
   }
 
   async accept(inviteId: string) {
+    console.log('[MultiplayerLobby] Accepting invite:', inviteId);
+    console.log('[MultiplayerLobby] Current incoming invites:', this.matchmaking.incomingInvites());
     const game = await this.matchmaking.acceptInvite(inviteId);
+    console.log('[MultiplayerLobby] Accept result:', game);
     if (game) {
       this.joined.emit(game.id ?? null);
     }

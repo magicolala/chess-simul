@@ -14,6 +14,7 @@ export class SupabaseMatchmakingService {
   activeGameId = signal<string | null>(null);
   incomingInvites = signal<InviteRow[]>([]);
   outgoingInvites = signal<InviteRow[]>([]);
+  activeGames = signal<any[]>([]);
 
   constructor() {
     effect(
@@ -28,6 +29,7 @@ export class SupabaseMatchmakingService {
         }
 
         this.refreshInvites();
+        this.refreshActiveGames();
       }
     );
   }
@@ -45,7 +47,8 @@ export class SupabaseMatchmakingService {
   }
 
   async joinQueue(timeControl: string) {
-    if (!this.ensureUser()) return null;
+    const user = this.ensureUser();
+    if (!user) return null;
 
     const trimmed = timeControl.trim();
     if (!trimmed) {
@@ -53,25 +56,35 @@ export class SupabaseMatchmakingService {
       return null;
     }
 
+    console.log('[MatchmakingService] 🎮 Joining queue:', {
+      userId: user.id,
+      timeControl: trimmed,
+      timestamp: new Date().toISOString()
+    });
+
     this.queueStatus.set('searching');
     const { data, error } = await this.supabase.functions.invoke('join-queue', {
       body: { time_control: trimmed }
     });
 
+    console.log('[MatchmakingService] 📩 join-queue response:', { data, error });
+
     if (error) {
-      console.error('joinQueue error', error);
+      console.error('[MatchmakingService] ❌ joinQueue error', error);
       this.queueStatus.set('idle');
       this.notify("Impossible de rejoindre la file d'attente.");
       return null;
     }
 
     if (data?.matched && data.game) {
+      console.log('[MatchmakingService] ✅ Match found! Game created:', data.game);
       this.activeGameId.set(data.game.id);
       this.queueStatus.set('matched');
       this.notify('Adversaire trouvé ! La partie est prête.');
       return data.game;
     }
 
+    console.log('[MatchmakingService] ⏳ In queue, waiting for match...');
     this.notify('En attente d’un adversaire...');
     return null;
   }
@@ -144,9 +157,16 @@ export class SupabaseMatchmakingService {
   async acceptInvite(inviteId: string) {
     if (!this.ensureUser()) return null;
 
-    const { data, error } = await this.supabase.functions.invoke('accept-invite', {
+    console.log('[MatchmakingService] 📤 Calling accept-invite for:', inviteId);
+    
+    const { data: rawData, error } = await this.supabase.functions.invoke('accept-invite', {
       body: { invite_id: inviteId }
     });
+
+    // Parse if response is a string
+    const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+
+    console.log('[MatchmakingService] 📥 accept-invite response:', { data, error });
 
     if (error) {
       console.error('acceptInvite error', error);
@@ -155,9 +175,12 @@ export class SupabaseMatchmakingService {
     }
 
     if (data?.game) {
+      console.log('[MatchmakingService] ✅ Game created:', data.game);
       this.activeGameId.set(data.game.id);
       this.queueStatus.set('matched');
       this.notify('Invitation acceptée, partie créée.');
+    } else {
+      console.warn('[MatchmakingService] ⚠️ No game in response:', data);
     }
 
     await this.refreshInvites();
@@ -188,21 +211,53 @@ export class SupabaseMatchmakingService {
     const user = this.supabaseService.currentUser();
     if (!user) return;
 
+    console.log('[MatchmakingService] 🔄 Refreshing invites for user:', user.id);
+
     const { data, error } = await this.supabase
       .from('invites')
       .select('id, from_user, to_user, time_control, status, created_at, updated_at')
       .or(`from_user.eq.${user.id},to_user.eq.${user.id}`)
+      .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('refreshInvites error', error);
+      console.error('[MatchmakingService] ❌ refreshInvites error', error);
       return;
     }
 
     const incoming = (data ?? []).filter((invite) => invite.to_user === user.id);
     const outgoing = (data ?? []).filter((invite) => invite.from_user === user.id);
 
+    console.log('[MatchmakingService] 📬 Invites refreshed:', {
+      total: data?.length ?? 0,
+      incoming: incoming.length,
+      outgoing: outgoing.length,
+      invites: data
+    });
+
     this.incomingInvites.set(incoming);
     this.outgoingInvites.set(outgoing);
+  }
+
+  async refreshActiveGames() {
+    const user = this.supabaseService.currentUser();
+    if (!user) return;
+
+    console.log('[MatchmakingService] 🎮 Refreshing active games for user:', user.id);
+
+    const { data, error } = await this.supabase
+      .from('games')
+      .select('*')
+      .or(`white_id.eq.${user.id},black_id.eq.${user.id}`)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[MatchmakingService] ❌ refreshActiveGames error', error);
+      return;
+    }
+
+    console.log(`[MatchmakingService] ✅ Found ${data?.length ?? 0} active games:`, data);
+    this.activeGames.set(data ?? []);
   }
 }

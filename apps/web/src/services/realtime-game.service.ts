@@ -178,7 +178,6 @@ export class RealtimeGameService implements OnDestroy {
        console.error('Resign game error:', error);
        if (error && typeof error === 'object' && 'context' in error) {
          try {
-             // @ts-expect-error - Accessing internal context from Supabase error which is not typed
              const response = error.context as Response;
              if (response && response.json) {
                 const body = await response.json();

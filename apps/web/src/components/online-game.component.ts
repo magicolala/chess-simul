@@ -1,4 +1,4 @@
-import { Component, inject, computed, effect, OnDestroy, output } from '@angular/core';
+import { Component, inject, computed, effect, OnDestroy, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -138,6 +138,9 @@ export class OnlineGameComponent implements OnDestroy {
   onlinePlayers = this.realtime.onlinePlayers;
 
   // Subscriptions handled by service
+  now = signal(Date.now());
+  private timerInterval: any;
+
   constructor() {
     effect(() => {
       const gId = this.matchmaking.activeGameId();
@@ -150,10 +153,16 @@ export class OnlineGameComponent implements OnDestroy {
         } : undefined);
       }
     });
+    
+    // Ticking for timer
+    this.timerInterval = setInterval(() => {
+      this.now.set(Date.now());
+    }, 100);
   }
 
   ngOnDestroy() {
     this.realtime.teardown();
+    if (this.timerInterval) clearInterval(this.timerInterval);
   }
 
   isMeWhite = computed(() => this.game()?.white_id === this.auth.currentUser()?.id);
@@ -169,15 +178,30 @@ export class OnlineGameComponent implements OnDestroy {
 
   // Clocks
   myTime = computed(() => {
-    const clocks = this.game()?.clocks as any;
+    const g = this.game();
+    const clocks = g?.clocks as any;
     if (!clocks) return 0;
-    return this.isMeWhite() ? clocks.white : clocks.black;
+    
+    const baseTime = this.isMeWhite() ? clocks.white : clocks.black;
+    if (this.isMyTurn() && g?.status === 'active' && g.updated_at) {
+        // If my turn, subtract elapsed time
+        const elapsed = this.now() - new Date(g.updated_at).getTime();
+        return Math.max(0, baseTime - elapsed);
+    }
+    return baseTime;
   });
 
   opponentTime = computed(() => {
-    const clocks = this.game()?.clocks as any;
+    const g = this.game();
+    const clocks = g?.clocks as any;
     if (!clocks) return 0;
-    return this.isMeWhite() ? clocks.black : clocks.white;
+    
+    const baseTime = this.isMeWhite() ? clocks.black : clocks.white;
+    if (this.isOpponentTurn() && g?.status === 'active' && g.updated_at) {
+         const elapsed = this.now() - new Date(g.updated_at).getTime();
+         return Math.max(0, baseTime - elapsed);
+    }
+    return baseTime;
   });
 
   isWinner = computed(() => {
@@ -217,7 +241,7 @@ export class OnlineGameComponent implements OnDestroy {
   }
 
   formatTime(ms: number | undefined): string {
-    if (ms === undefined) return '--:--';
+    if (ms === undefined || ms === null) return '--:--';
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;

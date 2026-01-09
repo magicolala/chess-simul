@@ -18,11 +18,25 @@ export class RealtimeGameService implements OnDestroy {
   loadingMoves = signal<boolean>(false);
   hasMoreMoves = signal<boolean>(true);
 
-  subscribe(gameId: string, presence?: PresenceUser) {
+  async subscribe(gameId: string, presence?: PresenceUser) {
     if (!gameId) return;
+    // If already subscribed to this game with an active channel, do nothing
+    if (this.currentGameId === gameId && this.channel) return;
 
-    void this.teardown();
-    this.resetState();
+    console.log(`[RealtimeGameService] 📡 Subscribing to game: ${gameId}`);
+    await this.teardown();
+    
+    // Only clear game if it's not the one we are subscribing to (preloading support)
+    if (this.game()?.id !== gameId) {
+      this.game.set(null);
+    }
+    
+    this.moves.set([]);
+    this.onlinePlayers.set([]);
+    this.loadingMoves.set(false);
+    this.hasMoreMoves.set(true);
+    this.loadedMoves = 0;
+    
     this.currentGameId = gameId;
 
     const presencePayload: PresenceUser = presence ?? {
@@ -134,6 +148,18 @@ export class RealtimeGameService implements OnDestroy {
     });
 
     if (error) {
+      console.error('Submit move error details:', error);
+      if (error && typeof error === 'object' && 'context' in error) {
+         try {
+             const response = (error as any).context as Response;
+             if (response && response.json) {
+                const body = await response.json();
+                console.error('Submit move error body:', body);
+             }
+         } catch (e) {
+             console.error('Could not parse error body', e);
+         }
+      }
       throw new Error(error.message);
     }
 
@@ -141,12 +167,16 @@ export class RealtimeGameService implements OnDestroy {
   }
 
   async teardown() {
-    if (this.channel) {
-      await this.supabase.removeChannel(this.channel);
-      this.channel = undefined;
+    const channelToClose = this.channel;
+    this.channel = undefined;
+    if (channelToClose) {
+      console.log('[RealtimeGameService] 🔌 Removing channel...');
+      await this.supabase.removeChannel(channelToClose);
     }
-    this.currentGameId = undefined;
-    this.resetState();
+    // We clear sub-state but keep currentGameId to prevent unnecessary re-subscribes
+    // until a new ID is requested.
+    this.moves.set([]);
+    this.onlinePlayers.set([]);
   }
 
   ngOnDestroy(): void {

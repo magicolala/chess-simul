@@ -207,10 +207,12 @@ export class OnlineGameComponent implements OnDestroy {
   isWinner = computed(() => {
     const g = this.game();
     if (!g || g.status === 'active' || g.status === 'draw') return false;
-    // Simple logic for now: if white won and I am white...
-    // The games table doesn't have a winner_id yet in this schema, 
-    // but usually status like 'white_win' or checking result in metadata.
-    // For now we assume if checkmate happens, the one whose turn it IS lost.
+    
+    // Check if winner_id is set (explicit win/resign)
+    if (g.winner_id) {
+        return g.winner_id === this.auth.currentUser()?.id;
+    }
+
     if (g.status === 'checkmate') {
       return g.turn !== this.myColor();
     }
@@ -229,10 +231,16 @@ export class OnlineGameComponent implements OnDestroy {
     }
   }
 
-  resign() {
+  async resign() {
     if (!confirm('Abandonner la partie ?')) return;
-    // To be implemented: resign edge function
-    alert('Abandon non encore implémenté sur le serveur (en cours).');
+    const gId = this.game()?.id;
+    if (!gId) return;
+
+    try {
+      await this.realtime.resignGame(gId);
+    } catch (e: any) {
+      alert('Erreur lors de l\'abandon : ' + e.message);
+    }
   }
 
   leave() {

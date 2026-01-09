@@ -157,9 +157,16 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
     }
   }
 
-  resign() {
-    confirm('Abandonner la simultanée ?');
-    // Implement via edge function later
+  async resign() {
+    if (!confirm('Abandonner la simultanée ?')) return;
+    const gId = this.game()?.id;
+    if (!gId) return;
+
+    try {
+        await this.realtime.resignGame(gId);
+    } catch (e: any) {
+        alert('Erreur: ' + e.message);
+    }
   }
 
   leave() {

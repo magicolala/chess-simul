@@ -166,6 +166,34 @@ export class RealtimeGameService implements OnDestroy {
     return data;
   }
 
+  async resignGame(gameId: string) {
+    const { data, error } = await this.supabase.functions.invoke<{
+      success?: boolean;
+      error?: string;
+    }>('resign-game', {
+      body: { game_id: gameId }
+    });
+
+    if (error) {
+       console.error('Resign game error:', error);
+       if (error && typeof error === 'object' && 'context' in error) {
+         try {
+             // @ts-ignore
+             const response = error.context as Response;
+             if (response && response.json) {
+                const body = await response.json();
+                console.error('Resign game error body:', body);
+             }
+         } catch (e) {
+             console.error('Could not parse error body', e);
+         }
+       }
+       throw new Error(error.message);
+    }
+
+    return data;
+  }
+
   async teardown() {
     const channelToClose = this.channel;
     this.channel = undefined;

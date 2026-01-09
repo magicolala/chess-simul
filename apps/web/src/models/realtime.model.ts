@@ -4,7 +4,7 @@ import type {
   SimulTableRow as DbSimulTableRow
 } from '@chess-simul/shared';
 
-export type GameRow = DbGameRow & { turn_color?: 'white' | 'black' };
+export type GameRow = DbGameRow & { turn_color?: 'white' | 'black'; winner_id?: string | null };
 export type MoveRow = DbMoveRow & { fen?: string };
 export type SimulTableRow = DbSimulTableRow & { guest_id?: string | null };
 

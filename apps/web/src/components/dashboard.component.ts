@@ -1,6 +1,7 @@
-import { Component, inject, output, computed } from '@angular/core';
+import { Component, inject, output, computed, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
+import { SupabaseSimulService } from '../services/supabase-simul.service';
 import { HistoryService } from '../services/history.service';
 import { AuthService } from '../services/auth.service';
 import { SupabaseSocialService } from '../services/supabase-social.service';
@@ -88,33 +89,57 @@ import { ChessBoardComponent } from './chess-board.component';
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @for (game of activeGames(); track game.id) {
                   <div
-                    class="ui-card p-3 flex items-center space-x-4 cursor-pointer hover:translate-x-1 transition-transform"
+                    class="ui-card p-3 flex items-center space-x-4 cursor-pointer hover:border-[#1D1C1C] dark:hover:border-white transition-all relative overflow-hidden group/game"
+                    [class.ring-2]="isMyTurn(game)"
+                    [class.ring-[#7AF7F7]]="isMyTurn(game)"
                     (click)="resumeGame.emit(game.id)"
                   >
-                    <div class="w-24 h-24 pointer-events-none border border-gray-200">
+                    <!-- Turn indicator ribbon -->
+                    @if (isMyTurn(game)) {
+                      <div class="absolute top-0 right-0 w-16 h-16 pointer-events-none overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-[#7AF7F7] text-[#1D1C1C] text-[8px] font-black uppercase py-0.5 w-32 text-center rotate-45 translate-x-10 translate-y-3 shadow-sm">
+                          À VOUS
+                        </div>
+                      </div>
+                    }
+
+                    <div class="w-20 h-20 md:w-24 md:h-24 pointer-events-none border border-gray-200 dark:border-gray-800 rounded-sm overflow-hidden flex-shrink-0">
                       <app-chess-board
                         [fen]="game.fen"
                         [lastMove]="null"
+                        [orientation]="game.white_id === auth.currentUser()?.id ? 'w' : 'b'"
                       ></app-chess-board>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="flex justify-between items-start">
-                        <h4 class="font-bold font-display text-sm truncate">
-                          {{ getOpponentName(game) }}
-                        </h4>
+                      <div class="flex justify-between items-start mb-1">
+                        <div class="flex items-center space-x-2 truncate">
+                           <img [src]="getOpponentAvatar(game)" class="w-5 h-5 rounded-full border border-gray-100" />
+                           <h4 class="font-bold font-display text-xs md:text-sm truncate">
+                             {{ getOpponentName(game) }}
+                           </h4>
+                        </div>
                         <span
-                          class="text-[10px] font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded"
-                          >{{ formatTime(getMyTime(game)) }}</span
+                          class="text-[10px] font-mono font-black px-1.5 py-0.5 rounded"
+                          [class.bg-green-100]="isMyTurn(game)"
+                          [class.text-green-700]="isMyTurn(game)"
+                          [class.bg-gray-100]="!isMyTurn(game)"
+                          [class.dark:bg-gray-800]="!isMyTurn(game)"
                         >
+                          {{ formatTime(getMyTime(game)) }}
+                        </span>
                       </div>
-                      <p class="text-xs text-gray-500 truncate mt-1">
-                        {{ isMyTurn(game) ? 'À vous !' : 'En attente...' }}
+                      <p class="text-[10px] text-gray-500 font-mono flex items-center">
+                        <span class="w-2 h-2 rounded-full mr-2" [class.bg-[#7AF7F7]]="isMyTurn(game)" [class.bg-gray-300]="!isMyTurn(game)"></span>
+                        {{ isMyTurn(game) ? 'C’est à votre tour !' : 'En attente de l’adversaire' }}
                       </p>
-                      <button
-                        class="mt-2 text-[10px] font-bold uppercase bg-[#1D1C1C] text-white px-3 py-1 hover:bg-[#7AF7F7] hover:text-[#1D1C1C] transition-colors"
-                      >
-                        Reprendre
-                      </button>
+                      
+                      <div class="mt-3 flex space-x-2">
+                        <button
+                          class="flex-1 text-[10px] font-black uppercase bg-[#1D1C1C] text-white dark:bg-white dark:text-[#1D1C1C] py-1.5 hover:bg-[#7AF7F7] hover:text-[#1D1C1C] transition-colors"
+                        >
+                          Reprendre
+                        </button>
+                      </div>
                     </div>
                   </div>
                 }
@@ -229,7 +254,7 @@ import { ChessBoardComponent } from './chess-board.component';
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Simultanées Card -->
         <div
-          (click)="goToSimul.emit()"
+          (click)="enterSimul()"
           class="bg-[#FFF48D] border-2 border-[#1D1C1C] wero-shadow p-6 cursor-pointer hover:-translate-y-1 transition-transform relative overflow-hidden group"
         >
           <div
@@ -239,12 +264,12 @@ import { ChessBoardComponent } from './chess-board.component';
           </div>
           <h3 class="text-xl font-black font-display text-[#1D1C1C] uppercase mb-1">Simultanées</h3>
           <p class="text-sm font-bold text-[#1D1C1C]/80 mb-4">
-            Défiez jusqu'à 20 joueurs en même temps.
+            {{ hostedSimul() ? 'Votre simultanée est en cours.' : 'Défiez jusqu\'à 20 joueurs en même temps.' }}
           </p>
           <span
             class="inline-block bg-[#1D1C1C] text-white text-xs font-black px-3 py-1 uppercase group-hover:bg-white group-hover:text-[#1D1C1C] transition-colors border-2 border-transparent group-hover:border-[#1D1C1C]"
           >
-            Créer / Rejoindre
+            {{ hostedSimul() ? 'Continuer' : 'Voir tout / Créer' }}
           </span>
         </div>
 
@@ -309,16 +334,23 @@ export class DashboardComponent {
   auth = inject(AuthService);
   socialService = inject(SupabaseSocialService);
   matchmaking = inject(SupabaseMatchmakingService);
+  simulService = inject(SupabaseSimulService);
   historyService = inject(HistoryService);
 
   startQuickGame = output<{ time: number; inc: number }>();
   resumeGame = output<string>();
-  goToSimul = output<void>();
+  goToSimul = output<string | undefined>();
   goToHistory = output<void>();
   goToSocial = output<void>();
 
   // Computed
   activeGames = computed(() => this.matchmaking.activeGames());
+
+  hostedSimul = computed(() => {
+    const list = this.simulService.simulList();
+    const myId = this.auth.currentUser()?.id;
+    return list.find(s => s.host_id === myId && (s.status === 'open' || s.status === 'running'));
+  });
 
   recentHistory = computed(() => this.historyService.history().slice(0, 5));
 
@@ -333,6 +365,10 @@ export class DashboardComponent {
     this.startQuickGame.emit({ time, inc });
   }
 
+  enterSimul() {
+    this.goToSimul.emit(this.hostedSimul()?.id);
+  }
+
   formatTime(ms: number | undefined): string {
     if (ms === undefined) return '--:--';
     const totalSeconds = Math.floor(ms / 1000);
@@ -343,7 +379,16 @@ export class DashboardComponent {
 
   getOpponentName(game: any): string {
     const myId = this.auth.currentUser()?.id;
-    return game.white_id === myId ? `Adversaire (${game.black_id?.substring(0,8)})` : `Adversaire (${game.white_id?.substring(0,8)})`;
+    const isWhite = game.white_id === myId;
+    const profile = isWhite ? game.black_profile : game.white_profile;
+    return profile?.username || `Adversaire (${(isWhite ? game.black_id : game.white_id)?.substring(0, 8)})`;
+  }
+
+  getOpponentAvatar(game: any): string {
+    const myId = this.auth.currentUser()?.id;
+    const isWhite = game.white_id === myId;
+    const profile = isWhite ? game.black_profile : game.white_profile;
+    return profile?.avatar_url || 'https://placehold.co/48x48?text=👤';
   }
 
   isMyTurn(game: any): boolean {

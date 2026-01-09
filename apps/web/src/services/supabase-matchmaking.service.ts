@@ -1,5 +1,6 @@
 import { Injectable, effect, inject, signal } from '@angular/core';
 import { SupabaseClientService } from './supabase-client.service';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import type { InviteRow } from '@chess-simul/shared';
 
 @Injectable({
@@ -16,6 +17,8 @@ export class SupabaseMatchmakingService {
   outgoingInvites = signal<InviteRow[]>([]);
   activeGames = signal<any[]>([]);
 
+  private gamesChannel?: RealtimeChannel;
+
   constructor() {
     effect(
       () => {
@@ -30,8 +33,48 @@ export class SupabaseMatchmakingService {
 
         this.refreshInvites();
         this.refreshActiveGames();
+        this.subscribeToGames(user.id);
       }
     );
+  }
+
+  private subscribeToGames(userId: string) {
+    if (this.gamesChannel) {
+      this.supabase.removeChannel(this.gamesChannel);
+    }
+
+    console.log('[MatchmakingService] 📡 Subscribing to real-time game updates for:', userId);
+
+    this.gamesChannel = this.supabase
+      .channel(`active-games-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'games'
+        },
+        (payload) => {
+          const game = payload.new as any;
+          // Refresh if user is involved
+          if (game && (game.white_id === userId || game.black_id === userId)) {
+             console.log('[MatchmakingService] 🔄 Real-time game update received, refreshing list...');
+             this.refreshActiveGames();
+          }
+          // Also refresh on deletes if user was involved (handled by refresh)
+          if (payload.eventType === 'DELETE') {
+             this.refreshActiveGames();
+          }
+        }
+      )
+      .subscribe();
+  }
+
+  teardown() {
+    if (this.gamesChannel) {
+      this.supabase.removeChannel(this.gamesChannel);
+      this.gamesChannel = undefined;
+    }
   }
 
   private ensureUser() {
@@ -247,7 +290,11 @@ export class SupabaseMatchmakingService {
 
     const { data, error } = await this.supabase
       .from('games')
-      .select('*')
+      .select(`
+        *,
+        white_profile:white_id(username, avatar_url),
+        black_profile:black_id(username, avatar_url)
+      `)
       .or(`white_id.eq.${user.id},black_id.eq.${user.id}`)
       .eq('status', 'active')
       .order('created_at', { ascending: false });

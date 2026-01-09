@@ -12,7 +12,7 @@ import { ChessSimulService, GameState, GameConfig } from './services/chess-logic
 import { AuthService } from './services/auth.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
-import { MultiplayerService } from './services/multiplayer.service';
+import { Action } from './services/history.service';
 import { SupabaseSimulService } from './services/supabase-simul.service';
 import { SupabaseSocialService } from './services/supabase-social.service';
 import { SupabaseMatchmakingService } from './services/supabase-matchmaking.service';
@@ -35,7 +35,6 @@ import { OnboardingComponent } from './components/onboarding.component';
 import { ForgotPasswordComponent } from './components/forgot-password.component';
 import { DashboardComponent } from './components/dashboard.component';
 import { MultiplayerLobbyComponent } from './components/multiplayer-lobby.component';
-import { GameRoomComponent } from './components/game-room.component';
 import { OnlineGameComponent } from './components/online-game.component';
 import { SocialHubComponent } from './components/social-hub.component';
 import { PublicProfileComponent } from './components/public-profile.component';
@@ -61,7 +60,6 @@ type ViewState =
   | 'simul-player'
   | 'round-robin-simul'
   | 'multiplayer-lobby'
-  | 'game-room'
   | 'online-game'
   | 'social-hub'
   | 'public-profile'
@@ -90,7 +88,6 @@ type ViewState =
     ForgotPasswordComponent,
     DashboardComponent,
     MultiplayerLobbyComponent,
-    GameRoomComponent,
     OnlineGameComponent,
     SocialHubComponent,
     PublicProfileComponent,
@@ -105,7 +102,6 @@ export class AppComponent {
   auth = inject(AuthService);
   historyService = inject(HistoryService);
   prefs = inject(PreferencesService);
-  mpService = inject(MultiplayerService);
   simulService = inject(SupabaseSimulService);
   socialService = inject(SupabaseSocialService);
   matchmakingService = inject(SupabaseMatchmakingService);
@@ -237,9 +233,12 @@ export class AppComponent {
     // Watch for matchmaking match
     effect(() => {
       const gameId = this.matchmakingService.activeGameId();
-      if (gameId && this.currentView() !== 'online-game' && this.currentView() !== 'game-room') {
+      console.log('[AppComponent] 🎮 Matchmaking activeGameId changed:', gameId);
+      console.log('[AppComponent] 📏 Current view:', this.currentView());
+      if (gameId && this.currentView() !== 'online-game') {
+        console.log('[AppComponent] ➡️ Navigating to online-game with ID:', gameId);
         this.viewParam.set(gameId);
-        this.currentView.set('game-room');
+        this.currentView.set('online-game');
       }
     });
   }
@@ -294,21 +293,37 @@ export class AppComponent {
     this.showSettingsModal.set(false);
   }
 
-  startNewSession() {
-    this.logicService.startPvpSession(this.newGameConfig());
+  async startNewSession() {
+    const config = this.newGameConfig();
+    
+    // If it's a PvP request and user is logged in, try online matching first
+    if (config.difficulty === 'pvp' && this.auth.currentUser()) {
+       this.currentView.set('multiplayer-lobby');
+       const tc = `${config.timeMinutes}+${config.incrementSeconds}`;
+       await this.matchmakingService.joinQueue(tc);
+    } else {
+       this.logicService.startPvpSession(config);
+       this.currentView.set('game');
+    }
     this.showNewGameModal.set(false);
-    this.currentView.set('game');
   }
 
-  handleQuickPlay(config: { time: number; inc: number }) {
-    this.newGameConfig.set({
+  async handleQuickPlay(config: { time: number; inc: number }) {
+    this.newGameConfig.update(c => ({
+      ...c,
       timeMinutes: config.time,
       incrementSeconds: config.inc,
       opponentCount: 1,
-      difficulty: 'pvp',
-      gameMode: this.newGameConfig().gameMode
-    });
-    this.startNewSession();
+      difficulty: 'pvp'
+    }));
+
+    if (this.auth.currentUser()) {
+      this.currentView.set('multiplayer-lobby');
+      const tc = `${config.time}+${config.inc}`;
+      await this.matchmakingService.joinQueue(tc);
+    } else {
+      this.startNewSession();
+    }
   }
 
   startFriendGame(config: { time: number; inc: number; color: 'w' | 'b' | 'random' }) {
@@ -494,7 +509,7 @@ export class AppComponent {
     if (gameId) {
       this.viewParam.set(gameId);
     }
-    this.currentView.set('game-room');
+    this.currentView.set('online-game');
   }
 
   handleGameStart() {

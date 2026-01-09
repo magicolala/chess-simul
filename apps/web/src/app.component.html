@@ -289,7 +289,7 @@
         @if (currentView() === 'dashboard') {
           <app-dashboard
             (startQuickGame)="handleQuickPlay($event)"
-            (resumeGame)="enterFocusMode($event)"
+            (resumeGame)="handleMpJoined($event)"
             (goToSimul)="switchView('simul-list')"
             (goToHistory)="switchView('history')"
             (goToSocial)="switchView('social-hub')"
@@ -300,11 +300,6 @@
         <!-- MULTIPLAYER VIEWS -->
         @else if (currentView() === 'multiplayer-lobby') {
           <app-multiplayer-lobby (joined)="handleMpJoined($event)"></app-multiplayer-lobby>
-        } @else if (currentView() === 'game-room') {
-          <app-game-room
-            (gameStarted)="handleGameStart()"
-            (goBack)="switchView('multiplayer-lobby')"
-          ></app-game-room>
         } @else if (currentView() === 'online-game') {
           <app-online-game (leaveGame)="switchView('dashboard')"></app-online-game>
         }
@@ -318,9 +313,9 @@
         } @else if (currentView() === 'simul-create') {
           <app-simul-create (start)="createSimul($event)"></app-simul-create>
         } @else if (currentView() === 'simul-lobby') {
-          <app-simul-lobby (start)="startSimulHost()" (leave)="leaveSimulLobby()"></app-simul-lobby>
+          <app-simul-lobby [simulId]="viewParam()" (start)="startSimulHost()" (leave)="leaveSimulLobby()"></app-simul-lobby>
         } @else if (currentView() === 'simul-host') {
-          <app-simul-host></app-simul-host>
+          <app-simul-host [simulId]="viewParam()"></app-simul-host>
         } @else if (currentView() === 'simul-player') {
           <app-simul-player (quit)="leaveSimulLobby()"></app-simul-player>
         } @else if (currentView() === 'round-robin-simul') {

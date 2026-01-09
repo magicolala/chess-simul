@@ -1,9 +1,9 @@
 import { Component, inject, output, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { ChessSimulService } from '../services/chess-logic.service';
+import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
 import { HistoryService } from '../services/history.service';
 import { AuthService } from '../services/auth.service';
-import { SocialService } from '../services/social.service';
+import { SupabaseSocialService } from '../services/supabase-social.service';
 import { ChessBoardComponent } from './chess-board.component';
 
 @Component({
@@ -94,21 +94,21 @@ import { ChessBoardComponent } from './chess-board.component';
                     <div class="w-24 h-24 pointer-events-none border border-gray-200">
                       <app-chess-board
                         [fen]="game.fen"
-                        [lastMove]="game.lastMove"
+                        [lastMove]="null"
                       ></app-chess-board>
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex justify-between items-start">
                         <h4 class="font-bold font-display text-sm truncate">
-                          {{ game.opponentName }}
+                          {{ getOpponentName(game) }}
                         </h4>
                         <span
                           class="text-[10px] font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded"
-                          >{{ formatTime(game.whiteTime) }}</span
+                          >{{ formatTime(getMyTime(game)) }}</span
                         >
                       </div>
                       <p class="text-xs text-gray-500 truncate mt-1">
-                        {{ game.isHostTurn ? 'C'est à vous !' : 'En attente...' }}
+                        {{ isMyTurn(game) ? 'À vous !' : 'En attente...' }}
                       </p>
                       <button
                         class="mt-2 text-[10px] font-bold uppercase bg-[#1D1C1C] text-white px-3 py-1 hover:bg-[#7AF7F7] hover:text-[#1D1C1C] transition-colors"
@@ -307,20 +307,18 @@ import { ChessBoardComponent } from './chess-board.component';
 })
 export class DashboardComponent {
   auth = inject(AuthService);
-  socialService = inject(SocialService);
-  simulService = inject(ChessSimulService);
+  socialService = inject(SupabaseSocialService);
+  matchmaking = inject(SupabaseMatchmakingService);
   historyService = inject(HistoryService);
 
   startQuickGame = output<{ time: number; inc: number }>();
-  resumeGame = output<number>();
+  resumeGame = output<string>();
   goToSimul = output<void>();
   goToHistory = output<void>();
   goToSocial = output<void>();
 
   // Computed
-  activeGames = computed(() =>
-    this.simulService.games().filter((g) => g.status === 'active' && g.mode !== 'simul-host')
-  );
+  activeGames = computed(() => this.matchmaking.activeGames());
 
   recentHistory = computed(() => this.historyService.history().slice(0, 5));
 
@@ -335,10 +333,29 @@ export class DashboardComponent {
     this.startQuickGame.emit({ time, inc });
   }
 
-  formatTime(ms: number): string {
+  formatTime(ms: number | undefined): string {
+    if (ms === undefined) return '--:--';
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  getOpponentName(game: any): string {
+    const myId = this.auth.currentUser()?.id;
+    return game.white_id === myId ? `Adversaire (${game.black_id?.substring(0,8)})` : `Adversaire (${game.white_id?.substring(0,8)})`;
+  }
+
+  isMyTurn(game: any): boolean {
+    const myId = this.auth.currentUser()?.id;
+    const myColor = game.white_id === myId ? 'w' : 'b';
+    return game.turn === myColor;
+  }
+
+  getMyTime(game: any): number {
+    const myId = this.auth.currentUser()?.id;
+    const clocks = game.clocks as any;
+    if (!clocks) return 0;
+    return game.white_id === myId ? clocks.white : clocks.black;
   }
 }

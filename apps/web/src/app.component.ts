@@ -296,15 +296,9 @@ export class AppComponent {
   async startNewSession() {
     const config = this.newGameConfig();
     
-    // If it's a PvP request and user is logged in, try online matching first
-    if (config.difficulty === 'pvp' && this.auth.currentUser()) {
-       this.currentView.set('multiplayer-lobby');
-       const tc = `${config.timeMinutes}+${config.incrementSeconds}`;
-       await this.matchmakingService.joinQueue(tc);
-    } else {
-       this.logicService.startPvpSession(config);
-       this.currentView.set('game');
-    }
+    // Always start local session from this modal
+    this.logicService.startPvpSession(config);
+    this.currentView.set('game');
     this.showNewGameModal.set(false);
   }
 

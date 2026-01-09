@@ -96,7 +96,7 @@ test.describe('Authentication Flow', () => {
         await page.goto('/');
 
         await page.getByRole('button', { name: /connexion|me connecter/i }).first().click();
-        await page.getByText(/mot de passe oublié|forgot password/i).click();
+        await page.getByRole('button', { name: /oublié \?/i }).click();
 
         // Vérifier la redirection vers la page de réinitialisation
         await expect(page).toHaveURL(/forgot-password/);

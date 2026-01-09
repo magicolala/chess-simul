@@ -53,6 +53,23 @@
               <span class="mr-3 text-lg">📊</span> Tableau de bord
             </button>
 
+            <!-- Local Game Button -->
+            <button
+              (click)="switchView('game')"
+              class="w-full text-left px-4 py-3 font-bold font-display text-sm flex items-center transition-all border-2 rounded-[2px]"
+              [class.bg-[#FFF48D]]="currentView() === 'game'"
+              [class.border-[#1D1C1C]]="currentView() === 'game'"
+              [class.wero-shadow-sm]="currentView() === 'game'"
+              [class.text-[#1D1C1C]]="true"
+              [class.border-transparent]="currentView() !== 'game'"
+              [class.text-gray-600]="currentView() !== 'game'"
+              [class.dark:text-gray-300]="currentView() !== 'game'"
+              [class.hover:bg-gray-100]="currentView() !== 'game'"
+              [class.dark:hover:bg-gray-800]="currentView() !== 'game'"
+            >
+              <span class="mr-3 text-lg">♟️</span> Table de jeu
+            </button>
+
             <!-- Multiplayer Button -->
             <button
               (click)="switchView('multiplayer-lobby')"

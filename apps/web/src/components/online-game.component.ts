@@ -1,5 +1,4 @@
-import { Component, inject, signal, computed, effect, OnDestroy } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, inject, signal, computed, effect, OnDestroy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -133,12 +132,11 @@ export class OnlineGameComponent implements OnDestroy {
   auth = inject(AuthService);
   prefs = inject(PreferencesService);
   matchmaking = inject(SupabaseMatchmakingService);
-
   leaveGame = output<void>();
 
-  game = toSignal(this.realtime.game$, { initialValue: null });
-  moves = toSignal(this.realtime.moves$, { initialValue: [] });
-  onlinePlayers = toSignal(this.realtime.onlinePlayers$, { initialValue: [] });
+  game = this.realtime.game;
+  moves = this.realtime.moves;
+  onlinePlayers = this.realtime.onlinePlayers;
 
   // Subscriptions handled by service
   constructor() {

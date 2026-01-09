@@ -1,24 +1,25 @@
-import { Injectable } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Injectable, signal, computed } from '@angular/core';
 import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseClientService {
   private supabase: SupabaseClient;
-  private sessionSubject = new BehaviorSubject<Session | null>(null);
-  private userSubject = new BehaviorSubject<User | null>(null);
-  private sessionReadySubject = new BehaviorSubject<boolean>(false);
+  
+  session = signal<Session | null>(null);
+  user = signal<User | null>(null);
+  sessionReady = signal<boolean>(false);
+  
   private profileEnsureInFlight: Promise<void> | null = null;
 
-  readonly session$: Observable<Session | null> = this.sessionSubject.asObservable();
-  readonly user$: Observable<User | null> = this.userSubject.asObservable();
-  readonly sessionReady$: Observable<boolean> = this.sessionReadySubject.asObservable();
-  readonly currentUserSignal = toSignal(this.user$, { initialValue: null });
+  readonly session$ = toObservable(this.session);
+  readonly user$ = toObservable(this.user);
+  readonly sessionReady$ = toObservable(this.sessionReady);
 
   currentUser(): User | null {
-    return this.userSubject.value;
+    return this.user();
   }
 
   constructor() {
@@ -43,7 +44,7 @@ export class SupabaseClientService {
   }
 
   isAnonymousUser(user?: User | null) {
-    const target = user ?? this.userSubject.value;
+    const target = user ?? this.user();
     if (!target) return false;
     const metadata = target.app_metadata as Record<string, unknown> | undefined;
     return Boolean((target as any).is_anonymous || metadata?.provider === 'anonymous');
@@ -66,7 +67,7 @@ export class SupabaseClientService {
   }
 
   async ensureCurrentUserProfile(user?: User | null) {
-    let resolvedUser = user ?? this.userSubject.value;
+    let resolvedUser = user ?? this.user();
     if (!resolvedUser) {
       const { data } = await this.supabase.auth.getUser();
       resolvedUser = data.user ?? null;
@@ -83,16 +84,16 @@ export class SupabaseClientService {
 
   private async initAuthListeners() {
     const { data } = await this.supabase.auth.getSession();
-    this.sessionSubject.next(data.session ?? null);
-    this.userSubject.next(data.session?.user ?? null);
-    this.sessionReadySubject.next(true);
+    this.session.set(data.session ?? null);
+    this.user.set(data.session?.user ?? null);
+    this.sessionReady.set(true);
     if (data.session?.user) {
       await this.ensureCurrentUserProfile();
     }
 
     this.supabase.auth.onAuthStateChange((_, session) => {
-      this.sessionSubject.next(session);
-      this.userSubject.next(session?.user ?? null);
+      this.session.set(session);
+      this.user.set(session?.user ?? null);
       if (session?.user) {
         void this.ensureCurrentUserProfile();
       }

@@ -13,17 +13,11 @@ export class RealtimeGameService implements OnDestroy {
   private loadedMoves = 0;
   private defaultPageSize = 25;
 
-  private gameSubject = new BehaviorSubject<GameRow | null>(null);
-  private movesSubject = new BehaviorSubject<MoveRow[]>([]);
-  private onlinePlayersSubject = new BehaviorSubject<PresenceUser[]>([]);
-  private loadingMovesSubject = new BehaviorSubject<boolean>(false);
-  private hasMoreMovesSubject = new BehaviorSubject<boolean>(true);
-
-  readonly game$ = this.gameSubject.asObservable();
-  readonly moves$ = this.movesSubject.asObservable();
-  readonly onlinePlayers$ = this.onlinePlayersSubject.asObservable();
-  readonly loadingMoves$ = this.loadingMovesSubject.asObservable();
-  readonly hasMoreMoves$ = this.hasMoreMovesSubject.asObservable();
+  game = signal<GameRow | null>(null);
+  moves = signal<MoveRow[]>([]);
+  onlinePlayers = signal<PresenceUser[]>([]);
+  loadingMoves = signal<boolean>(false);
+  hasMoreMoves = signal<boolean>(true);
 
   subscribe(gameId: string, presence?: PresenceUser) {
     if (!gameId) return;
@@ -47,7 +41,7 @@ export class RealtimeGameService implements OnDestroy {
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'games', filter: `id=eq.${gameId}` },
       (payload: RealtimePostgresChangesPayload<GameRow>) => {
-        this.gameSubject.next(this.coerceGameRow(payload.new));
+        this.game.set(this.coerceGameRow(payload.new));
       }
     );
 
@@ -91,10 +85,10 @@ export class RealtimeGameService implements OnDestroy {
   }
 
   async loadNextMovesPage(pageSize = this.defaultPageSize) {
-    if (!this.currentGameId || this.loadingMovesSubject.value || !this.hasMoreMovesSubject.value)
+    if (!this.currentGameId || this.loadingMoves() || !this.hasMoreMoves())
       return;
 
-    this.loadingMovesSubject.next(true);
+    this.loadingMoves.set(true);
     const from = this.loadedMoves;
     const to = from + pageSize - 1;
 
@@ -108,18 +102,18 @@ export class RealtimeGameService implements OnDestroy {
     if (!error && data) {
       this.mergeMoves(data as MoveRow[]);
       if ((data as MoveRow[]).length < pageSize) {
-        this.hasMoreMovesSubject.next(false);
+        this.hasMoreMoves.set(false);
       }
     } else if (error) {
       console.error('Failed to load moves', error);
-      this.hasMoreMovesSubject.next(false);
+      this.hasMoreMoves.set(false);
     }
 
-    this.loadingMovesSubject.next(false);
+    this.loadingMoves.set(false);
   }
 
   preloadGame(game: GameRow | null) {
-    this.gameSubject.next(game);
+    this.game.set(game);
   }
 
   preloadMoves(moves: MoveRow[]) {
@@ -163,26 +157,28 @@ export class RealtimeGameService implements OnDestroy {
   private mergeMoves(incoming: MoveRow[]) {
     if (!incoming || incoming.length === 0) return;
 
-    const existingById = new Map<number, MoveRow>();
-    for (const move of this.movesSubject.value) {
-      existingById.set(move.id, move);
-    }
-
-    for (const move of incoming) {
-      if (move?.id) {
+    this.moves.update(current => {
+      const existingById = new Map<number, MoveRow>();
+      for (const move of current) {
         existingById.set(move.id, move);
       }
-    }
 
-    const merged = Array.from(existingById.values()).sort((a, b) => (a.ply ?? 0) - (b.ply ?? 0));
-    this.movesSubject.next(merged);
-    this.loadedMoves = merged.length;
+      for (const move of incoming) {
+        if (move?.id) {
+          existingById.set(move.id, move);
+        }
+      }
+
+      const merged = Array.from(existingById.values()).sort((a, b) => (a.ply ?? 0) - (b.ply ?? 0));
+      this.loadedMoves = merged.length;
+      return merged;
+    });
   }
 
   private refreshPresence(channel: RealtimeChannel) {
     const state = channel.presenceState<PresenceUser>();
     const flattened = Object.values(state).flat();
-    this.onlinePlayersSubject.next(flattened);
+    this.onlinePlayers.set(flattened);
   }
 
   private coerceGameRow(row: Partial<GameRow> | null | undefined): GameRow | null {
@@ -193,11 +189,11 @@ export class RealtimeGameService implements OnDestroy {
   }
 
   private resetState() {
-    this.gameSubject.next(null);
-    this.movesSubject.next([]);
-    this.onlinePlayersSubject.next([]);
-    this.loadingMovesSubject.next(false);
-    this.hasMoreMovesSubject.next(true);
+    this.game.set(null);
+    this.moves.set([]);
+    this.onlinePlayers.set([]);
+    this.loadingMoves.set(false);
+    this.hasMoreMoves.set(true);
     this.loadedMoves = 0;
   }
 }

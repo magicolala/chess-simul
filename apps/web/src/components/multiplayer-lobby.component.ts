@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
@@ -36,7 +36,11 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           </div>
 
           <label class="ui-label">Cadence</label>
-          <select [(ngModel)]="selectedTimeControl" class="ui-input font-mono font-bold">
+          <select 
+            [ngModel]="selectedTimeControl()" 
+            (ngModelChange)="selectedTimeControl.set($event)"
+            class="ui-input font-mono font-bold"
+          >
             <option value="3+2">3+2 Blitz</option>
             <option value="5+0">5+0 Standard</option>
             <option value="10+0">10+0 Rapide</option>
@@ -82,10 +86,19 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
           </div>
 
           <label class="ui-label">ID de l'ami</label>
-          <input [(ngModel)]="friendId" placeholder="uuid du joueur" class="ui-input font-mono" />
+          <input 
+            [ngModel]="friendId()" 
+            (ngModelChange)="friendId.set($event)"
+            placeholder="uuid du joueur" 
+            class="ui-input font-mono" 
+          />
 
           <label class="ui-label">Cadence</label>
-          <select [(ngModel)]="inviteTimeControl" class="ui-input font-mono font-bold">
+          <select 
+            [ngModel]="inviteTimeControl()" 
+            (ngModelChange)="inviteTimeControl.set($event)"
+            class="ui-input font-mono font-bold"
+          >
             <option value="5+0">5+0</option>
             <option value="10+0">10+0</option>
             <option value="3+2">3+2</option>
@@ -182,24 +195,24 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
 export class MultiplayerLobbyComponent {
   matchmaking = inject(SupabaseMatchmakingService);
 
-  selectedTimeControl = '3+2';
-  inviteTimeControl = '5+0';
-  friendId = '';
+  selectedTimeControl = signal('3+2');
+  inviteTimeControl = signal('5+0');
+  friendId = signal('');
 
   async startQuickPlay() {
-    console.log('[MultiplayerLobby] 🚀 Starting quick play with time control:', this.selectedTimeControl);
-    const game = await this.matchmaking.joinQueue(this.selectedTimeControl);
+    console.log('[MultiplayerLobby] 🚀 Starting quick play with time control:', this.selectedTimeControl());
+    const game = await this.matchmaking.joinQueue(this.selectedTimeControl());
     console.log('[MultiplayerLobby] 🎯 joinQueue returned:', game);
     // Navigation is handled by AppComponent effect watching activeGameId
   }
 
   cancelQueue() {
-    this.matchmaking.leaveQueue(this.selectedTimeControl);
+    this.matchmaking.leaveQueue(this.selectedTimeControl());
   }
 
   async sendInvite() {
-    await this.matchmaking.sendInvite(this.friendId, this.inviteTimeControl);
-    this.friendId = '';
+    await this.matchmaking.sendInvite(this.friendId(), this.inviteTimeControl());
+    this.friendId.set('');
   }
 
   async accept(inviteId: string) {

@@ -1,6 +1,5 @@
-import { Injectable, OnDestroy, inject } from '@angular/core';
+import { Injectable, OnDestroy, inject, signal } from '@angular/core';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { BehaviorSubject } from 'rxjs';
 import { GameRow, MoveRow, PresenceUser } from '../models/realtime.model';
 import { SupabaseClientService } from './supabase-client.service';
 
@@ -63,7 +62,7 @@ export class RealtimeGameService implements OnDestroy {
         channel.track(presencePayload);
         
         // Fetch initial game state if not already set or if it's a different game
-        if (this.gameSubject.value?.id !== gameId) {
+        if (this.game()?.id !== gameId) {
           const { data, error } = await this.supabase
             .from('games')
             .select('*')
@@ -71,7 +70,7 @@ export class RealtimeGameService implements OnDestroy {
             .single();
           
           if (!error && data) {
-            this.gameSubject.next(this.coerceGameRow(data));
+            this.game.set(this.coerceGameRow(data));
           } else if (error) {
             console.error('[RealtimeGameService] ❌ Failed to fetch initial game data:', error);
           }
@@ -118,7 +117,7 @@ export class RealtimeGameService implements OnDestroy {
 
   preloadMoves(moves: MoveRow[]) {
     this.mergeMoves(moves);
-    this.hasMoreMovesSubject.next(false);
+    this.hasMoreMoves.set(false);
   }
 
   async submitMove(gameId: string, uci: string) {

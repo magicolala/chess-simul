@@ -1,7 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
-import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -109,7 +107,7 @@ export class SupabaseClientService {
     const avatarUrl = (user.user_metadata?.avatar_url as string | undefined | null) ?? null;
 
     // Check if profile exists first to avoid 406/409 errors
-    const { data: profiles, error: fetchError } = await this.supabase
+    const { data: profiles } = await this.supabase
       .from('profiles')
       .select('id, username, avatar_url, elo, onboarding_completed, bio')
       .eq('id', user.id)

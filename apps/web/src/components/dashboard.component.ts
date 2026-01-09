@@ -1,4 +1,4 @@
-import { Component, inject, output, computed, OnInit } from '@angular/core';
+import { Component, inject, output, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
 import { SupabaseSimulService } from '../services/supabase-simul.service';
@@ -269,7 +269,7 @@ import { ChessBoardComponent } from './chess-board.component';
           </div>
           <h3 class="text-xl font-black font-display text-[#1D1C1C] uppercase mb-1">Simultanées</h3>
           <p class="text-sm font-bold text-[#1D1C1C]/80 mb-4">
-            {{ hostedSimul() ? 'Votre simultanée est en cours.' : 'Défiez jusqu\'à 20 joueurs en même temps.' }}
+            {{ hostedSimul() ? "Votre simultanée est en cours." : "Défiez jusqu'à 20 joueurs en même temps." }}
           </p>
           <span
             class="inline-block bg-[#1D1C1C] text-white text-xs font-black px-3 py-1 uppercase group-hover:bg-white group-hover:text-[#1D1C1C] transition-colors border-2 border-transparent group-hover:border-[#1D1C1C]"

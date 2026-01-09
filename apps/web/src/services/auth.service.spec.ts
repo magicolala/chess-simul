@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AuthService, type User } from './auth.service';
+import { AuthService } from './auth.service';
 import { SupabaseClientService } from './supabase-client.service';
 import { BehaviorSubject } from 'rxjs';
 import type { Session } from '@supabase/supabase-js';

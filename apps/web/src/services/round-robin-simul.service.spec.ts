@@ -1,7 +1,5 @@
-import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RoundRobinSimulService } from './round-robin-simul.service';
-import { SupabaseClientService } from './supabase-client.service';
 import type {
     RoundRobinSessionResponse,
     RoundRobinJoinResponse,

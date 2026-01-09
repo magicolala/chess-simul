@@ -7,7 +7,7 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
 import { RealtimeGameService } from '../services/realtime-game.service';
 import { RealtimeSimulService } from '../services/realtime-simul.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
-import { SimulTable, SimulWithTables } from '../models/simul.model';
+import { SimulTable } from '../models/simul.model';
 import { GameRow } from '../models/realtime.model';
 
 // Interface for the template-compatible game format
@@ -359,14 +359,12 @@ export class SimulHostComponent implements OnChanges, OnDestroy {
     const simul = this.simulService.activeSimul();
     if (!simul) return [];
 
-    const gamesMap = this.gamesData();
-    const hostId = this.supabaseClient.currentUser()?.id;
+
 
     return simul.simul_tables
       .filter(table => table.game_id && table.status === 'playing')
       .map(table => {
-        const gameRow = gamesMap.get(table.game_id!);
-        return this.transformToHostGame(table, gameRow, hostId);
+        return this.transformToHostGame(table, gameRow);
       })
       .sort((a, b) => a.seatNo - b.seatNo);
   });
@@ -461,7 +459,7 @@ export class SimulHostComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private transformToHostGame(table: SimulTable, gameRow: GameRow | undefined, hostId: string | undefined): HostGameState {
+  private transformToHostGame(table: SimulTable, gameRow: GameRow | undefined): HostGameState {
     const isHostTurn = gameRow?.turn === 'w'; // Host plays white
     const fen = gameRow?.fen ?? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const lastMoveUci = gameRow?.last_move_uci;

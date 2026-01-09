@@ -7,7 +7,6 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
 import { AuthService } from '../services/auth.service';
 import { PreferencesService } from '../services/preferences.service';
-import { GameRow, MoveRow } from '../models/realtime.model';
 
 @Component({
   selector: 'app-simul-player',
@@ -112,16 +111,16 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
 
   constructor() {
     effect(() => {
-      const table = this.simulService.activeTable();
-      if (table && table.game_id) {
-        console.log('[SimulPlayer] Subscribing to game:', table.game_id);
+      const gId = this.simulService.activeTable()?.game_id;
+      if (gId) {
+        console.log('[SimulPlayer] Subscribing to game:', gId);
         const user = this.auth.currentUser();
-        this.realtime.subscribe(table.game_id, user ? {
+        this.realtime.subscribe(gId, user ? {
           user_id: user.id,
           username: user.name
         } : undefined);
       }
-    }, { allowSignalWrites: true });
+    });
   }
 
   async ngOnChanges() {

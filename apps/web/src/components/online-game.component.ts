@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, OnDestroy, output } from '@angular/core';
+import { Component, inject, computed, effect, OnDestroy, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -6,7 +6,6 @@ import { RealtimeGameService } from '../services/realtime-game.service';
 import { AuthService } from '../services/auth.service';
 import { PreferencesService } from '../services/preferences.service';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
-import { GameRow, MoveRow } from '../models/realtime.model';
 
 @Component({
   selector: 'app-online-game',

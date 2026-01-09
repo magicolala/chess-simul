@@ -12,7 +12,6 @@ import { ChessSimulService, GameState, GameConfig } from './services/chess-logic
 import { AuthService } from './services/auth.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
-import { Action } from './services/history.service';
 import { SupabaseSimulService } from './services/supabase-simul.service';
 import { SupabaseSocialService } from './services/supabase-social.service';
 import { SupabaseMatchmakingService } from './services/supabase-matchmaking.service';

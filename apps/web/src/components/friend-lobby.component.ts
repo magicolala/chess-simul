@@ -211,7 +211,7 @@ export class FriendLobbyComponent {
           }
         }
       }
-    } catch (e) {
+    } catch {
       console.error(e);
     } finally {
       this.isSearching.set(false);
@@ -225,7 +225,7 @@ export class FriendLobbyComponent {
       alert('Invitation envoyée !');
       this.searchQuery.set('');
       this.foundUsers.set([]);
-    } catch (e) {
+    } catch {
       alert('Erreur lors de l\'envoi de l\'invitation.');
     }
   }

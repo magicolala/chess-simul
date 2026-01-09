@@ -35,7 +35,7 @@ export class RoundRobinSimulService {
     };
 
     const response = await fetch(`${this.baseUrl}${path}`, { ...init, headers });
-    let payload: any = {};
+    let payload: Record<string, unknown> = {};
     const text = await response.text();
     try {
       if (text) payload = JSON.parse(text);
@@ -50,7 +50,7 @@ export class RoundRobinSimulService {
         error: payload?.error,
         details: payload
       });
-      throw new Error(payload?.error ?? `Erreur serveur (${response.status})`);
+      throw new Error((payload?.error as string | undefined) ?? `Erreur serveur (${response.status})`);
     }
 
     return payload as T;
@@ -65,9 +65,10 @@ export class RoundRobinSimulService {
       this.session.set(payload.session ?? null);
       this.inviteLink.set(payload.inviteLink ?? null);
       return payload.session;
-    } catch (error: any) {
-      this.error.set(error.message ?? 'Erreur de création');
-      if (error?.message === 'Connexion requise') {
+    } catch (error) {
+      const msg = (error as Error).message ?? 'Erreur de création';
+      this.error.set(msg);
+      if (msg === 'Connexion requise') {
         throw error;
       }
       return null;
@@ -87,8 +88,8 @@ export class RoundRobinSimulService {
       });
       this.session.set(payload.session ?? null);
       return payload.session;
-    } catch (error: any) {
-      this.error.set(error.message ?? 'Erreur de chargement');
+    } catch (error) {
+      this.error.set((error as Error).message ?? 'Erreur de chargement');
       this.session.set(null);
       return null;
     } finally {
@@ -104,11 +105,11 @@ export class RoundRobinSimulService {
       const payload = await this.request<RoundRobinJoinResponse>(`/invite/${inviteCode}`, {
         method: 'GET'
       });
-      console.log('[RoundRobinSimulService] Resolved session by invite', payload.session);
+      // console.log('[RoundRobinSimulService] Resolved session by invite', payload.session);
       this.session.set(payload.session ?? null);
       return payload.session;
-    } catch (error: any) {
-      this.error.set(error.message ?? 'Erreur de chargement');
+    } catch (error) {
+      this.error.set((error as Error).message ?? 'Erreur de chargement');
       this.session.set(null);
       return null;
     } finally {
@@ -125,11 +126,11 @@ export class RoundRobinSimulService {
         method: 'POST',
         body: JSON.stringify({ invite_code: inviteCode })
       });
-      console.log('[RoundRobinSimulService] Joined session', payload.session);
+      // console.log('[RoundRobinSimulService] Joined session', payload.session);
       this.session.set(payload.session ?? null);
       return payload.session;
-    } catch (error: any) {
-      this.error.set(error.message ?? 'Erreur de connexion');
+    } catch (error) {
+      this.error.set((error as Error).message ?? 'Erreur de connexion');
       return null;
     } finally {
       this.loading.set(false);
@@ -137,7 +138,7 @@ export class RoundRobinSimulService {
   }
 
   async startSession(sessionId: string) {
-    console.log('[RoundRobinSimulService] Starting session...', sessionId);
+    // console.log('[RoundRobinSimulService] Starting session...', sessionId);
     this.loading.set(true);
     this.error.set(null);
 
@@ -148,8 +149,8 @@ export class RoundRobinSimulService {
       await this.fetchSession(sessionId);
       await this.fetchGames(sessionId);
       return payload;
-    } catch (error: any) {
-      this.error.set(error.message ?? 'Erreur de démarrage');
+    } catch (error) {
+      this.error.set((error as Error).message ?? 'Erreur de démarrage');
       return null;
     } finally {
       this.loading.set(false);
@@ -167,8 +168,8 @@ export class RoundRobinSimulService {
       );
       this.games.set(payload.games ?? []);
       return payload.games ?? [];
-    } catch (error: any) {
-      this.error.set(error.message ?? 'Erreur de chargement');
+    } catch (error) {
+      this.error.set((error as Error).message ?? 'Erreur de chargement');
       this.games.set([]);
       return [];
     } finally {
@@ -186,8 +187,8 @@ export class RoundRobinSimulService {
       this.inviteLink.set(null);
       this.games.set([]);
       return true;
-    } catch (error: any) {
-      this.error.set(error.message ?? 'Erreur de suppression');
+    } catch (error) {
+      this.error.set((error as Error).message ?? 'Erreur de suppression');
       return false;
     } finally {
       this.loading.set(false);

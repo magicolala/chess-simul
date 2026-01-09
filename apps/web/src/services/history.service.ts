@@ -164,17 +164,17 @@ export class HistoryService {
     this.realtimeChannel = this.supabase.client
       .channel(`game-history:${userId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `white_id=eq.${userId}` }, (payload) => {
-        this.handleRealtimeGame(payload.new as any);
+        this.handleRealtimeGame(payload.new as Record<string, unknown>);
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `black_id=eq.${userId}` }, (payload) => {
-        this.handleRealtimeGame(payload.new as any);
+        this.handleRealtimeGame(payload.new as Record<string, unknown>);
       })
       .subscribe();
   }
 
-  private handleRealtimeGame(game: any) {
+  private handleRealtimeGame(game: Record<string, unknown>) {
     if (!game?.status) return;
-    if (['checkmate', 'draw', 'resigned', 'aborted'].includes(game.status)) {
+    if (['checkmate', 'draw', 'resigned', 'aborted'].includes(game.status as string)) {
       void this.fetchHistoryFromSupabase();
     }
   }

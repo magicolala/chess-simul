@@ -1,7 +1,9 @@
+
 import { Component, inject, input, effect, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseSocialService } from '../services/supabase-social.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
+import type { UserProfile } from '../services/social.service';
 
 @Component({
   selector: 'app-public-profile',
@@ -188,7 +190,7 @@ export class PublicProfileComponent {
   // Input: Profile ID to load (from route param usually)
   userId = input<string>('');
 
-  viewedProfile = signal<any | null>(null);
+  viewedProfile = signal<UserProfile | null>(null);
 
   constructor() {
     effect(() => {
@@ -204,7 +206,7 @@ export class PublicProfileComponent {
     return this.auth.currentUser()?.id === id;
   }
 
-  getMaxElo(p: any): number {
-    return Math.max(p.stats.bullet, p.stats.blitz, p.stats.rapid, p.stats.classical);
+  getMaxElo(p: UserProfile): number {
+    return Math.max(p.stats?.bullet || 0, p.stats?.blitz || 0, p.stats?.rapid || 0, p.stats?.classical || 0);
   }
 }

@@ -1,6 +1,14 @@
 import { Component, inject, output, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
+import type { GameRow } from '../models/realtime.model';
+import type { Profile } from '../models/profile.model';
+
+interface DashboardGame extends Omit<GameRow, 'clocks'> {
+  white_profile?: Profile;
+  black_profile?: Profile;
+  clocks?: { white: number; black: number };
+}
 import { SupabaseSimulService } from '../services/supabase-simul.service';
 import { HistoryService } from '../services/history.service';
 import { AuthService } from '../services/auth.service';
@@ -349,7 +357,7 @@ export class DashboardComponent {
   goToSocial = output<void>();
 
   // Computed
-  activeGames = computed(() => this.matchmaking.activeGames());
+  activeGames = computed(() => this.matchmaking.activeGames() as DashboardGame[]);
 
   hostedSimul = computed(() => {
     const list = this.simulService.simulList();
@@ -382,29 +390,29 @@ export class DashboardComponent {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  getOpponentName(game: any): string {
+  getOpponentName(game: DashboardGame): string {
     const myId = this.auth.currentUser()?.id;
     const isWhite = game.white_id === myId;
     const profile = isWhite ? game.black_profile : game.white_profile;
     return profile?.username || `Adversaire (${(isWhite ? game.black_id : game.white_id)?.substring(0, 8)})`;
   }
 
-  getOpponentAvatar(game: any): string {
+  getOpponentAvatar(game: DashboardGame): string {
     const myId = this.auth.currentUser()?.id;
     const isWhite = game.white_id === myId;
     const profile = isWhite ? game.black_profile : game.white_profile;
     return profile?.avatar_url || 'https://placehold.co/48x48?text=👤';
   }
 
-  isMyTurn(game: any): boolean {
+  isMyTurn(game: DashboardGame): boolean {
     const myId = this.auth.currentUser()?.id;
     const myColor = game.white_id === myId ? 'w' : 'b';
     return game.turn === myColor;
   }
 
-  getMyTime(game: any): number {
+  getMyTime(game: DashboardGame): number {
     const myId = this.auth.currentUser()?.id;
-    const clocks = game.clocks as any;
+    const clocks = game.clocks;
     if (!clocks) return 0;
     return game.white_id === myId ? clocks.white : clocks.black;
   }

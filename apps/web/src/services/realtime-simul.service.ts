@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
-import { PresenceUser, SimulTableRow } from '../models/realtime.model';
+import { GameRow, MoveRow, PresenceUser, SimulTableRow } from '../models/realtime.model';
 import { SupabaseClientService } from './supabase-client.service';
 
 @Injectable({ providedIn: 'root' })
@@ -12,9 +12,13 @@ export class RealtimeSimulService implements OnDestroy {
   private currentSimulId?: string;
 
   private tablesSubject = new BehaviorSubject<SimulTableRow[]>([]);
+  private gamesSubject = new BehaviorSubject<GameRow[]>([]);
+  private movesSubject = new BehaviorSubject<MoveRow[]>([]);
   private presenceSubject = new BehaviorSubject<PresenceUser[]>([]);
 
   readonly tables$ = this.tablesSubject.asObservable();
+  readonly games$ = this.gamesSubject.asObservable();
+  readonly moves$ = this.movesSubject.asObservable();
   readonly presence$ = this.presenceSubject.asObservable();
 
   subscribe(simulId: string, presence?: PresenceUser) {
@@ -45,6 +49,32 @@ export class RealtimeSimulService implements OnDestroy {
       },
       (payload: RealtimePostgresChangesPayload<SimulTableRow>) => {
         this.upsertTable(payload.new as SimulTableRow);
+      }
+    );
+
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'games',
+        filter: `simul_id=eq.${simulId}`
+      },
+      (payload: RealtimePostgresChangesPayload<GameRow>) => {
+        this.upsertGame(payload.new as GameRow);
+      }
+    );
+
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'games',
+        filter: `simul_id=eq.${simulId}`
+      },
+      (payload: RealtimePostgresChangesPayload<GameRow>) => {
+        this.upsertGame(payload.new as GameRow);
       }
     );
 
@@ -85,6 +115,12 @@ export class RealtimeSimulService implements OnDestroy {
     this.tablesSubject.next(this.sortTables(nextTables));
   }
 
+  private upsertGame(game: GameRow | null) {
+    if (!game?.id) return;
+    const nextGames = [...this.gamesSubject.value.filter((g) => g.id !== game.id), game];
+    this.gamesSubject.next(nextGames);
+  }
+
   private refreshPresence(channel: RealtimeChannel) {
     const state = channel.presenceState<PresenceUser>();
     const flattened = Object.values(state).flat();
@@ -97,6 +133,8 @@ export class RealtimeSimulService implements OnDestroy {
 
   private resetState() {
     this.tablesSubject.next([]);
+    this.gamesSubject.next([]);
+    this.movesSubject.next([]);
     this.presenceSubject.next([]);
   }
 }

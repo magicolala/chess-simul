@@ -1,9 +1,32 @@
-import { Component, inject, signal, computed, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, HostListener, Input, OnChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChessSimulService } from '../services/chess-logic.service';
 import { ChessBoardComponent } from './chess-board.component';
 import { PreferencesService } from '../services/preferences.service';
+import { SupabaseSimulService } from '../services/supabase-simul.service';
+import { RealtimeGameService } from '../services/realtime-game.service';
+import { RealtimeSimulService } from '../services/realtime-simul.service';
+import { SupabaseClientService } from '../services/supabase-client.service';
+import { SimulTable, SimulWithTables } from '../models/simul.model';
+import { GameRow } from '../models/realtime.model';
+
+// Interface for the template-compatible game format
+interface HostGameState {
+  id: string;
+  tableId: string;
+  seatNo: number;
+  fen: string;
+  lastMove?: { from: string; to: string };
+  opponentName: string;
+  opponentAvatar: string;
+  opponentRating: number;
+  isHostTurn: boolean;
+  status: 'active' | 'waiting' | 'finished';
+  requiresAttention: boolean;
+  whiteTime: number;
+  blackTime: number;
+  history: string[];
+}
 
 @Component({
   selector: 'app-simul-host',
@@ -60,7 +83,7 @@ import { PreferencesService } from '../services/preferences.service';
                     >
                   </div>
                   <div class="flex justify-between items-center text-xs">
-                    <span class="text-gray-500">Board #{{ game.id + 1 }}</span>
+                    <span class="text-gray-500">Table #{{ game.seatNo }}</span>
                     <span class="font-mono font-bold text-[#1D1C1C] dark:text-gray-300">{{
                       formatTime(game.whiteTime)
                     }}</span>
@@ -88,7 +111,7 @@ import { PreferencesService } from '../services/preferences.service';
             >
               <div class="flex justify-between items-center">
                 <span class="font-bold text-xs text-gray-600 dark:text-gray-400"
-                  >#{{ game.id + 1 }} {{ game.opponentName }}</span
+                  >#{{ game.seatNo }} {{ game.opponentName }}</span
                 >
                 <span class="text-[10px] text-gray-400 font-mono">{{
                   formatTime(game.whiteTime)
@@ -105,10 +128,10 @@ import { PreferencesService } from '../services/preferences.service';
           class="ui-card p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
           <div>
-            <p class="text-xs font-black uppercase text-gray-500">Score Hydra</p>
+            <p class="text-xs font-black uppercase text-gray-500">{{ simulService.activeSimul()?.name || 'Simultanée' }}</p>
             <div class="flex items-end space-x-3">
               <span class="text-4xl md:text-5xl font-black text-[#1D1C1C] dark:text-white">{{
-                simulService.hydraScoreboard().totalPoints
+                scoreboard().totalPoints
               }}</span>
               <div class="flex space-x-2 text-xs font-bold uppercase text-gray-500">
                 <span class="px-2 py-1 bg-green-100 text-green-700 border border-green-200"
@@ -121,75 +144,94 @@ import { PreferencesService } from '../services/preferences.service';
               </div>
             </div>
             <p class="text-sm text-gray-500 font-medium mt-1">
-              {{ simulService.hydraScoreboard().activeBoards }} tables actives • potentiel restant
-              {{ simulService.hydraScoreboard().potential }} pts
+              {{ scoreboard().activeBoards }} tables actives • potentiel restant
+              {{ scoreboard().potential }} pts
             </p>
           </div>
           <div class="grid grid-cols-3 gap-3 text-center">
             <div class="bg-[#FFF48D] border-2 border-[#1D1C1C] px-4 py-3 font-black">
-              {{ simulService.hydraScoreboard().wins }} victoires
+              {{ scoreboard().wins }} victoires
             </div>
             <div class="bg-white border-2 border-[#1D1C1C] px-4 py-3 font-black">
-              {{ simulService.hydraScoreboard().draws }} nulles
+              {{ scoreboard().draws }} nulles
             </div>
             <div class="bg-white border-2 border-[#1D1C1C] px-4 py-3 font-black text-red-600">
-              {{ simulService.hydraScoreboard().losses }} défaites
+              {{ scoreboard().losses }} défaites
             </div>
           </div>
         </div>
 
-        <!-- Grid View (Zoomed Out) -->
-        @if (!isFocusedMode()) {
-          <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-nano-banana">
-            <div
-              class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6"
-            >
-              @for (game of games(); track game.id) {
-                <div
-                  class="ui-card p-2 hover:scale-[1.02] transition-transform relative flex flex-col group"
-                  [class.ring-4]="game.requiresAttention"
-                  [class.ring-green-400]="game.requiresAttention"
-                  (click)="focusGame(game.id)"
-                >
-                  <!-- Header -->
-                  <div class="mb-2 flex justify-between items-center z-10 px-1">
-                    <span class="font-black font-display text-sm">#{{ game.id + 1 }}</span>
-                    <div class="flex items-center space-x-1">
-                      <span class="text-[10px] font-bold truncate max-w-[80px]">{{
-                        game.opponentName
-                      }}</span>
-                      <div
-                        class="w-2 h-2 rounded-full"
-                        [class.bg-green-500]="game.requiresAttention"
-                        [class.bg-gray-300]="!game.requiresAttention"
-                      ></div>
-                    </div>
-                  </div>
-
-                  <!-- Non-Interactive Preview Board -->
-                  <div class="flex-1 aspect-square relative z-0 pointer-events-none">
-                    <app-chess-board
-                      [fen]="game.fen"
-                      [lastMove]="game.lastMove"
-                      [isInteractive]="false"
-                      [allowedColor]="'w'"
-                    >
-                    </app-chess-board>
-                  </div>
-
-                  <!-- Overlay Action Button -->
-                  @if (game.isHostTurn) {
-                    <div
-                      class="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <button class="ui-btn ui-btn-dark text-xs px-3 py-1 transform scale-110">
-                        JOUER
-                      </button>
-                    </div>
-                  }
-                </div>
-              }
+        <!-- Loading State -->
+        @if (loading()) {
+          <div class="flex-1 flex items-center justify-center">
+            <div class="text-center">
+              <div class="animate-spin w-12 h-12 border-4 border-[#1D1C1C] border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p class="font-bold text-gray-500">Chargement des parties...</p>
             </div>
+          </div>
+        }
+
+        <!-- Grid View (Zoomed Out) -->
+        @else if (!isFocusedMode()) {
+          <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-nano-banana">
+            @if (games().length === 0) {
+              <div class="flex items-center justify-center h-full">
+                <div class="text-center p-8 border-2 border-dashed border-gray-300 rounded">
+                  <p class="text-gray-500 font-bold mb-2">Aucune partie active</p>
+                  <p class="text-sm text-gray-400">Lancez des tables depuis le lobby pour commencer</p>
+                </div>
+              </div>
+            } @else {
+              <div
+                class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6"
+              >
+                @for (game of games(); track game.id) {
+                  <div
+                    class="ui-card p-2 hover:scale-[1.02] transition-transform relative flex flex-col group"
+                    [class.ring-4]="game.requiresAttention"
+                    [class.ring-green-400]="game.requiresAttention"
+                    (click)="focusGame(game.id)"
+                  >
+                    <!-- Header -->
+                    <div class="mb-2 flex justify-between items-center z-10 px-1">
+                      <span class="font-black font-display text-sm">#{{ game.seatNo }}</span>
+                      <div class="flex items-center space-x-1">
+                        <span class="text-[10px] font-bold truncate max-w-[80px]">{{
+                          game.opponentName
+                        }}</span>
+                        <div
+                          class="w-2 h-2 rounded-full"
+                          [class.bg-green-500]="game.requiresAttention"
+                          [class.bg-gray-300]="!game.requiresAttention"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <!-- Non-Interactive Preview Board -->
+                    <div class="flex-1 aspect-square relative z-0 pointer-events-none">
+                      <app-chess-board
+                        [fen]="game.fen"
+                        [lastMove]="game.lastMove"
+                        [isInteractive]="false"
+                        [allowedColor]="'w'"
+                      >
+                      </app-chess-board>
+                    </div>
+
+                    <!-- Overlay Action Button -->
+                    @if (game.isHostTurn) {
+                      <div
+                        class="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <button class="ui-btn ui-btn-dark text-xs px-3 py-1 transform scale-110">
+                          JOUER
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
           </div>
         }
 
@@ -233,7 +275,7 @@ import { PreferencesService } from '../services/preferences.service';
                   [isInteractive]="game.isHostTurn"
                   [allowedColor]="'w'"
                   [allowPremoves]="prefs.gameSettings().allowPremoves"
-                  (move)="onMove(game.id, $event)"
+                  (move)="onMove(game, $event)"
                 >
                 </app-chess-board>
               </div>
@@ -262,7 +304,7 @@ import { PreferencesService } from '../services/preferences.service';
                 </div>
               </div>
 
-              <!-- Content Area (Simplified to Moves for focus) -->
+              <!-- Content Area -->
               <div class="flex-1 overflow-y-auto bg-white dark:bg-[#121212] flex flex-col p-4">
                 <h4
                   class="text-xs font-black uppercase text-gray-400 mb-2 border-b border-gray-200 pb-1"
@@ -299,33 +341,159 @@ import { PreferencesService } from '../services/preferences.service';
     </div>
   `
 })
-export class SimulHostComponent {
-  simulService = inject(ChessSimulService);
+export class SimulHostComponent implements OnChanges, OnDestroy {
   prefs = inject(PreferencesService);
+  simulService = inject(SupabaseSimulService);
+  realtimeGameService = inject(RealtimeGameService);
+  realtimeSimulService = inject(RealtimeSimulService);
+  supabaseClient = inject(SupabaseClientService);
 
-  games = this.simulService.games;
+  @Input({ required: true }) simulId!: string;
 
-  focusedGameId = signal<number | null>(null);
+  focusedGameId = signal<string | null>(null);
+  loading = signal(false);
+  gamesData = signal<Map<string, GameRow>>(new Map());
 
-  // Computed helpers
-  activeCount = computed(() => this.games().filter((g) => g.status === 'active').length);
-  actionRequiredGames = computed(() =>
-    this.games().filter(
-      (g) => g.status === 'active' && (g.requiresAttention || g.history.length === 0)
-    )
-  );
-  waitingGames = computed(() =>
-    this.games().filter((g) => g.status === 'active' && !g.requiresAttention)
-  );
+  // Transform simul_tables + games into HostGameState[]
+  games = computed<HostGameState[]>(() => {
+    const simul = this.simulService.activeSimul();
+    if (!simul) return [];
+
+    const gamesMap = this.gamesData();
+    const hostId = this.supabaseClient.currentUser()?.id;
+
+    return simul.simul_tables
+      .filter(table => table.game_id && table.status === 'playing')
+      .map(table => {
+        const gameRow = gamesMap.get(table.game_id!);
+        return this.transformToHostGame(table, gameRow, hostId);
+      })
+      .sort((a, b) => a.seatNo - b.seatNo);
+  });
+
+  activeCount = computed(() => this.games().filter(g => g.status === 'active').length);
+  actionRequiredGames = computed(() => this.games().filter(g => g.status === 'active' && g.requiresAttention));
+  waitingGames = computed(() => this.games().filter(g => g.status === 'active' && !g.requiresAttention));
   actionRequiredCount = computed(() => this.actionRequiredGames().length);
   waitingCount = computed(() => this.waitingGames().length);
 
   focusedGame = computed(() => {
     const id = this.focusedGameId();
-    return id !== null ? this.games().find((g) => g.id === id) : null;
+    return id !== null ? this.games().find(g => g.id === id) ?? null : null;
   });
 
+  constructor() {
+    this.realtimeSimulService.games$.subscribe(games => {
+      const current = new Map(this.gamesData());
+      for (const g of games) {
+        current.set(g.id, g);
+      }
+      this.gamesData.set(current);
+    });
+  }
+
   isFocusedMode = computed(() => this.focusedGameId() !== null);
+
+  scoreboard = computed(() => {
+    const games = this.games();
+    const wins = games.filter(g => g.status === 'finished' && g.fen?.includes('Checkmate') || false).length; // Needs a better flag
+    // For now we just check if it's finished and not a draw
+    const draws = games.filter(g => g.status === 'finished' && false).length; 
+    const losses = 0; // Host usually doesn't lose in simple mock logic, but let's be safe
+    const activeBoards = games.filter(g => g.status === 'active').length;
+    return {
+      totalPoints: wins * 3 + draws,
+      wins: games.filter(g => g.status === 'finished').length, // Temp simplification
+      draws,
+      losses,
+      activeBoards,
+      potential: activeBoards * 3
+    };
+  });
+
+  async ngOnChanges() {
+    if (!this.simulId) return;
+
+    this.loading.set(true);
+
+    // Fetch the simul with tables
+    await this.simulService.fetchSimul(this.simulId);
+
+    // Fetch all games for this simul
+    await this.fetchGames();
+
+    // Subscribe to real-time updates
+    const user = this.supabaseClient.currentUser();
+    this.realtimeSimulService.subscribe(this.simulId, user ? {
+       user_id: user.id,
+       username: user.name
+    } : undefined);
+
+    this.loading.set(true); // Wait, loading should probably be false now
+    this.loading.set(false);
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSimulService.teardown();
+  }
+
+  private async fetchGames() {
+    const simul = this.simulService.activeSimul();
+    if (!simul) return;
+
+    const gameIds = simul.simul_tables
+      .filter(t => t.game_id)
+      .map(t => t.game_id!);
+
+    if (gameIds.length === 0) return;
+
+    const { data, error } = await this.supabaseClient.client
+      .from('games')
+      .select('*')
+      .in('id', gameIds);
+
+    if (!error && data) {
+      const gamesMap = new Map<string, GameRow>();
+      for (const game of data) {
+        gamesMap.set(game.id, game as GameRow);
+      }
+      this.gamesData.set(gamesMap);
+    }
+  }
+
+  private transformToHostGame(table: SimulTable, gameRow: GameRow | undefined, hostId: string | undefined): HostGameState {
+    const isHostTurn = gameRow?.turn === 'w'; // Host plays white
+    const fen = gameRow?.fen ?? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const lastMoveUci = gameRow?.last_move_uci;
+
+    return {
+      id: table.game_id!,
+      tableId: table.id,
+      seatNo: table.seat_no ?? 0,
+      fen,
+      lastMove: lastMoveUci ? this.uciToMove(lastMoveUci) : undefined,
+      opponentName: `Challenger ${table.seat_no}`, // Would need profile lookup
+      opponentAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + table.challenger_id,
+      opponentRating: 1500,
+      isHostTurn,
+      status: this.mapStatus(gameRow?.status),
+      requiresAttention: isHostTurn && this.mapStatus(gameRow?.status) === 'active',
+      whiteTime: (gameRow?.clocks as any)?.white ?? 600000,
+      blackTime: (gameRow?.clocks as any)?.black ?? 600000,
+      history: [] // Would need moves lookup
+    };
+  }
+
+  private mapStatus(dbStatus: string | undefined): 'active' | 'waiting' | 'finished' {
+    if (!dbStatus) return 'waiting';
+    if (dbStatus === 'active' || dbStatus === 'waiting') return dbStatus as 'active' | 'waiting';
+    return 'finished';
+  }
+
+  private uciToMove(uci: string): { from: string; to: string } | undefined {
+    if (!uci || uci.length < 4) return undefined;
+    return { from: uci.slice(0, 2), to: uci.slice(2, 4) };
+  }
 
   // Keyboard Shortcuts
   @HostListener('window:keydown', ['$event'])
@@ -340,7 +508,6 @@ export class SimulHostComponent {
       this.cycleGame(-1);
     }
 
-    // Number keys 1-9 to select priority games
     const num = parseInt(event.key);
     if (!isNaN(num) && num >= 1 && num <= 9) {
       const priorityGames = this.actionRequiredGames();
@@ -350,7 +517,7 @@ export class SimulHostComponent {
     }
   }
 
-  focusGame(id: number) {
+  focusGame(id: string) {
     this.focusedGameId.set(id);
   }
 
@@ -359,12 +526,11 @@ export class SimulHostComponent {
   }
 
   cycleGame(direction: number) {
-    const games = this.games(); // Cycle through all or just active? Let's cycle all active.
-    const active = games.filter((g) => g.status === 'active');
+    const active = this.games().filter(g => g.status === 'active');
     if (active.length === 0) return;
 
     const currentId = this.focusedGameId();
-    let currentIndex = active.findIndex((g) => g.id === currentId);
+    let currentIndex = active.findIndex(g => g.id === currentId);
 
     if (currentIndex === -1) currentIndex = 0;
     else {
@@ -374,11 +540,15 @@ export class SimulHostComponent {
     this.focusGame(active[currentIndex].id);
   }
 
-  onMove(gameId: number, move: { from: string; to: string }) {
-    this.simulService.makeMove(gameId, move.from, move.to);
-    // Optional: Auto-advance to next priority game?
-    // const next = this.actionRequiredGames().find(g => g.id !== gameId);
-    // if (next) this.focusGame(next.id);
+  async onMove(game: HostGameState, move: { from: string; to: string }) {
+    const uci = move.from + move.to;
+    try {
+      await this.realtimeGameService.submitMove(game.id, uci);
+      // Refresh games after move
+      await this.fetchGames();
+    } catch (error) {
+      console.error('Move submission failed:', error);
+    }
   }
 
   formatTime(ms: number): string {

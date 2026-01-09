@@ -35,6 +35,7 @@ export class SupabaseSimulService {
   gameStatus = computed((): GameStatus | null => this.activeGame()?.status ?? null);
 
   async fetchSimuls() {
+    console.log('[SupabaseSimulService] 🔍 Fetching simuls from database...');
     this.loading.set(true);
     this.error.set(null);
     const { data, error } = await this.supabase
@@ -43,8 +44,10 @@ export class SupabaseSimulService {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('[SupabaseSimulService] ❌ fetchSimuls error:', error);
       this.error.set(error.message);
     } else {
+      console.log(`[SupabaseSimulService] ✅ Fetched ${data?.length ?? 0} simuls:`, data);
       this.simulList.set((data as SimulWithTables[]) ?? []);
     }
     this.loading.set(false);
@@ -134,21 +137,37 @@ export class SupabaseSimulService {
 
     this.loading.set(true);
     this.error.set(null);
-    const { data, error } = await this.supabase
+
+    // Step 1: Find the first open seat
+    const { data: openSeat, error: selectError } = await this.supabase
       .from('simul_tables')
-      .update({ challenger_id: user.data.user.id, status: 'playing' })
+      .select('id')
       .eq('simul_id', simulId)
       .eq('status', 'open')
       .is('challenger_id', null)
       .order('seat_no', { ascending: true })
       .limit(1)
-      .select()
       .maybeSingle();
+
+    if (selectError || !openSeat) {
+      this.loading.set(false);
+      this.error.set(selectError?.message ?? 'Toutes les places sont déjà prises.');
+      throw selectError ?? new Error('no open seat');
+    }
+
+    // Step 2: Update that specific seat by ID
+    const { data, error } = await this.supabase
+      .from('simul_tables')
+      .update({ challenger_id: user.data.user.id, status: 'playing' })
+      .eq('id', openSeat.id)
+      .select()
+      .single();
+
     this.loading.set(false);
 
     if (error || !data) {
-      this.error.set(error?.message ?? 'Toutes les places sont déjà prises.');
-      throw error ?? new Error('no open seat');
+      this.error.set(error?.message ?? 'Impossible de rejoindre cette place.');
+      throw error ?? new Error('update failed');
     }
 
     await this.fetchSimul(simulId);
@@ -211,9 +230,8 @@ export class SupabaseSimulService {
     const { data: newGame, error: gameError } = await this.supabase
       .from('games')
       .insert({
-        mode: 'simul',
+        game_mode: 'simul',
         simul_id: table.simul_id,
-        host_id: simul.host_id,
         white_id: simul.host_id,
         black_id: table.challenger_id,
         status: 'waiting'

@@ -1,6 +1,8 @@
 import { Component, inject, output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SimulService } from '../services/simul.service';
+import { SupabaseSimulService } from '../services/supabase-simul.service';
+import { SupabaseClientService } from '../services/supabase-client.service';
+import { SimulWithTables } from '../models/simul.model';
 
 @Component({
   selector: 'app-simul-list',
@@ -62,24 +64,22 @@ import { SimulService } from '../services/simul.service';
             <div
               class="absolute top-0 right-0 px-3 py-1 text-[10px] font-black uppercase z-10 border-l-2 border-b-2 border-[#1D1C1C] dark:border-white"
               [class.bg-green-400]="simul.status === 'open'"
-              [class.bg-gray-300]="simul.status === 'started'"
+              [class.bg-yellow-400]="simul.status === 'running'"
+              [class.bg-gray-300]="simul.status === 'finished'"
             >
-              {{ simul.status === 'open' ? 'Inscription' : 'En cours' }}
+              {{ getStatusLabel(simul) }}
             </div>
 
             <!-- Host Info -->
             <div class="ui-card-header p-6 pb-4 flex items-center space-x-4">
-              <img
-                [src]="simul.host.avatar"
-                class="w-14 h-14 rounded-full border-2 border-[#1D1C1C] dark:border-white bg-white"
-              />
+              <div class="w-14 h-14 rounded-full border-2 border-[#1D1C1C] dark:border-white bg-gray-200 flex items-center justify-center">
+                <span class="text-2xl">👤</span>
+              </div>
               <div>
-                <h3
-                  class="font-black font-display text-lg uppercase leading-none text-[#1D1C1C] dark:text-white"
-                >
-                  {{ simul.host.name }}
+                <h3 class="font-black font-display text-lg uppercase leading-none text-[#1D1C1C] dark:text-white">
+                  {{ simul.name || 'Partie Simultanée' }}
                 </h3>
-                <p class="text-xs font-mono font-bold text-gray-500">{{ simul.host.elo }} ELO</p>
+                <p class="text-xs font-mono font-bold text-gray-500">Hôte: {{ getHostIdShort(simul) }}</p>
               </div>
             </div>
 
@@ -88,42 +88,38 @@ import { SimulService } from '../services/simul.service';
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                   <span class="text-xl">⏱</span>
-                  <span class="font-mono font-bold text-[#1D1C1C] dark:text-white"
-                    >{{ simul.config.timeMinutes }}+{{ simul.config.incrementSeconds }}</span
-                  >
+                  <span class="font-mono font-bold text-[#1D1C1C] dark:text-white">
+                    {{ getTimeControl(simul) }}
+                  </span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <span class="text-xl">👥</span>
-                  <span class="font-mono font-bold text-[#1D1C1C] dark:text-white"
-                    >{{ simul.challengers.length }} / {{ simul.maxPlayers }}</span
-                  >
+                  <span class="font-mono font-bold text-[#1D1C1C] dark:text-white">
+                    {{ getChallengersCount(simul) }} / {{ getTotalSeats(simul) }}
+                  </span>
                 </div>
               </div>
 
-              <!-- Progress Bar for fullness -->
-              <div
-                class="w-full h-3 bg-gray-200 border-2 border-[#1D1C1C] rounded-full overflow-hidden"
-              >
+              <!-- Progress Bar -->
+              <div class="w-full h-3 bg-gray-200 border-2 border-[#1D1C1C] rounded-full overflow-hidden">
                 <div
                   class="h-full bg-[#1D1C1C] dark:bg-white"
-                  [style.width.%]="(simul.challengers.length / simul.maxPlayers) * 100"
+                  [style.width.%]="getProgressPercent(simul)"
                 ></div>
               </div>
 
               <button
                 (click)="join.emit(simul.id)"
-                [disabled]="simul.status !== 'open'"
+                [disabled]="simul.status !== 'open' || isOwnSimul(simul)"
                 class="ui-btn ui-btn-secondary w-full py-3 mt-2 font-black"
               >
-                {{ simul.status === 'open' ? 'Rejoindre' : 'Regarder' }}
+                {{ isOwnSimul(simul) ? 'Votre simul' : (simul.status === 'open' ? 'Rejoindre' : 'Regarder') }}
               </button>
             </div>
           </div>
         }
         @if (filteredSimuls().length === 0) {
-          <div
-            class="col-span-full p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 text-gray-400 font-bold italic"
-          >
+          <div class="col-span-full p-12 text-center border-2 border-dashed border-gray-300 dark:border-gray-700 text-gray-400 font-bold italic">
             Aucune simultanée trouvée avec ce filtre.
           </div>
         }
@@ -132,16 +128,61 @@ import { SimulService } from '../services/simul.service';
   `
 })
 export class SimulListComponent {
-  simulService = inject(SimulService);
+  simulService = inject(SupabaseSimulService);
+  private supabaseClient = inject(SupabaseClientService);
   create = output<void>();
   join = output<string>();
 
   filter = signal<'all' | 'open' | 'started'>('all');
 
+  constructor() {
+    console.log('[SimulListComponent] 🛠️ Initializing with SupabaseSimulService (REAL DATA)');
+    this.simulService.fetchSimuls();
+  }
+
   filteredSimuls = computed(() => {
-    const all = this.simulService.simuls();
+    const all = this.simulService.simulList();
     const f = this.filter();
+    console.log('[SimulListComponent] 📊 Filtering simuls:', { total: all.length, filter: f });
     if (f === 'all') return all;
-    return all.filter((s) => s.status === f);
+    const statusFilter = f === 'started' ? 'running' : f;
+    return all.filter((s) => s.status === statusFilter);
   });
+
+  // Helper methods for template
+  getStatusLabel(simul: SimulWithTables): string {
+    if (simul.status === 'open') return 'Inscription';
+    if (simul.status === 'running') return 'En cours';
+    return 'Terminée';
+  }
+
+  getHostIdShort(simul: SimulWithTables): string {
+    return simul.host_id?.slice(0, 8) || 'N/A';
+  }
+
+  getTimeControl(simul: SimulWithTables): string {
+    const initial = simul.time_control?.initial || 600;
+    const increment = simul.time_control?.increment || 0;
+    return `${Math.floor(initial / 60)}+${increment}`;
+  }
+
+  getChallengersCount(simul: SimulWithTables): number {
+    return simul.simul_tables?.filter(t => t.challenger_id !== null).length || 0;
+  }
+
+  getTotalSeats(simul: SimulWithTables): number {
+    return simul.simul_tables?.length || 0;
+  }
+
+  getProgressPercent(simul: SimulWithTables): number {
+    const filled = this.getChallengersCount(simul);
+    const total = this.getTotalSeats(simul);
+    if (total === 0) return 0;
+    return (filled / total) * 100;
+  }
+
+  isOwnSimul(simul: SimulWithTables): boolean {
+    const currentUserId = this.supabaseClient.currentUser()?.id;
+    return !!currentUserId && simul.host_id === currentUserId;
+  }
 }

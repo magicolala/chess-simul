@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, OnDestroy, Input, OnChanges } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnDestroy, Input, OnChanges, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -169,8 +169,11 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
     }
   }
 
+  quit = output<void>(); // Add output
+
   leave() {
     this.simulService.clearContext();
+    this.quit.emit();
   }
 
   formatTime(ms: number | undefined): string {

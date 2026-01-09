@@ -19,10 +19,15 @@ export class RoundRobinRealtimeService {
   constructor(private supabaseClient: SupabaseClientService) {}
 
   subscribeRoster(sessionId: string) {
+    console.error('[RR Realtime] subscribeRoster called', sessionId, 'Existing channel:', !!this.rosterChannel);
     if (!sessionId) return;
 
-    void this.unsubscribeRoster();
+    // Do not automatically unsubscribe/clear here to prevent flash
+    if (this.rosterChannel) {
+        return;
+    }
     const channel = this.supabase.channel(`rr-roster:${sessionId}`);
+    console.log('[RR Realtime] Subscribing to roster channel', `rr-roster:${sessionId}`);
 
     channel.on(
       'postgres_changes',
@@ -33,6 +38,7 @@ export class RoundRobinRealtimeService {
         filter: `session_id=eq.${sessionId}`
       },
       (payload: RealtimePostgresChangesPayload<any>) => {
+        console.log('[RR Realtime] Roster payload received', payload);
         const current = this.rosterSubject.value;
         const oldRow = (payload.old ?? null) as Record<string, unknown> | null;
         const newRow = (payload.new ?? null) as Record<string, unknown> | null;
@@ -46,10 +52,13 @@ export class RoundRobinRealtimeService {
           });
         }
         this.rosterSubject.next(next);
+        console.log('[RR Realtime] Roster updated', next);
       }
     );
 
-    channel.subscribe();
+    channel.subscribe((status) => {
+      console.log(`[RR Realtime] Roster channel status for ${sessionId}:`, status);
+    });
     this.rosterChannel = channel;
   }
 
@@ -79,7 +88,9 @@ export class RoundRobinRealtimeService {
       }
     );
 
-    channel.subscribe();
+    channel.subscribe((status) => {
+      console.log(`[RR Realtime] Games channel status for ${gameIds.length} games:`, status);
+    });
     this.gamesChannel = channel;
   }
 
@@ -94,19 +105,23 @@ export class RoundRobinRealtimeService {
     this.gamesSubject.next(next);
   }
 
-  async unsubscribeRoster() {
+  async unsubscribeRoster(clearState = true) {
     if (this.rosterChannel) {
       await this.supabase.removeChannel(this.rosterChannel);
       this.rosterChannel = undefined;
     }
-    this.rosterSubject.next([]);
+    if (clearState) {
+      this.rosterSubject.next([]);
+    }
   }
 
-  async unsubscribeGames() {
+  async unsubscribeGames(clearState = true) {
     if (this.gamesChannel) {
       await this.supabase.removeChannel(this.gamesChannel);
       this.gamesChannel = undefined;
     }
-    this.gamesSubject.next({});
+    if (clearState) {
+      this.gamesSubject.next({});
+    }
   }
 }

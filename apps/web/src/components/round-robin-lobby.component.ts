@@ -11,8 +11,12 @@ import { SupabaseClientService } from '../services/supabase-client.service';
     <div class="ui-card p-6 space-y-4">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="ui-label">Simultanée Round Robin</p>
+          <div class="flex items-center gap-3">
+             <p class="ui-label">Simultanée Round Robin</p>
+             <button class="text-xs ui-btn ui-btn-ghost py-1 px-2" (click)="refresh()">Draft: Rafraîchir</button>
+          </div>
           <h2 class="text-2xl font-black font-display">Session privée</h2>
+
           <p class="text-sm text-gray-500">
             Statut : <span class="font-bold">{{ session()?.status }}</span>
           </p>
@@ -95,7 +99,17 @@ export class RoundRobinLobbyComponent {
 
   currentUserId = computed(() => this.supabase.currentUser()?.id ?? null);
   participantCount = computed(() => this.session()?.participants?.length ?? 0);
-  isOrganizer = computed(() => this.session()?.organizerId === this.currentUserId());
+  isOrganizer = computed(() => {
+    const isOrg = this.session()?.organizerId === this.currentUserId();
+    console.log('[RoundRobinLobby] isOrganizer check', { 
+      organizerId: this.session()?.organizerId, 
+      currentUserId: this.currentUserId(), 
+      isOrganizer: isOrg,
+      participantCount: this.participantCount(),
+      sessionStatus: this.session()?.status
+    });
+    return isOrg;
+  });
 
   constructor(
     private simulService: RoundRobinSimulService,
@@ -113,9 +127,19 @@ export class RoundRobinLobbyComponent {
     }
   }
 
-  async startSession() {
+  async refresh() {
     const session = this.session();
     if (!session) return;
+    await this.simulService.fetchSession(session.id);
+  }
+
+  async startSession() {
+    console.log('[RoundRobinLobby] startSession clicked');
+    const session = this.session();
+    if (!session) {
+      console.error('[RoundRobinLobby] No session to start');
+      return;
+    }
     await this.simulService.startSession(session.id);
   }
 

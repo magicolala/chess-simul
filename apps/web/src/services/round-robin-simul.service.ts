@@ -35,10 +35,22 @@ export class RoundRobinSimulService {
     };
 
     const response = await fetch(`${this.baseUrl}${path}`, { ...init, headers });
-    const payload = await response.json().catch(() => ({}));
+    let payload: any = {};
+    const text = await response.text();
+    try {
+      if (text) payload = JSON.parse(text);
+    } catch (e) {
+      console.error('[RoundRobinSimulService] Failed to parse response JSON', { text, path });
+    }
 
     if (!response.ok) {
-      throw new Error(payload?.error ?? 'Erreur réseau');
+      console.error('[RoundRobinSimulService] Request failed', {
+        status: response.status,
+        path,
+        error: payload?.error,
+        details: payload
+      });
+      throw new Error(payload?.error ?? `Erreur serveur (${response.status})`);
     }
 
     return payload as T;
@@ -65,6 +77,7 @@ export class RoundRobinSimulService {
   }
 
   async fetchSession(sessionId: string) {
+    console.error('[RR SimulService] fetchSession called for', sessionId);
     this.loading.set(true);
     this.error.set(null);
 
@@ -91,6 +104,7 @@ export class RoundRobinSimulService {
       const payload = await this.request<RoundRobinJoinResponse>(`/invite/${inviteCode}`, {
         method: 'GET'
       });
+      console.log('[RoundRobinSimulService] Resolved session by invite', payload.session);
       this.session.set(payload.session ?? null);
       return payload.session;
     } catch (error: any) {
@@ -111,6 +125,7 @@ export class RoundRobinSimulService {
         method: 'POST',
         body: JSON.stringify({ invite_code: inviteCode })
       });
+      console.log('[RoundRobinSimulService] Joined session', payload.session);
       this.session.set(payload.session ?? null);
       return payload.session;
     } catch (error: any) {
@@ -122,6 +137,7 @@ export class RoundRobinSimulService {
   }
 
   async startSession(sessionId: string) {
+    console.log('[RoundRobinSimulService] Starting session...', sessionId);
     this.loading.set(true);
     this.error.set(null);
 

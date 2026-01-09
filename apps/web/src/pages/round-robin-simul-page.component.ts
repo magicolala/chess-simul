@@ -6,12 +6,15 @@ import { RoundRobinGamesComponent } from '../components/round-robin-games.compon
 import { RoundRobinSimulService } from '../services/round-robin-simul.service';
 import { RoundRobinRealtimeService } from '../services/round-robin-realtime.service';
 import { Subscription } from 'rxjs';
+import { OnlineGameComponent } from '../components/online-game.component';
+import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
+import { effect, Injector, runInInjectionContext } from '@angular/core';
 
 @Component({
   selector: 'app-round-robin-simul-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RoundRobinLobbyComponent, RoundRobinGamesComponent],
+  imports: [CommonModule, FormsModule, RoundRobinLobbyComponent, RoundRobinGamesComponent, OnlineGameComponent],
   template: `
     <div class="space-y-6">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -43,7 +46,11 @@ import { SupabaseClientService } from '../services/supabase-client.service';
         <app-round-robin-lobby></app-round-robin-lobby>
 
         @if (session()?.status === 'started') {
-          <app-round-robin-games></app-round-robin-games>
+          @if (activeGameId()) {
+             <app-online-game></app-online-game>
+          } @else {
+             <app-round-robin-games></app-round-robin-games>
+          }
         }
       } @else {
         <div class="ui-card p-6 space-y-4">
@@ -85,14 +92,33 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
   constructor(
     private simulService: RoundRobinSimulService,
     private realtimeService: RoundRobinRealtimeService,
-    private supabaseClient: SupabaseClientService
-  ) {}
+    private supabaseClient: SupabaseClientService,
+    private matchmaking: SupabaseMatchmakingService,
+    private injector: Injector
+  ) {
+    // Sync local active game with matchmaking service
+    effect(() => {
+      const gId = this.activeGameId();
+      if (gId) {
+        this.matchmaking.activeGameId.set(gId);
+      }
+    });
+  }
 
-  currentUser = this.supabaseClient.currentUserSignal;
+  currentUser = computed(() => this.supabaseClient.user());
   isAnonymous = computed(() => this.supabaseClient.isAnonymousUser(this.currentUser()));
   canCreateSession = computed(() => Boolean(this.currentUser()) && !this.isAnonymous());
+  
+  activeGameId = computed(() => {
+    const user = this.currentUser();
+    if (!user) return null;
+    const games = this.simulService.games();
+    const myGame = games.find(g => (g.whiteId === user.id || g.blackId === user.id) && g.status === 'active');
+    return myGame ? (myGame.gameId ?? myGame.id) : null;
+  });
 
   ngOnInit(): void {
+    console.error('[RR Page] ngOnInit executed', window.location.search);
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('rr_session');
     const inviteCode = params.get('invite');
@@ -138,6 +164,7 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
       return;
     }
     const session = await this.simulService.createSession();
+    console.log('[RR Page] Session created', session);
     if (session) {
       this.manualInviteCode = session.inviteCode ?? '';
       this.setupRealtime(session.id);
@@ -168,12 +195,14 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
     if (current) {
       this.realtimeService.seedRoster(current.participants ?? []);
     }
+    console.log('[RR Page] Setting up realtime for session', sessionId);
     this.realtimeService.subscribeRoster(sessionId);
 
     this.subscriptions.add(
       this.realtimeService.roster$.subscribe((roster) => {
         const existing = this.session();
         if (!existing) return;
+        console.log('[RR Page] Updating session participants from realtime', roster);
         this.simulService.session.set({ ...existing, participants: roster });
       })
     );

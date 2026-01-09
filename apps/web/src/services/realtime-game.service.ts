@@ -2,10 +2,12 @@ import { Injectable, OnDestroy, inject, signal } from '@angular/core';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { GameRow, MoveRow, PresenceUser } from '../models/realtime.model';
 import { SupabaseClientService } from './supabase-client.service';
+import { LoggerService } from './logger.service';
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeGameService implements OnDestroy {
   private readonly supabase = inject(SupabaseClientService).client;
+  private readonly logger = inject(LoggerService);
 
   private channel?: RealtimeChannel;
   private currentGameId?: string;
@@ -23,7 +25,7 @@ export class RealtimeGameService implements OnDestroy {
     // If already subscribed to this game with an active channel, do nothing
     if (this.currentGameId === gameId && this.channel) return;
 
-    console.log(`[RealtimeGameService] 📡 Subscribing to game: ${gameId}`);
+    this.logger.info(`[RealtimeGameService] 📡 Subscribing to game: ${gameId}`);
     await this.teardown();
     
     // Only clear game if it's not the one we are subscribing to (preloading support)
@@ -72,7 +74,7 @@ export class RealtimeGameService implements OnDestroy {
 
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        console.log('[RealtimeGameService] 📡 Subscribed to channel, loading initial data...');
+        this.logger.info('[RealtimeGameService] 📡 Subscribed to channel, loading initial data...');
         channel.track(presencePayload);
         
         // Fetch initial game state if not already set or if it's a different game
@@ -151,7 +153,7 @@ export class RealtimeGameService implements OnDestroy {
       console.error('Submit move error details:', error);
       if (error && typeof error === 'object' && 'context' in error) {
          try {
-             const response = (error as any).context as Response;
+             const response = (error as { context: Response }).context;
              if (response && response.json) {
                 const body = await response.json();
                 console.error('Submit move error body:', body);
@@ -197,7 +199,7 @@ export class RealtimeGameService implements OnDestroy {
     const channelToClose = this.channel;
     this.channel = undefined;
     if (channelToClose) {
-      console.log('[RealtimeGameService] 🔌 Removing channel...');
+      this.logger.info('[RealtimeGameService] 🔌 Removing channel...');
       await this.supabase.removeChannel(channelToClose);
     }
     // We clear sub-state but keep currentGameId to prevent unnecessary re-subscribes

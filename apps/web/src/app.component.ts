@@ -16,6 +16,7 @@ import { SupabaseSimulService } from './services/supabase-simul.service';
 import { SupabaseSocialService } from './services/supabase-social.service';
 import { SupabaseMatchmakingService } from './services/supabase-matchmaking.service';
 import { AnalysisService } from './services/analysis.service';
+import { LoggerService } from './services/logger.service';
 
 import { ChessBoardComponent } from './components/chess-board.component';
 import { LoginComponent } from './components/login.component';
@@ -106,6 +107,7 @@ export class AppComponent {
   socialService = inject(SupabaseSocialService);
   matchmakingService = inject(SupabaseMatchmakingService);
   analysisService = inject(AnalysisService);
+  logger = inject(LoggerService);
 
   currentView = signal<ViewState>('landing');
   viewParam = signal<string>(''); // For profile ID, room ID etc
@@ -225,7 +227,7 @@ export class AppComponent {
         const pending = invites.filter(i => i.status === 'pending');
         if (pending.length > 0) {
           // In a real app we'd use a toast. Here we just show a badge or log.
-          console.log('New invitations received:', pending.length);
+          this.logger.info('New invitations received:', pending.length);
         }
       }
     });
@@ -233,10 +235,8 @@ export class AppComponent {
     // Watch for matchmaking match
     effect(() => {
       const gameId = this.matchmakingService.activeGameId();
-      console.log('[AppComponent] 🎮 Matchmaking activeGameId changed:', gameId);
-      console.log('[AppComponent] 📏 Current view:', this.currentView());
       if (gameId && this.currentView() !== 'online-game' && this.currentView() !== 'round-robin-simul') {
-        console.log('[AppComponent] ➡️ Navigating to online-game with ID:', gameId);
+        this.logger.info('[AppComponent] ➡️ Navigating to online-game with ID:', gameId);
         this.viewParam.set(gameId);
         this.currentView.set('online-game');
       }

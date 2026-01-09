@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
+import { LoggerService } from '../services/logger.service';
 
 @Component({
   selector: 'app-multiplayer-lobby',
@@ -194,15 +195,15 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
 })
 export class MultiplayerLobbyComponent {
   matchmaking = inject(SupabaseMatchmakingService);
+  logger = inject(LoggerService);
 
   selectedTimeControl = signal('3+2');
   inviteTimeControl = signal('5+0');
   friendId = signal('');
 
   async startQuickPlay() {
-    console.log('[MultiplayerLobby] 🚀 Starting quick play with time control:', this.selectedTimeControl());
-    const game = await this.matchmaking.joinQueue(this.selectedTimeControl());
-    console.log('[MultiplayerLobby] 🎯 joinQueue returned:', game);
+    this.logger.info(`Joining queue with time control: ${this.selectedTimeControl()}`);
+    await this.matchmaking.joinQueue(this.selectedTimeControl());
     // Navigation is handled by AppComponent effect watching activeGameId
   }
 
@@ -216,8 +217,6 @@ export class MultiplayerLobbyComponent {
   }
 
   async accept(inviteId: string) {
-    console.log('[MultiplayerLobby] Accepting invite:', inviteId);
-    console.log('[MultiplayerLobby] Current incoming invites:', this.matchmaking.incomingInvites());
     await this.matchmaking.acceptInvite(inviteId);
     // Navigation is handled by AppComponent effect
   }

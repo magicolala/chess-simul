@@ -2,7 +2,9 @@ import { Component, inject, signal, output, computed, OnInit } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseSocialService } from '../services/supabase-social.service';
+
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
+import { LoggerService } from '../services/logger.service';
 
 @Component({
   selector: 'app-social-hub',
@@ -262,6 +264,7 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
 export class SocialHubComponent implements OnInit {
   social = inject(SupabaseSocialService);
   matchmaking = inject(SupabaseMatchmakingService);
+  logger = inject(LoggerService);
   goToProfile = output<string>();
   goToGame = output<string>();
 
@@ -307,8 +310,7 @@ export class SocialHubComponent implements OnInit {
         } else {
           alert('User not found.');
         }
-      } catch (error) {
-        console.error(error);
+      } catch {
         alert('Error sending friend request.');
       }
       this.showAddInput.set(false);
@@ -318,8 +320,7 @@ export class SocialHubComponent implements OnInit {
   async acceptRequest(id: string) {
     try {
       await this.social.acceptFriendRequest(id);
-    } catch (error) {
-      console.error(error);
+    } catch {
       alert('Unable to accept friend request.');
     }
   }
@@ -327,8 +328,7 @@ export class SocialHubComponent implements OnInit {
   async declineRequest(id: string) {
     try {
       await this.social.declineFriendRequest(id);
-    } catch (error) {
-      console.error(error);
+    } catch {
       alert('Unable to decline friend request.');
     }
   }
@@ -341,7 +341,7 @@ export class SocialHubComponent implements OnInit {
         await this.social.sendMessage(id, text);
         this.messageInput.set('');
       } catch (error) {
-        console.error(error);
+        this.logger.error('Error sending message:', error);
         if (error instanceof Error && error.message) {
           alert(error.message);
         } else {
@@ -351,28 +351,27 @@ export class SocialHubComponent implements OnInit {
     }
   }
 
-  challenge(id: string) {
-    console.log('[SocialHub] Challenging friend:', id);
-    this.challengingFriendId.set(id);
+
+
+  challenge(friendId: string) {
+    this.challengingFriendId.set(friendId);
   }
 
   async confirmChallenge() {
     const friendId = this.challengingFriendId();
     const timeControl = this.selectedTimeControl();
-    console.log('[SocialHub] Confirm challenge for:', friendId, 'with TC:', timeControl);
     
     if (friendId && timeControl) {
       try {
         await this.matchmaking.sendInvite(friendId, timeControl);
-        console.log('[SocialHub] Challenge invitation sent successfully');
         this.challengingFriendId.set(null);
         alert('Défi envoyé ! Retrouvez vos invitations dans l\'onglet Multijoueur.');
-      } catch (error) {
-        console.error('[SocialHub] Error sending challenge:', error);
+      } catch (e) {
+        this.logger.error('Error sending challenge:', e);
         alert('Erreur lors de l\'envoi du défi.');
       }
     } else {
-      console.warn('[SocialHub] Missing friendId or timeControl:', { friendId, timeControl });
+      // Missing info
     }
   }
 }

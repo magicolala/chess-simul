@@ -15,16 +15,16 @@ test.describe('Authentication Flow', () => {
     test('should complete full registration flow', async ({ page }) => {
         await page.goto('/');
 
-        // Cliquer sur le bouton d'inscription
-        await page.getByRole('button', { name: /s'inscrire|register/i }).click();
+        // Cliquer sur le bouton d'inscription (Rejoindre ou Commencer)
+        await page.getByRole('button', { name: /rejoindre|commencer/i }).first().click();
 
         // Remplir le formulaire d'inscription
         await page.getByLabel(/nom|name/i).fill(testUser.name);
         await page.getByLabel(/email/i).fill(testUser.email);
         await page.getByLabel(/mot de passe|password/i).first().fill(testUser.password);
 
-        // Soumettre le formulaire
-        await page.getByRole('button', { name: /créer un compte|sign up/i }).click();
+        // Soumettre le formulaire ("Créer mon compte" ou "S'inscrire" ou "Commencer")
+        await page.getByRole('button', { name: /créer.*compte|s'inscrire|commencer/i }).click();
 
         // Vérifier la redirection vers la vérification d'email
         await expect(page).toHaveURL(/verify-email/);
@@ -51,7 +51,7 @@ test.describe('Authentication Flow', () => {
         await page.goto('/');
 
         // Cliquer sur connexion
-        await page.getByRole('button', { name: /connexion|login/i }).click();
+        await page.getByRole('button', { name: /connexion|me connecter/i }).first().click();
 
         // Remplir le formulaire de connexion
         await page.getByLabel(/email/i).fill(testUser.email);
@@ -67,7 +67,7 @@ test.describe('Authentication Flow', () => {
     test('should show error for invalid credentials', async ({ page }) => {
         await page.goto('/');
 
-        await page.getByRole('button', { name: /connexion|login/i }).click();
+        await page.getByRole('button', { name: /connexion|me connecter/i }).first().click();
 
         await page.getByLabel(/email/i).fill('invalid@example.com');
         await page.getByLabel(/mot de passe|password/i).fill('wrongpassword');
@@ -95,7 +95,7 @@ test.describe('Authentication Flow', () => {
     test('should handle password reset flow', async ({ page }) => {
         await page.goto('/');
 
-        await page.getByRole('button', { name: /connexion|login/i }).click();
+        await page.getByRole('button', { name: /connexion|me connecter/i }).first().click();
         await page.getByText(/mot de passe oublié|forgot password/i).click();
 
         // Vérifier la redirection vers la page de réinitialisation
@@ -112,7 +112,7 @@ test.describe('Authentication Flow', () => {
     test('should validate email format', async ({ page }) => {
         await page.goto('/');
 
-        await page.getByRole('button', { name: /s'inscrire|register/i }).click();
+        await page.getByRole('button', { name: /rejoindre|commencer/i }).first().click();
 
         await page.getByLabel(/nom|name/i).fill(testUser.name);
         await page.getByLabel(/email/i).fill('invalid-email');

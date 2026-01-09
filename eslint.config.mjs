@@ -1,9 +1,14 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(js.configs.recommended, ...tseslint.configs.recommended, {
-  files: ['**/*.ts', '**/*.tsx'],
-  ignores: ['**/dist/**', '**/node_modules/**'],
+export default tseslint.config(
+  {
+    ignores: ['**/dist/**', '**/node_modules/**', '**/assets/**'],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.ts', '**/*.tsx'],
   languageOptions: {
     parserOptions: {
       tsconfigRootDir: import.meta.dirname

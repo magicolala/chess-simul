@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, HostListener, Input, OnChanges, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -341,14 +342,15 @@ interface HostGameState {
     </div>
   `
 })
-export class SimulHostComponent implements OnChanges, OnDestroy {
+export class SimulHostComponent implements OnInit, OnDestroy {
   prefs = inject(PreferencesService);
   simulService = inject(SupabaseSimulService);
   realtimeGameService = inject(RealtimeGameService);
   realtimeSimulService = inject(RealtimeSimulService);
   supabaseClient = inject(SupabaseClientService);
 
-  @Input({ required: true }) simulId!: string;
+  route = inject(ActivatedRoute);
+  simulId!: string;
 
   focusedGameId = signal<string | null>(null);
   loading = signal(false);
@@ -410,8 +412,17 @@ export class SimulHostComponent implements OnChanges, OnDestroy {
     };
   });
 
-  async ngOnChanges() {
-    if (!this.simulId) return;
+  async ngOnInit() {
+    this.route.paramMap.subscribe(async params => {
+      const id = params.get('id');
+      if (id) {
+        this.simulId = id;
+        await this.loadSimul();
+      }
+    });
+  }
+
+  async loadSimul() {
 
     this.loading.set(true);
 

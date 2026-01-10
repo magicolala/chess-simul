@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { SimulTableStatus } from '../models/simul.model';
 import { PresenceUser } from '../models/realtime.model';
 import { RealtimeSimulService } from '../services/realtime-simul.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
 import { SupabaseSimulService } from '../services/supabase-simul.service';
+
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-simul-lobby',
@@ -93,14 +95,17 @@ import { SupabaseSimulService } from '../services/supabase-simul.service';
     </ng-template>
   `
 })
-export class SimulLobbyComponent implements OnChanges, OnDestroy {
+export class SimulLobbyComponent implements OnInit, OnDestroy {
   private supabaseAuth = inject(SupabaseClientService);
   private realtimeSimul = inject(RealtimeSimulService);
   simulService = inject(SupabaseSimulService);
   private tablesSub?: Subscription;
   private lastSimulId?: string;
 
-  @Input({ required: true }) simulId!: string;
+  route = inject(ActivatedRoute);
+  simulId: string = '';
+
+  // Removed @Input
 
   liveUpdatesSummary = '';
 
@@ -120,8 +125,17 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
     return simul.simul_tables.filter((t) => t.status !== 'open').length;
   }
 
-  ngOnChanges(): void {
-    if (!this.simulId || this.simulId === this.lastSimulId) return;
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id && id !== this.simulId) {
+         this.simulId = id;
+         this.loadSimul();
+      }
+    });
+  }
+
+  loadSimul(): void {
 
     this.lastSimulId = this.simulId;
 

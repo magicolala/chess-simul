@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, effect, OnDestroy, Input, OnChanges, output } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnDestroy, OnInit, output } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -97,14 +98,18 @@ import { PreferencesService } from '../services/preferences.service';
     }
   `
 })
-export class SimulPlayerComponent implements OnChanges, OnDestroy {
+export class SimulPlayerComponent implements OnInit, OnDestroy {
   realtime = inject(RealtimeGameService);
   simulService = inject(SupabaseSimulService);
   supabase = inject(SupabaseClientService);
   auth = inject(AuthService);
   prefs = inject(PreferencesService);
 
-  @Input() tableId?: string;
+  route = inject(ActivatedRoute);
+  router = inject(Router);
+
+  // Input replaced by route logic
+  simulId!: string;
   
   game = this.realtime.game;
   simul = signal<unknown | null>(null);
@@ -123,12 +128,31 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
     });
   }
 
-  async ngOnChanges() {
-    if (this.tableId) {
-      // Fetch table details if not already in context
-      await this.simulService.fetchTableGame(this.tableId);
-      this.simul.set(this.simulService.activeSimul());
-    }
+  async ngOnInit() {
+    this.route.paramMap.subscribe(async params => {
+      const id = params.get('id');
+      if (id) {
+         this.simulId = id;
+         // Find my table
+         const userId = this.auth.currentUser()?.id;
+         if (userId) {
+             // We need a service method to get table by simul+user?
+             // Or fetch simul and find table?
+             await this.simulService.fetchSimul(id);
+             const simul = this.simulService.activeSimul();
+             if (simul) {
+                const table = simul.simul_tables.find(t => t.challenger_id === userId);
+                if (table) {
+                    await this.simulService.fetchTableGame(table.id);
+                    this.simul.set(simul);
+                } else {
+                    // Not a player?
+                    this.router.navigate(['/simuls', id]);
+                }
+             }
+         }
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -174,6 +198,12 @@ export class SimulPlayerComponent implements OnChanges, OnDestroy {
   leave() {
     this.simulService.clearContext();
     this.quit.emit();
+    // Navigate back to lobby
+    if (this.simulId) {
+        this.router.navigate(['/simuls', this.simulId]);
+    } else {
+        this.router.navigate(['/dashboard']);
+    }
   }
 
   formatTime(ms: number | undefined): string {

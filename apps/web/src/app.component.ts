@@ -40,6 +40,7 @@ import { SocialHubComponent } from './components/social-hub.component';
 import { PublicProfileComponent } from './components/public-profile.component';
 import { AnalysisComponent } from './components/analysis.component';
 import { RoundRobinSimulPageComponent } from './pages/round-robin-simul-page.component';
+import { GamesGridComponent } from './components/games-grid.component';
 
 type ViewState =
   | 'landing'
@@ -64,7 +65,8 @@ type ViewState =
   | 'social-hub'
   | 'game-room'
   | 'public-profile'
-  | 'analysis';
+  | 'analysis'
+  | 'games-grid';
 
 @Component({
   selector: 'app-root',
@@ -93,7 +95,8 @@ type ViewState =
     SocialHubComponent,
     PublicProfileComponent,
     AnalysisComponent,
-    RoundRobinSimulPageComponent
+    RoundRobinSimulPageComponent,
+    GamesGridComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -232,10 +235,13 @@ export class AppComponent {
       }
     });
 
-    // Watch for matchmaking match
+    // Watch for matchmaking match - only navigate on NEW matches
     effect(() => {
       const gameId = this.matchmakingService.activeGameId();
-      if (gameId && this.currentView() !== 'online-game' && this.currentView() !== 'round-robin-simul') {
+      const queueStatus = this.matchmakingService.queueStatus();
+      // Only auto-navigate when a new match is found (status = 'matched')
+      // This prevents redirecting the user back to the game when they intentionally leave
+      if (gameId && queueStatus === 'matched' && this.currentView() !== 'online-game' && this.currentView() !== 'round-robin-simul') {
         this.logger.info('[AppComponent] ➡️ Navigating to online-game with ID:', gameId);
         this.viewParam.set(gameId);
         this.currentView.set('online-game');

@@ -113,6 +113,9 @@ import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.ser
              <button (click)="resign()" class="ui-btn ui-btn-ghost w-full py-2 text-xs text-red-600 font-bold border-red-200" [disabled]="g.status !== 'active'">
                🏳 Abandonner
              </button>
+             <button (click)="leave()" class="ui-btn ui-btn-ghost w-full py-2 text-xs text-gray-600 font-bold">
+               ← Retour au lobby
+             </button>
           </div>
         </div>
       </div>

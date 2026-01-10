@@ -114,7 +114,7 @@ serve(async (req) => {
     let newClocks = game.clocks as { white: number; black: number } | null;
     
     if (newClocks && typeof newClocks === 'object') {
-       // Deduct time from the player who JUST moved (game.turn is the one who was "to move")
+       // Deduct time from the player who JUST moved (game.turn is the one who was "to move").
        // game.turn is the side whose turn it WAS. (e.g. 'w').
        // So we deduct time from 'w' (if white just moved).
        const color = game.turn === 'w' ? 'white' : 'black';
@@ -127,6 +127,28 @@ serve(async (req) => {
     } else {
       // Initialize if missing (fallback)
       newClocks = { white: 600_000, black: 600_000 };
+    }
+
+    // Check for timeout
+    let gameStatus = isCheckmate ? 'checkmate' : 'active';
+    let winnerId: string | null = null;
+    
+    if (newClocks && typeof newClocks === 'object') {
+      // The player who just moved is game.turn (the previous turn)
+      const playerColor = game.turn === 'w' ? 'white' : 'black';
+      
+      if (newClocks[playerColor] <= 0) {
+        // Player ran out of time during their turn
+        gameStatus = playerColor === 'white' ? 'black_won' : 'white_won';
+        winnerId = playerColor === 'white' ? game.black_id : game.white_id;
+        console.log(`[SubmitMove] Timeout detected for ${playerColor}. Winner: ${winnerId}`);
+      }
+    }
+    
+    // If checkmate, set the winner
+    if (isCheckmate && !winnerId) {
+      // The player who was checkmated is the one whose turn it NOW is (nextTurn)
+      winnerId = nextTurn === 'w' ? game.black_id : game.white_id;
     }
 
     const adminClient = createAdminClient();
@@ -142,7 +164,8 @@ serve(async (req) => {
         move_count: nextPly,
         updated_at: now,
         clocks: newClocks,
-        status: isCheckmate ? 'checkmate' : 'active'
+        status: gameStatus,
+        winner_id: winnerId
       })
       .eq('id', gameId)
       // .eq('move_count', currentMoveCount) // Temporarily disabled to unblock updates

@@ -143,6 +143,8 @@ export class OnlineGameComponent implements OnDestroy {
   // Subscriptions handled by service
   now = signal(Date.now());
   private timerInterval: ReturnType<typeof setInterval> | undefined;
+  private timeoutCheckInterval: ReturnType<typeof setInterval> | undefined;
+  private isCheckingTimeout = false;
 
   constructor() {
     effect(() => {
@@ -161,11 +163,17 @@ export class OnlineGameComponent implements OnDestroy {
     this.timerInterval = setInterval(() => {
       this.now.set(Date.now());
     }, 100);
+
+    // Timeout check every 500ms
+    this.timeoutCheckInterval = setInterval(() => {
+      void this.checkForTimeout();
+    }, 500);
   }
 
   ngOnDestroy() {
     this.realtime.teardown();
     if (this.timerInterval) clearInterval(this.timerInterval);
+    if (this.timeoutCheckInterval) clearInterval(this.timeoutCheckInterval);
   }
 
   isMeWhite = computed(() => this.game()?.white_id === this.auth.currentUser()?.id);
@@ -249,6 +257,33 @@ export class OnlineGameComponent implements OnDestroy {
   leave() {
     this.matchmaking.activeGameId.set(null);
     this.leaveGame.emit();
+  }
+
+  private async checkForTimeout() {
+    // Avoid concurrent checks
+    if (this.isCheckingTimeout) return;
+
+    const g = this.game();
+    if (!g || g.status !== 'active') return;
+
+    // Only check if it's my turn
+    if (!this.isMyTurn()) return;
+
+    const myTime = this.myTime();
+    // Only call server when time is actually expired
+    if (myTime <= 0) {
+      this.isCheckingTimeout = true;
+      try {
+        const result = await this.realtime.checkTimeout(g.id);
+        if (result?.timeout) {
+          console.log('[OnlineGame] ⏰ Timeout detected by heartbeat');
+        }
+      } catch (e: unknown) {
+        console.error('[OnlineGame] Timeout check failed:', (e as Error).message);
+      } finally {
+        this.isCheckingTimeout = false;
+      }
+    }
   }
 
   formatTime(ms: number | undefined): string {

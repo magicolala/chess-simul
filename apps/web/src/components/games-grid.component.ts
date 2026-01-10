@@ -183,15 +183,23 @@ export class GamesGridComponent implements OnDestroy {
   now = signal(Date.now());
   filterMode = signal<'all' | 'my-turn' | 'active'>('all');
   private timerInterval: ReturnType<typeof setInterval> | undefined;
+  private timeoutCheckInterval: ReturnType<typeof setInterval> | undefined;
+  private checkingTimeoutForGames = new Set<string>();
 
   constructor() {
     this.timerInterval = setInterval(() => {
       this.now.set(Date.now());
     }, 1000);
+
+    // Timeout check every 500ms for all active games
+    this.timeoutCheckInterval = setInterval(() => {
+      void this.checkForTimeouts();
+    }, 500);
   }
 
   ngOnDestroy() {
     if (this.timerInterval) clearInterval(this.timerInterval);
+    if (this.timeoutCheckInterval) clearInterval(this.timeoutCheckInterval);
   }
 
   activeGames = computed(() => {
@@ -274,6 +282,34 @@ export class GamesGridComponent implements OnDestroy {
       await this.realtime.submitMove(gameId, uci);
     } catch (e: unknown) {
       console.error('[GamesGrid] Move failed:', (e as Error).message);
+    }
+  }
+
+  private async checkForTimeouts() {
+    const games = this.matchmaking.activeGames() as GridGame[];
+    
+    for (const game of games) {
+      // Skip if already checking this game
+      if (this.checkingTimeoutForGames.has(game.id)) continue;
+      
+      // Only check if game is active and it's my turn
+      if (game.status !== 'active' || !this.isMyTurn(game)) continue;
+      
+      // Check if time is expired
+      const myTime = this.getMyTime(game);
+      if (myTime <= 0) {
+        this.checkingTimeoutForGames.add(game.id);
+        try {
+          const result = await this.realtime.checkTimeout(game.id);
+          if (result?.timeout) {
+            console.log(`[GamesGrid] ⏰ Timeout detected for game ${game.id}`);
+          }
+        } catch (e: unknown) {
+          console.error(`[GamesGrid] Timeout check failed for ${game.id}:`, (e as Error).message);
+        } finally {
+          this.checkingTimeoutForGames.delete(game.id);
+        }
+      }
     }
   }
 }

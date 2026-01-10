@@ -27,18 +27,18 @@ export class RealtimeGameService implements OnDestroy {
 
     this.logger.info(`[RealtimeGameService] 📡 Subscribing to game: ${gameId}`);
     await this.teardown();
-    
+
     // Only clear game if it's not the one we are subscribing to (preloading support)
     if (this.game()?.id !== gameId) {
       this.game.set(null);
     }
-    
+
     this.moves.set([]);
     this.onlinePlayers.set([]);
     this.loadingMoves.set(false);
     this.hasMoreMoves.set(true);
     this.loadedMoves = 0;
-    
+
     this.currentGameId = gameId;
 
     const presencePayload: PresenceUser = presence ?? {
@@ -76,7 +76,7 @@ export class RealtimeGameService implements OnDestroy {
       if (status === 'SUBSCRIBED') {
         this.logger.info('[RealtimeGameService] 📡 Subscribed to channel, loading initial data...');
         channel.track(presencePayload);
-        
+
         // Fetch initial game state if not already set or if it's a different game
         if (this.game()?.id !== gameId) {
           const { data, error } = await this.supabase
@@ -84,7 +84,7 @@ export class RealtimeGameService implements OnDestroy {
             .select('*')
             .eq('id', gameId)
             .single();
-          
+
           if (!error && data) {
             this.game.set(this.coerceGameRow(data));
           } else if (error) {
@@ -152,15 +152,15 @@ export class RealtimeGameService implements OnDestroy {
     if (error) {
       console.error('Submit move error details:', error);
       if (error && typeof error === 'object' && 'context' in error) {
-         try {
-             const response = (error as { context: Response }).context;
-             if (response && response.json) {
-                const body = await response.json();
-                console.error('Submit move error body:', body);
-             }
-         } catch (e) {
-             console.error('Could not parse error body', e);
-         }
+        try {
+          const response = (error as { context: Response }).context;
+          if (response && response.json) {
+            const body = await response.json();
+            console.error('Submit move error body:', body);
+          }
+        } catch (e) {
+          console.error('Could not parse error body', e);
+        }
       }
       throw new Error(error.message);
     }
@@ -177,19 +177,38 @@ export class RealtimeGameService implements OnDestroy {
     });
 
     if (error) {
-       console.error('Resign game error:', error);
-       if (error && typeof error === 'object' && 'context' in error) {
-         try {
-             const response = error.context as Response;
-             if (response && response.json) {
-                const body = await response.json();
-                console.error('Resign game error body:', body);
-             }
-         } catch (e) {
-             console.error('Could not parse error body', e);
-         }
-       }
-       throw new Error(error.message);
+      console.error('Resign game error:', error);
+      if (error && typeof error === 'object' && 'context' in error) {
+        try {
+          const response = error.context as Response;
+          if (response && response.json) {
+            const body = await response.json();
+            console.error('Resign game error body:', body);
+          }
+        } catch (e) {
+          console.error('Could not parse error body', e);
+        }
+      }
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  async checkTimeout(gameId: string) {
+    const { data, error } = await this.supabase.functions.invoke<{
+      timeout?: boolean;
+      winner_id?: string;
+      status?: string;
+      error?: string;
+      message?: string;
+    }>('check-timeout', {
+      body: { game_id: gameId }
+    });
+
+    if (error) {
+      console.error('Check timeout error:', error);
+      throw new Error(error.message);
     }
 
     return data;

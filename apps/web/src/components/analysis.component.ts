@@ -1,15 +1,16 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Chess, Move } from 'chess.js';
+
 import { ChessBoardComponent } from './chess-board.component';
 import { AnalysisService, AnalysisNode } from '../services/analysis.service';
-import { Chess, Move } from 'chess.js';
 
 @Component({
   selector: 'app-analysis',
   standalone: true,
-  imports: [CommonModule, ChessBoardComponent, FormsModule],
+  imports: [CommonModule, FormsModule, ChessBoardComponent],
   template: `
     <div
       class="h-full max-w-[1920px] mx-auto p-4 flex flex-col lg:flex-row gap-4 lg:gap-0 font-sans bg-gray-100 dark:bg-[#0a0a0a]"

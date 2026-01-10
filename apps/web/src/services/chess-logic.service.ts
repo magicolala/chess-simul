@@ -26,6 +26,7 @@ export interface GameState {
   sessionId: string;
   mode: 'local' | 'online' | 'simul-host' | 'simul-player';
   gameMode: 'standard' | 'hand_brain';
+  difficulty?: 'pvp' | 'bot';
   chess: Chess;
   fen: string;
   pgn: string;
@@ -249,6 +250,7 @@ export class ChessSimulService {
       sessionId: `pending-${Date.now()}`,
       mode: mode,
       gameMode: config.gameMode ?? 'standard',
+      difficulty: config.difficulty,
       chess: chess,
       fen: chess.fen(),
       pgn: chess.pgn(),

@@ -10,7 +10,7 @@ export interface GameConfig {
   incrementSeconds: number;
   opponentCount: number;
   difficulty: 'pvp';
-  gameMode?: 'standard' | 'forced_piece';
+  gameMode?: 'standard' | 'hand_brain';
 }
 
 export interface ChatMessage {
@@ -25,7 +25,7 @@ export interface GameState {
   id: number;
   sessionId: string;
   mode: 'local' | 'online' | 'simul-host' | 'simul-player';
-  gameMode: 'standard' | 'forced_piece';
+  gameMode: 'standard' | 'hand_brain';
   chess: Chess;
   fen: string;
   pgn: string;
@@ -201,7 +201,7 @@ export class ChessSimulService {
     this.games.set(newGames);
 
     newGames.forEach((g) => {
-      if (g.gameMode === 'forced_piece') {
+      if (g.gameMode === 'hand_brain') {
         void this.refreshForcedPiece(g.id);
       }
     });
@@ -235,7 +235,7 @@ export class ChessSimulService {
     newGames.push(this.gamesMap.get(0)!);
     this.games.set(newGames);
 
-    if (game.gameMode === 'forced_piece') {
+    if (game.gameMode === 'hand_brain') {
       void this.refreshForcedPiece(game.id);
     }
   }
@@ -571,7 +571,7 @@ export class ChessSimulService {
   }
 
   private shouldRejectMove(game: GameState, from: string): boolean {
-    if (game.gameMode !== 'forced_piece') return false;
+    if (game.gameMode !== 'hand_brain') return false;
     if (game.brainStatus !== 'ready') return false;
     if (!game.brainForcedFromSquare) return false;
     if (game.brainForcedForPosition && game.brainForcedForPosition !== game.fen) {
@@ -591,7 +591,7 @@ export class ChessSimulService {
     const game = this.gamesMap.get(gameId);
     if (!game) return;
 
-    if (game.gameMode !== 'forced_piece' || game.status !== 'active') {
+    if (game.gameMode !== 'hand_brain' || game.status !== 'active') {
       this.resetBrainState(game);
       this.gamesMap.set(gameId, { ...game });
       this.games.set([...this.gamesMap.values()]);

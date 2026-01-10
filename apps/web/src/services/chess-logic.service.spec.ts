@@ -441,4 +441,56 @@ describe('ChessSimulService', () => {
             expect(authMock.updateElo).toHaveBeenCalled();
         });
     });
+
+    describe('Hand-Brain Mode', () => {
+        it('should create game with hand_brain mode when configured', () => {
+            const config: GameConfig = {
+                timeMinutes: 10,
+                incrementSeconds: 0,
+                opponentCount: 1,
+                difficulty: 'pvp',
+                gameMode: 'hand_brain'
+            };
+
+            service.startPvpSession(config);
+
+            const game = service.games()[0];
+            expect(game.gameMode).toBe('hand_brain');
+            // brainStatus becomes 'thinking' immediately as refreshForcedPiece() is called async
+            expect(['idle', 'thinking', 'ready']).toContain(game.brainStatus);
+        });
+
+        it('should initialize brain state fields correctly', () => {
+            const config: GameConfig = {
+                timeMinutes: 5,
+                incrementSeconds: 0,
+                opponentCount: 1,
+                difficulty: 'pvp',
+                gameMode: 'hand_brain'
+            };
+
+            service.startPvpSession(config);
+
+            const game = service.games()[0];
+            expect(game.brainForcedFromSquare).toBeNull();
+            expect(game.brainForcedForPosition).toBeNull();
+        });
+
+        it('should not affect standard mode games', () => {
+            const config: GameConfig = {
+                timeMinutes: 10,
+                incrementSeconds: 0,
+                opponentCount: 1,
+                difficulty: 'pvp',
+                gameMode: 'standard'
+            };
+
+            service.startPvpSession(config);
+
+            const game = service.games()[0];
+            expect(game.gameMode).toBe('standard');
+            // Brain state should still be initialized but not active
+            expect(game.brainStatus).toBe('idle');
+        });
+    });
 });

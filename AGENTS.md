@@ -1,39 +1,99 @@
-# Repository Guidelines
+# AGENTS.md - Developer Guide
 
-## Project Structure & Module Organization
+## Project Overview
 
-This is a monorepo with npm workspaces. The Angular client lives in `apps/web`, shared utilities and types are in `packages/shared`, and database work (migrations, seed data, generated types) is in `supabase`. Tooling scripts sit in `scripts`, with repo-wide config at the root (`angular.json`, `eslint.config.mjs`, `package.json`). Cross-workspace access must flow through package boundaries; do not import files directly across apps/packages.
+This is the **Chess Simul Platform** - a monorepo application for managing concurrent chess exhibitions (simuls). It features a modern Angular frontend, Supabase backend for realtime interaction, and sophisticated chess logic.
 
-## Build, Test, and Development Commands
+## Technology Stack
 
-- `npm install`: install workspace dependencies.
-- `npm run dev`: start the web workspace dev server (defaults to <http://localhost:3000>).
-- `npm run build`: generate env wiring and build the Angular app.
-- `npm run lint`: run ESLint on `apps/` and `packages/` (must pass before review).
-- `npm run format` / `npm run format:check`: format or check formatting with Prettier (must pass before review).
-- `npm test`: run the current test task (TypeScript typecheck) and keep it green before review/merge.
-- `npm run generate:env`: regenerate environment files for the build.
-  If you use Supabase locally, common commands are `supabase start` and `supabase migration up`.
+- **Angular 21+** (Experimental/Next)
+- **TypeScript 5.9+**
+- **Tailwind CSS 3.4+**
+- **Supabase** (Auth, Database, Realtime, Edge Functions)
+- **Vite** (Dev Server & Bundler via Angular CLI)
+- **Playwright** & **Vitest** for testing
 
-## Coding Style & Naming Conventions
+## Essential Commands
 
-Follow `.editorconfig`: 2-space indentation, LF endings, UTF-8. Prettier is the formatter (single quotes, semicolons, 100-char print width). ESLint uses `@eslint/js` and `typescript-eslint` defaults. Keep Angular file names kebab-case (e.g., `app-shell.component.ts`, `simul-lobby.routes.ts`). Use PascalCase for types/classes and camelCase for variables and functions.
+### Development
 
-### Constitution Highlights (supersedes other guidance)
+```bash
+npm install          # Install dependencies
+npm run dev          # Start web dev server (localhost:3000)
+npm run build        # Build for production
+npm run lint         # Run ESLint
+npm run format       # Format code with Prettier
+npm test             # Run unit tests
+```
 
-- Quality gates are non-negotiable: run and fix `npm run lint`, `npm run format:check`, and `npm test` before requesting review.
-- Feature work must be spec-driven: add or update `/specs/.../spec.md` plus plan/tasks for new features or workflow changes.
-- Keep realtime work lean: filter subscriptions early and avoid over-fetching payloads.
-- Respect workspace ownership and security rules from the constitution (public `anon` key only in client bundles; never commit Supabase `.env`).
+## Project Structure
 
-## Testing Guidelines
+```
+.
+├── apps/
+│   └── web/             # Main Angular application
+├── packages/
+│   └── shared/          # Shared utilities and types
+├── supabase/            # Database migrations, seed data, functions
+├── scripts/             # Build and maintenance scripts
+└── ...
+```
 
-There is no dedicated test runner configured yet; `npm test` maps to TypeScript typechecking. When adding tests, place `*.spec.ts` alongside the feature in `apps/web/src` and wire a test runner before relying on CI coverage. List required tests in specs and keep failing-first tests when introducing new functionality.
+## Architecture Patterns
 
-## Commit & Pull Request Guidelines
+### State Management
 
-Recent commits use conventional prefixes such as `feat:`, `feat(scope):`, and `chore:` alongside plain descriptive messages. Prefer imperative, scoped summaries to match that pattern. PRs should include a short description, link related issues, note any schema or env changes, and include screenshots for UI changes. Run `npm run lint`, `npm run format:check`, and `npm test` before requesting review.
+- **Angular Signals** for reactive state updates.
+- **Supabase Clients** for data persistence and realtime subscriptions.
 
-## Configuration & Secrets
+### Component Organization
 
-Use a root `.env.local` for web-only secrets (example: `GEMINI_API_KEY`). Supabase CLI generates `.env` files under `supabase/`; do not commit them. Only the public `anon` key should appear in `apps/web/src/environments/` files, never the `service_role` key.
+- Feature-based architecture (e.g., `components/board`, `components/chat`).
+- Standalone components (Angular default).
+
+## Code Conventions
+
+### TypeScript
+
+- Strict mode enabled.
+- Angular Style Guide (kebab-case files, PascalCase classes).
+- Signals preferred over RxJS for synchronous state.
+
+### Component Pattern
+
+```typescript
+@Component({
+  selector: 'app-feature',
+  standalone: true,
+  template: `...`,
+  imports: [CommonModule]
+})
+export class FeatureComponent {
+  // Use signals
+  data = signal<Data | null>(null);
+}
+```
+
+## Backend Integration
+
+### Supabase
+
+- **Authentication**: Managed via Supabase Auth.
+- **Database**: PostgreSQL with Row Level Security (RLS).
+- **Edge Functions**: TypeScript functions in `supabase/functions`.
+- **Realtime**: WebSocket subscriptions for game updates.
+- **Migrations**: **SYSTEMATICALLY** create new migrations for ALL schema changes. Do not use the dashboard.
+
+## Key Files for Understanding
+
+1.  `apps/web/index.tsx` - Application entry point.
+2.  `apps/web/src/app.routes.ts` - Main routing configuration.
+3.  `apps/web/src/services/` - Core business logic and API interaction.
+4.  `supabase/config.toml` - Supabase local configuration.
+
+## Development Workflow
+
+- **Linting**: `npm run lint` must pass before commit.
+- **Testing**: `npm test` (Unit) and `npm run test:e2e` (Playwright).
+- **Migrations**: Always generate migrations for DB changes.
+- **Commits**: Follow Conventional Commits convention.

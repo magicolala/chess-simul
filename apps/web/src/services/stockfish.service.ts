@@ -37,7 +37,8 @@ export class StockfishService {
 
     this.readyPromise = new Promise((resolve, reject) => {
       try {
-        this.worker = new Worker('/assets/stockfish-worker.js');
+        // Use hash to pass WASM path to Stockfish JS
+        this.worker = new Worker('/assets/stockfish-worker.js#/assets/stockfish-nnue-16.wasm');
       } catch (error) {
         this.initError =
           error instanceof Error ? error : new Error('Unable to initialize Stockfish worker.');

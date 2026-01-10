@@ -9,7 +9,7 @@ export interface GameConfig {
   timeMinutes: number;
   incrementSeconds: number;
   opponentCount: number;
-  difficulty: 'pvp';
+  difficulty: 'pvp' | 'bot';
   gameMode?: 'standard' | 'hand_brain';
 }
 

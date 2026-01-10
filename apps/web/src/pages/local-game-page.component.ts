@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ChessSimulService, GameState } from '../services/chess-logic.service';
+import { ChessSimulService } from '../services/chess-logic.service';
 import { UiStateService } from '../services/ui-state.service';
 import { ChessBoardComponent } from '../components/chess-board.component';
 

@@ -1,4 +1,5 @@
 import { Component, inject, computed, effect, OnDestroy, output, signal } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -134,6 +135,9 @@ export class OnlineGameComponent implements OnDestroy {
   auth = inject(AuthService);
   prefs = inject(PreferencesService);
   matchmaking = inject(SupabaseMatchmakingService);
+  router = inject(Router);
+  route = inject(ActivatedRoute);
+  
   leaveGame = output<void>();
 
   game = this.realtime.game;
@@ -147,6 +151,14 @@ export class OnlineGameComponent implements OnDestroy {
   private isCheckingTimeout = false;
 
   constructor() {
+    // Listen to URL ID
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.matchmaking.activeGameId.set(id);
+      }
+    });
+
     effect(() => {
       const gId = this.matchmaking.activeGameId();
       if (gId) {
@@ -257,6 +269,7 @@ export class OnlineGameComponent implements OnDestroy {
   leave() {
     this.matchmaking.activeGameId.set(null);
     this.leaveGame.emit();
+    this.router.navigate(['/dashboard']);
   }
 
   private async checkForTimeout() {
@@ -276,7 +289,7 @@ export class OnlineGameComponent implements OnDestroy {
       try {
         const result = await this.realtime.checkTimeout(g.id);
         if (result?.timeout) {
-          console.log('[OnlineGame] ⏰ Timeout detected by heartbeat');
+          console.warn('[OnlineGame] ⏰ Timeout detected by heartbeat');
         }
       } catch (e: unknown) {
         console.error('[OnlineGame] Timeout check failed:', (e as Error).message);

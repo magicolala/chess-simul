@@ -1,10 +1,11 @@
-import { Component, output } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   template: `
     <div class="min-h-screen bg-nano-banana text-[#1D1C1C] font-sans flex flex-col">
       <!-- Navbar -->
@@ -22,11 +23,11 @@ import { CommonModule } from '@angular/common';
           </h1>
         </div>
         <div class="flex items-center space-x-4">
-          <button (click)="goToLogin.emit()" class="ui-btn ui-btn-ghost text-sm px-3 py-1">
+          <button routerLink="/login" class="ui-btn ui-btn-ghost text-sm px-3 py-1">
             Connexion
           </button>
           <button
-            (click)="goToRegister.emit()"
+            routerLink="/register"
             class="ui-btn ui-btn-dark px-6 py-2 font-black font-display"
           >
             Rejoindre
@@ -118,13 +119,13 @@ import { CommonModule } from '@angular/common';
           >
             <div class="flex flex-col md:flex-row items-center gap-6">
               <button
-                (click)="goToRegister.emit()"
+                routerLink="/register"
                 class="ui-btn ui-btn-secondary w-full md:w-auto px-10 py-5 text-xl font-black font-display"
               >
                 Commencer Gratuitement
               </button>
               <button
-                (click)="goToLogin.emit()"
+                routerLink="/login"
                 class="ui-btn ui-btn-ghost w-full md:w-auto px-10 py-5 text-xl font-black font-display"
               >
                 J'ai un compte
@@ -337,13 +338,13 @@ import { CommonModule } from '@angular/common';
           </div>
           <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <button
-              (click)="goToRegister.emit()"
+              routerLink="/register"
               class="ui-btn ui-btn-secondary w-full sm:w-auto px-8 py-4 text-lg font-black font-display"
             >
               Commencer Gratuitement
             </button>
             <button
-              (click)="goToLogin.emit()"
+              routerLink="/login"
               class="ui-btn ui-btn-ghost border-2 border-white text-white hover:bg-white hover:text-[#1D1C1C] w-full sm:w-auto px-8 py-4 text-lg font-black font-display"
             >
               Me connecter
@@ -371,7 +372,4 @@ import { CommonModule } from '@angular/common';
     </div>
   `
 })
-export class LandingComponent {
-  goToLogin = output<void>();
-  goToRegister = output<void>();
-}
+export class LandingComponent {}

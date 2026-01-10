@@ -10,6 +10,6 @@ export const GuestGuard: CanActivateFn = () => {
   return combineLatest([supabase.session$, supabase.sessionReady$]).pipe(
     filter((ready) => !!ready),
     take(1),
-    map(([session]) => (session ? router.createUrlTree(['/settings']) : true))
+    map(([session]) => (session ? router.createUrlTree(['/dashboard']) : true))
   );
 };

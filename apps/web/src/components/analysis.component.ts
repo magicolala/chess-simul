@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, effect, input } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
@@ -204,11 +205,13 @@ import { Chess, Move } from 'chess.js';
     </div>
   `
 })
-export class AnalysisComponent {
+export class AnalysisComponent implements OnInit {
   analysisService = inject(AnalysisService);
 
-  // Inputs from parent if we want to preload a game
-  initialPgn = input<string>('');
+  route = inject(ActivatedRoute);
+  
+  // State
+  initialPgn = signal<string>('');
 
   // State
   chess = new Chess();
@@ -254,12 +257,15 @@ export class AnalysisComponent {
     return h ? { from: h.move.from, to: h.move.to } : null;
   });
 
-  constructor() {
-    effect(() => {
-      if (this.initialPgn()) {
-        this.pgnInput.set(this.initialPgn());
-        this.loadPgn();
-      }
+  constructor() {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+       const pgn = params['pgn'];
+       if (pgn) {
+          this.pgnInput.set(pgn);
+          this.loadPgn();
+       }
     });
   }
 

@@ -1,5 +1,6 @@
 
-import { Component, inject, input, effect, signal } from '@angular/core';
+import { Component, inject, effect, signal, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { SupabaseSocialService } from '../services/supabase-social.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
@@ -183,22 +184,32 @@ import type { UserProfile } from '../services/social.service';
     }
   `
 })
-export class PublicProfileComponent {
+export class PublicProfileComponent implements OnInit {
   social = inject(SupabaseSocialService);
   auth = inject(SupabaseClientService);
 
-  // Input: Profile ID to load (from route param usually)
-  userId = input<string>('');
+  route = inject(ActivatedRoute);
+
+  // Input: Profile ID to load (from route param)
+  userId = signal<string>('');
 
   viewedProfile = signal<UserProfile | null>(null);
 
   constructor() {
     effect(() => {
-      if (this.userId()) {
-        this.social.getProfile(this.userId()).then((profile) => {
-          this.viewedProfile.set(profile);
-        });
-      }
+      // Logic handled via route subscription below
+    });
+  }
+
+  ngOnInit() {
+    this.route.paramMap.subscribe(params => {
+        const id = params.get('id');
+        if (id) {
+            this.userId.set(id);
+            this.social.getProfile(id).then((profile) => {
+                this.viewedProfile.set(profile);
+            });
+        }
     });
   }
 

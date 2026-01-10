@@ -1,4 +1,5 @@
-import { Component, inject, computed, output, signal, effect, OnDestroy } from '@angular/core';
+import { Component, inject, computed, signal, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SupabaseMatchmakingService } from '../services/supabase-matchmaking.service';
 import { RealtimeGameService } from '../services/realtime-game.service';
@@ -142,7 +143,7 @@ interface GridGame extends Omit<GameRow, 'clocks'> {
                   </div>
                   
                   <button 
-                    (click)="openGame.emit(game.id)"
+                    (click)="navigateToGame(game.id)"
                     class="bg-white text-[#1D1C1C] hover:bg-[#7AF7F7] p-1 rounded transition-colors"
                     title="Ouvrir en plein écran"
                   >
@@ -176,8 +177,7 @@ export class GamesGridComponent implements OnDestroy {
   matchmaking = inject(SupabaseMatchmakingService);
   realtime = inject(RealtimeGameService);
   auth = inject(AuthService);
-
-  openGame = output<string>();
+  router = inject(Router);
 
   // Timer for clock updates
   now = signal(Date.now());
@@ -203,7 +203,7 @@ export class GamesGridComponent implements OnDestroy {
   }
 
   activeGames = computed(() => {
-    let games = [...(this.matchmaking.activeGames() as GridGame[])];
+    const games = [...(this.matchmaking.activeGames() as GridGame[])];
 
     // Priority Sort: My Turn > Lowest Time
     games.sort((a, b) => {
@@ -276,6 +276,10 @@ export class GamesGridComponent implements OnDestroy {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
+  navigateToGame(gameId: string) {
+    this.router.navigate(['/online-game', gameId]);
+  }
+
   async onMove(gameId: string, move: { from: string; to: string; promotion?: string }) {
     const uci = `${move.from}${move.to}${move.promotion || ''}`;
     try {
@@ -302,7 +306,7 @@ export class GamesGridComponent implements OnDestroy {
         try {
           const result = await this.realtime.checkTimeout(game.id);
           if (result?.timeout) {
-            console.log(`[GamesGrid] ⏰ Timeout detected for game ${game.id}`);
+            console.warn(`[GamesGrid] ⏰ Timeout detected for game ${game.id}`);
           }
         } catch (e: unknown) {
           console.error(`[GamesGrid] Timeout check failed for ${game.id}:`, (e as Error).message);

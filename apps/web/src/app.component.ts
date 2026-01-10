@@ -211,7 +211,7 @@ export class AppComponent {
       if (!game) return;
 
       if (
-        game.gameMode === 'forced_piece' &&
+        game.gameMode === 'hand_brain' &&
         game.brainForcedForPosition &&
         game.brainForcedForPosition !== game.fen
       ) {
@@ -495,7 +495,7 @@ export class AppComponent {
     this.auth.signOut();
   }
 
-  updateGameMode(mode: 'standard' | 'forced_piece') {
+  updateGameMode(mode: 'standard' | 'hand_brain') {
     this.newGameConfig.update((c) => ({ ...c, gameMode: mode }));
   }
 

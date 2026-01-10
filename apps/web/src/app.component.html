@@ -508,16 +508,16 @@
                   Classique
                 </button>
                 <button
-                  (click)="updateGameMode('forced_piece')"
+                  (click)="updateGameMode('hand_brain')"
                   class="py-3 border-2 border-[#1D1C1C] dark:border-white font-black font-display text-sm uppercase"
-                  [class.bg-[#1D1C1C]]="newGameConfig().gameMode === 'forced_piece'"
-                  [class.text-white]="newGameConfig().gameMode === 'forced_piece'"
+                  [class.bg-[#1D1C1C]]="newGameConfig().gameMode === 'hand_brain'"
+                  [class.text-white]="newGameConfig().gameMode === 'hand_brain'"
                 >
-                  Pièce imposée
+                  🧠 Main-Cerveau
                 </button>
               </div>
               <p class="mt-2 text-[11px] text-gray-500">
-                En mode "Pièce imposée", le moteur choisit la pièce que vous devez jouer à chaque tour.
+                En mode "Main-Cerveau", le moteur (Cerveau) choisit la pièce que vous (Main) devez jouer.
               </p>
             </div>
             <button

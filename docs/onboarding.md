@@ -42,6 +42,7 @@ npm run supabase:gen:types
 ```
 
 Notes:
+
 - `npm run supabase:migrate:up` applique aussi les migrations si besoin.
 - `npm run supabase:reset` relance la stack et reseed.
 

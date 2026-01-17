@@ -5,7 +5,9 @@ import { resolve } from 'node:path';
 const dbUrl = process.env.SUPABASE_DB_URL;
 
 if (!dbUrl) {
-  console.error('Missing SUPABASE_DB_URL. Set it to a Postgres connection string before running this check.');
+  console.error(
+    'Missing SUPABASE_DB_URL. Set it to a Postgres connection string before running this check.'
+  );
   process.exit(1);
 }
 
@@ -18,12 +20,12 @@ const supabaseArgs = [
   '--db-url',
   dbUrl,
   '--schema',
-  'public',
+  'public'
 ];
 
 const { status, stdout, stderr, error } = spawnSync('npx', supabaseArgs, {
   cwd: resolve('supabase'),
-  encoding: 'utf8',
+  encoding: 'utf8'
 });
 
 if (error) {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RoundRobinLobbyComponent } from '../components/round-robin-lobby.component';
 import { RoundRobinGamesComponent } from '../components/round-robin-games.component';

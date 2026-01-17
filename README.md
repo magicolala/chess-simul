@@ -52,6 +52,7 @@ npm run supabase:types:check
 ```
 
 Notes:
+
 - `npm run build` injecte les variables Supabase via `scripts/generate-env.mjs` (voir `DEPLOY.md`).
 - `npm test` lance le typecheck et les tests unitaires (`vitest run`) du workspace web.
 

@@ -40,7 +40,10 @@ const createResult = (overrides: Partial<GameResult> = {}): GameResult => ({
 describe('HistoryService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [HistoryService, { provide: SupabaseClientService, useFactory: createSupabaseStub }]
+      providers: [
+        HistoryService,
+        { provide: SupabaseClientService, useFactory: createSupabaseStub }
+      ]
     });
     localStorage.clear();
   });

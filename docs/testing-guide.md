@@ -56,6 +56,7 @@ npm run test:e2e --workspace=web -- auth.spec.ts
 ### Navigateurs
 
 Les tests s'exécutent sur :
+
 - Chrome (Desktop & Mobile)
 - Firefox
 - Safari (Desktop & Mobile)
@@ -80,6 +81,7 @@ npm run test:coverage --workspace=web
 ### Rapports
 
 Les rapports sont générés dans `apps/web/coverage/` :
+
 - `index.html` : Rapport HTML interactif
 - `lcov.info` : Format LCOV pour CI/CD
 
@@ -96,6 +98,7 @@ npm run test:a11y --workspace=web
 ### Standards
 
 Tests de conformité **WCAG 2.1 AA** avec axe-core :
+
 - Contraste des couleurs
 - Labels de formulaires
 - Navigation au clavier
@@ -108,10 +111,8 @@ Tests de conformité **WCAG 2.1 AA** avec axe-core :
 ```typescript
 test('my component should be accessible', async ({ page }) => {
   await page.goto('/my-component');
-  
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa'])
-    .analyze();
+
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 
   expect(results.violations).toEqual([]);
 });
@@ -169,7 +170,7 @@ La première exécution crée automatiquement les screenshots de référence dan
 test('my component should match snapshot', async ({ page }) => {
   await page.goto('/my-component');
   await page.waitForLoadState('networkidle');
-  
+
   await expect(page).toHaveScreenshot('my-component.png', {
     fullPage: true,
     maxDiffPixels: 100
@@ -188,6 +189,7 @@ Deux workflows automatisés :
 #### 1. Tests (`test.yml`)
 
 Déclenché sur push/PR vers `main` ou `develop` :
+
 - ✅ Tests unitaires
 - ✅ Couverture de code
 - ✅ Tests E2E
@@ -197,6 +199,7 @@ Déclenché sur push/PR vers `main` ou `develop` :
 #### 2. Lighthouse (`lighthouse.yml`)
 
 Déclenché sur push/PR vers `main` :
+
 - ✅ Build de production
 - ✅ Audit Lighthouse
 - ✅ Vérification des seuils

@@ -604,7 +604,9 @@
   } @else if (currentView() === 'onboarding') {
     <app-onboarding></app-onboarding>
   } @else if (currentView() === 'round-robin-simul') {
-    <div class="min-h-screen bg-nano-banana dark:bg-[#121212] p-4 md:p-8 overflow-y-auto text-[#1D1C1C] dark:text-white font-sans transition-colors duration-300">
+    <div
+      class="min-h-screen bg-nano-banana dark:bg-[#121212] p-4 md:p-8 overflow-y-auto text-[#1D1C1C] dark:text-white font-sans transition-colors duration-300"
+    >
       <div class="max-w-7xl mx-auto">
         <header class="mb-8 flex items-center justify-between">
           <div class="flex items-center gap-2 cursor-pointer" (click)="switchView('landing')">
@@ -613,15 +615,14 @@
             >
               ♟
             </div>
-            <h1 class="text-xl font-black font-display text-[#1D1C1C] dark:text-white tracking-tighter uppercase">
+            <h1
+              class="text-xl font-black font-display text-[#1D1C1C] dark:text-white tracking-tighter uppercase"
+            >
               Chess Master
             </h1>
           </div>
           @if (!auth.currentUser()) {
-            <button
-              (click)="openLoginModal()"
-              class="ui-btn ui-btn-ghost text-sm"
-            >
+            <button (click)="openLoginModal()" class="ui-btn ui-btn-ghost text-sm">
               Connexion
             </button>
           }

@@ -33,9 +33,14 @@ import * as d3 from 'd3';
       </div>
 
       @if (historyService.error()) {
-        <div class="mb-6 p-4 border-2 border-red-200 bg-red-50 text-red-700 flex items-center justify-between">
+        <div
+          class="mb-6 p-4 border-2 border-red-200 bg-red-50 text-red-700 flex items-center justify-between"
+        >
           <span class="font-bold">{{ historyService.error() }}</span>
-          <button (click)="historyService.fetchHistoryFromSupabase()" class="ui-btn ui-btn-secondary text-xs">
+          <button
+            (click)="historyService.fetchHistoryFromSupabase()"
+            class="ui-btn ui-btn-secondary text-xs"
+          >
             Réessayer
           </button>
         </div>
@@ -43,7 +48,9 @@ import * as d3 from 'd3';
 
       @if (historyService.loading()) {
         <div class="mb-6 flex items-center text-sm text-gray-600 font-bold">
-          <span class="w-3 h-3 mr-2 rounded-full border-2 border-[#1D1C1C] border-t-transparent animate-spin"></span>
+          <span
+            class="w-3 h-3 mr-2 rounded-full border-2 border-[#1D1C1C] border-t-transparent animate-spin"
+          ></span>
           Mise à jour de l'historique...
         </div>
       }

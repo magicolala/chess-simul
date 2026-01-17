@@ -107,7 +107,7 @@ export class HistoryService {
       .in('status', ['checkmate', 'draw', 'resigned', 'aborted']);
 
     if (error) {
-      this.error.set(error.message ?? 'Impossible de récupérer l\'historique.');
+      this.error.set(error.message ?? "Impossible de récupérer l'historique.");
       this.loading.set(false);
       return;
     }
@@ -163,12 +163,20 @@ export class HistoryService {
 
     this.realtimeChannel = this.supabase.client
       .channel(`game-history:${userId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `white_id=eq.${userId}` }, (payload) => {
-        this.handleRealtimeGame(payload.new as any);
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `black_id=eq.${userId}` }, (payload) => {
-        this.handleRealtimeGame(payload.new as any);
-      })
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'games', filter: `white_id=eq.${userId}` },
+        (payload) => {
+          this.handleRealtimeGame(payload.new as any);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'games', filter: `black_id=eq.${userId}` },
+        (payload) => {
+          this.handleRealtimeGame(payload.new as any);
+        }
+      )
       .subscribe();
   }
 

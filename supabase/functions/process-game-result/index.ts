@@ -84,7 +84,10 @@ serve(async (req) => {
             ? { elo: fallbackProfileQuery.data.elo, age: null, games_played: null }
             : null,
           error: fallbackProfileQuery.error
-        } as { data: { elo: number; age: number | null; games_played: number | null } | null; error: unknown };
+        } as {
+          data: { elo: number; age: number | null; games_played: number | null } | null;
+          error: unknown;
+        };
       }
 
       return profileQuery as unknown as {
@@ -116,8 +119,7 @@ serve(async (req) => {
         return null;
       }
 
-      const gamesPlayed =
-        data.games_played ?? (await getGamesPlayed(playerId)) ?? 0;
+      const gamesPlayed = data.games_played ?? (await getGamesPlayed(playerId)) ?? 0;
 
       return {
         elo: data.elo,

@@ -16,8 +16,10 @@ const getUserOrFail = async (req: Request) => {
   return { supabase, user: data.user } as const;
 };
 
-const isAnonymousUser = (user: { app_metadata?: Record<string, unknown>; is_anonymous?: boolean }) =>
-  Boolean(user.is_anonymous || user.app_metadata?.provider === 'anonymous');
+const isAnonymousUser = (user: {
+  app_metadata?: Record<string, unknown>;
+  is_anonymous?: boolean;
+}) => Boolean(user.is_anonymous || user.app_metadata?.provider === 'anonymous');
 
 const readBody = async (req: Request) => {
   try {
@@ -34,7 +36,10 @@ const createInviteCode = (length = 8) => {
   return Array.from(bytes, (value) => inviteAlphabet[value % inviteAlphabet.length]).join('');
 };
 
-const createSessionWithInvite = async (supabase: ReturnType<typeof createSupabaseClient>, userId: string) => {
+const createSessionWithInvite = async (
+  supabase: ReturnType<typeof createSupabaseClient>,
+  userId: string
+) => {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const inviteCode = createInviteCode();
     const { data: session, error } = await supabase
@@ -116,10 +121,11 @@ serve(async (req) => {
       return jsonResponse({ error: 'guest_not_allowed' }, 403);
     }
 
-    const { session, inviteCode, error: sessionError } = await createSessionWithInvite(
-      auth.supabase,
-      auth.user.id
-    );
+    const {
+      session,
+      inviteCode,
+      error: sessionError
+    } = await createSessionWithInvite(auth.supabase, auth.user.id);
 
     if (sessionError || !session) {
       console.error('RR create session error', sessionError);

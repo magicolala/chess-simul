@@ -10,31 +10,29 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
 
       - name: Generate environment files
         run: npm run generate:env
 
-
-      
       - name: Run unit tests
         run: npm run test:unit --workspace=web
-      
+
       - name: Run tests with coverage
         run: npm run test:coverage --workspace=web
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -46,29 +44,29 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
 
       - name: Generate environment files
         run: npm run generate:env
-      
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-      
+
       - name: Run E2E tests
         run: npm run test:e2e --workspace=web
-      
+
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         if: failure()
@@ -76,7 +74,7 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -88,25 +86,25 @@ jobs:
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
 
       - name: Generate environment files
         run: npm run generate:env
-      
+
       - name: Run ESLint
         run: npm run lint
-      
+
       - name: Run type check
         run: npm run typecheck --workspace=web

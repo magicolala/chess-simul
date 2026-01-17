@@ -1,284 +1,284 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8" />
-  <title>Simul Chess</title>
-  <base href="/" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Simul Chess - A multiplayer chess simulation platform" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['"Bricolage Grotesque"', 'sans-serif']
+  <head>
+    <meta charset="utf-8" />
+    <title>Simul Chess</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Simul Chess - A multiplayer chess simulation platform" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['"Bricolage Grotesque"', 'sans-serif']
+            }
           }
         }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+        background-color: #ffffff;
+        color: #1d1c1c;
       }
-    };
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-      background-color: #ffffff;
-      color: #1d1c1c;
-    }
 
-    /* Custom Scrollbar - Wero Style (Bold & High Contrast) */
-    ::-webkit-scrollbar {
-      width: 12px;
-      height: 12px;
-    }
+      /* Custom Scrollbar - Wero Style (Bold & High Contrast) */
+      ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+      }
 
-    ::-webkit-scrollbar-track {
-      background: #ffffff;
-      border-left: 2px solid #1d1c1c;
-    }
+      ::-webkit-scrollbar-track {
+        background: #ffffff;
+        border-left: 2px solid #1d1c1c;
+      }
 
-    ::-webkit-scrollbar-thumb {
-      background: #fff48d;
-      border: 2px solid #1d1c1c;
-    }
+      ::-webkit-scrollbar-thumb {
+        background: #fff48d;
+        border: 2px solid #1d1c1c;
+      }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: #7af7f7;
-    }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #7af7f7;
+      }
 
-    /* Nano Banana Pattern */
-    .bg-nano-banana {
-      background-color: #ffffff;
-      background-image:
-        radial-gradient(#fff48d 2.5px, transparent 2.5px),
-        radial-gradient(#1d1c1c 0.8px, transparent 0.8px);
-      background-size: 30px 30px;
-      background-position:
-        0 0,
-        15px 15px;
-    }
+      /* Nano Banana Pattern */
+      .bg-nano-banana {
+        background-color: #ffffff;
+        background-image:
+          radial-gradient(#fff48d 2.5px, transparent 2.5px),
+          radial-gradient(#1d1c1c 0.8px, transparent 0.8px);
+        background-size: 30px 30px;
+        background-position:
+          0 0,
+          15px 15px;
+      }
 
-    .dark .bg-nano-banana {
-      background-color: #121212;
-      background-image:
-        radial-gradient(#1d1c1c 2.5px, transparent 2.5px),
-        radial-gradient(#444 0.8px, transparent 0.8px);
-    }
+      .dark .bg-nano-banana {
+        background-color: #121212;
+        background-image:
+          radial-gradient(#1d1c1c 2.5px, transparent 2.5px),
+          radial-gradient(#444 0.8px, transparent 0.8px);
+      }
 
-    /* Utilities for Wero Style */
-    .wero-shadow {
-      box-shadow: 4px 4px 0px 0px #1d1c1c;
-    }
+      /* Utilities for Wero Style */
+      .wero-shadow {
+        box-shadow: 4px 4px 0px 0px #1d1c1c;
+      }
 
-    .wero-shadow-sm {
-      box-shadow: 2px 2px 0px 0px #1d1c1c;
-    }
+      .wero-shadow-sm {
+        box-shadow: 2px 2px 0px 0px #1d1c1c;
+      }
 
-    .wero-shadow-hover:hover {
-      box-shadow: 6px 6px 0px 0px #1d1c1c;
-      transform: translate(-2px, -2px);
-    }
+      .wero-shadow-hover:hover {
+        box-shadow: 6px 6px 0px 0px #1d1c1c;
+        transform: translate(-2px, -2px);
+      }
 
-    .wero-shadow-active:active {
-      box-shadow: 0px 0px 0px 0px #1d1c1c;
-      transform: translate(2px, 2px);
-    }
+      .wero-shadow-active:active {
+        box-shadow: 0px 0px 0px 0px #1d1c1c;
+        transform: translate(2px, 2px);
+      }
 
-    :root {
-      --wero-ink: #1d1c1c;
-      --wero-yellow: #fff48d;
-      --wero-cyan: #7af7f7;
-    }
+      :root {
+        --wero-ink: #1d1c1c;
+        --wero-yellow: #fff48d;
+        --wero-cyan: #7af7f7;
+      }
 
-    .ui-card {
-      background: #ffffff;
-      border: 2px solid var(--wero-ink);
-      box-shadow: 4px 4px 0px 0px var(--wero-ink);
-    }
+      .ui-card {
+        background: #ffffff;
+        border: 2px solid var(--wero-ink);
+        box-shadow: 4px 4px 0px 0px var(--wero-ink);
+      }
 
-    .dark .ui-card {
-      background: #1a1a1a;
-      border-color: #ffffff;
-      box-shadow: 4px 4px 0px 0px #ffffff;
-      color: #ffffff;
-    }
+      .dark .ui-card {
+        background: #1a1a1a;
+        border-color: #ffffff;
+        box-shadow: 4px 4px 0px 0px #ffffff;
+        color: #ffffff;
+      }
 
-    .ui-card-header {
-      background: var(--wero-yellow);
-      border-bottom: 2px solid var(--wero-ink);
-    }
+      .ui-card-header {
+        background: var(--wero-yellow);
+        border-bottom: 2px solid var(--wero-ink);
+      }
 
-    .dark .ui-card-header {
-      border-color: #ffffff;
-    }
+      .dark .ui-card-header {
+        border-color: #ffffff;
+      }
 
-    .ui-card-footer {
-      border-top: 2px solid var(--wero-ink);
-    }
+      .ui-card-footer {
+        border-top: 2px solid var(--wero-ink);
+      }
 
-    .dark .ui-card-footer {
-      border-color: #ffffff;
-    }
+      .dark .ui-card-footer {
+        border-color: #ffffff;
+      }
 
-    .ui-label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #6b7280;
-    }
+      .ui-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+      }
 
-    .dark .ui-label {
-      color: #9ca3af;
-    }
+      .dark .ui-label {
+        color: #9ca3af;
+      }
 
-    .ui-input {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 2px solid var(--wero-ink);
-      background: #ffffff;
-      font-weight: 600;
-      outline: none;
-    }
+      .ui-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--wero-ink);
+        background: #ffffff;
+        font-weight: 600;
+        outline: none;
+      }
 
-    .ui-input:focus {
-      background: #e8fefe;
-    }
+      .ui-input:focus {
+        background: #e8fefe;
+      }
 
-    .dark .ui-input {
-      background: #0f0f0f;
-      border-color: #ffffff;
-      color: #ffffff;
-    }
+      .dark .ui-input {
+        background: #0f0f0f;
+        border-color: #ffffff;
+        color: #ffffff;
+      }
 
-    .dark .ui-input:focus {
-      background: #000000;
-    }
+      .dark .ui-input:focus {
+        background: #000000;
+      }
 
-    .ui-input-top {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 0;
-      border-top: 2px solid var(--wero-ink);
-      background: #ffffff;
-      font-weight: 600;
-      outline: none;
-    }
+      .ui-input-top {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 0;
+        border-top: 2px solid var(--wero-ink);
+        background: #ffffff;
+        font-weight: 600;
+        outline: none;
+      }
 
-    .ui-input-top:focus {
-      background: #e8fefe;
-    }
+      .ui-input-top:focus {
+        background: #e8fefe;
+      }
 
-    .dark .ui-input-top {
-      border-top-color: #ffffff;
-      background: #0f0f0f;
-      color: #ffffff;
-    }
+      .dark .ui-input-top {
+        border-top-color: #ffffff;
+        background: #0f0f0f;
+        color: #ffffff;
+      }
 
-    .dark .ui-input-top:focus {
-      background: #000000;
-    }
+      .dark .ui-input-top:focus {
+        background: #000000;
+      }
 
-    .ui-btn {
-      border: 2px solid var(--wero-ink);
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      box-shadow: 2px 2px 0px 0px var(--wero-ink);
-      transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease,
-        background 0.2s ease,
-        color 0.2s ease;
-    }
+      .ui-btn {
+        border: 2px solid var(--wero-ink);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        box-shadow: 2px 2px 0px 0px var(--wero-ink);
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease,
+          background 0.2s ease,
+          color 0.2s ease;
+      }
 
-    .ui-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px 0px var(--wero-ink);
-    }
+      .ui-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 0px 0px 0px 0px var(--wero-ink);
+      }
 
-    .ui-btn-primary {
-      background: var(--wero-yellow);
-      color: var(--wero-ink);
-    }
+      .ui-btn-primary {
+        background: var(--wero-yellow);
+        color: var(--wero-ink);
+      }
 
-    .ui-btn-secondary {
-      background: var(--wero-cyan);
-      color: var(--wero-ink);
-    }
+      .ui-btn-secondary {
+        background: var(--wero-cyan);
+        color: var(--wero-ink);
+      }
 
-    .ui-btn-dark {
-      background: var(--wero-ink);
-      color: #ffffff;
-    }
+      .ui-btn-dark {
+        background: var(--wero-ink);
+        color: #ffffff;
+      }
 
-    .ui-btn-ghost {
-      background: #ffffff;
-      color: var(--wero-ink);
-    }
+      .ui-btn-ghost {
+        background: #ffffff;
+        color: var(--wero-ink);
+      }
 
-    .ui-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+      .ui-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-    .dark .ui-btn {
-      border-color: #ffffff;
-      box-shadow: 2px 2px 0px 0px #ffffff;
-    }
+      .dark .ui-btn {
+        border-color: #ffffff;
+        box-shadow: 2px 2px 0px 0px #ffffff;
+      }
 
-    .dark .ui-btn-dark {
-      background: #ffffff;
-      color: var(--wero-ink);
-    }
+      .dark .ui-btn-dark {
+        background: #ffffff;
+        color: var(--wero-ink);
+      }
 
-    .dark .ui-btn-ghost {
-      background: #1a1a1a;
-      color: #ffffff;
-    }
+      .dark .ui-btn-ghost {
+        background: #1a1a1a;
+        color: #ffffff;
+      }
 
-    .ui-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      border: 2px solid var(--wero-ink);
-      padding: 0.2rem 0.55rem;
-      font-size: 0.65rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      background: #ffffff;
-    }
+      .ui-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 2px solid var(--wero-ink);
+        padding: 0.2rem 0.55rem;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        background: #ffffff;
+      }
 
-    .dark .ui-chip {
-      border-color: #ffffff;
-      background: #1a1a1a;
-      color: #ffffff;
-    }
+      .dark .ui-chip {
+        border-color: #ffffff;
+        background: #1a1a1a;
+        color: #ffffff;
+      }
 
-    button:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible,
-    select:focus-visible {
-      outline: 2px dashed var(--wero-ink);
-      outline-offset: 2px;
-    }
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible {
+        outline: 2px dashed var(--wero-ink);
+        outline-offset: 2px;
+      }
 
-    .dark button:focus-visible,
-    .dark input:focus-visible,
-    .dark textarea:focus-visible,
-    .dark select:focus-visible {
-      outline-color: #ffffff;
-    }
-  </style>
-  <script type="importmap">
+      .dark button:focus-visible,
+      .dark input:focus-visible,
+      .dark textarea:focus-visible,
+      .dark select:focus-visible {
+        outline-color: #ffffff;
+      }
+    </style>
+    <script type="importmap">
       {
         "imports": {
           "rxjs": "https://esm.sh/rxjs@^7.8.2?conditions=es2015",
@@ -299,10 +299,9 @@
         }
       }
     </script>
-</head>
+  </head>
 
-<body>
-  <app-root></app-root>
-</body>
-
+  <body>
+    <app-root></app-root>
+  </body>
 </html>

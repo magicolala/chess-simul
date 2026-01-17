@@ -29,72 +29,71 @@ export class HydraGameEngineService {
   private gamesMap = signal<Map<string, HydraGame>>(new Map());
   public readonly games = computed(() => Array.from(this.gamesMap().values()));
 
-  private gameLoop$: Observable<number>;
+  private gameLoop$!: Observable<number>;
   private destroy$ = new Subject<void>();
 
   constructor() {
-    // Game loop for updating timers
+    this.initializeGameLoop();
+  }
+
+  private initializeGameLoop() {
     this.gameLoop$ = interval(100)
       .pipe(takeUntil(this.destroy$))
       .pipe(map(() => Date.now()));
 
     this.gameLoop$.subscribe((currentTime) => {
-      const INACTIVITY_THRESHOLD_MS = 20 * 1000; // 20 seconds
-      this.gamesMap.update((currentMap) => {
-        const newMap = new Map(currentMap);
-        newMap.forEach((game, gameId) => {
-          if (game.status === 'playing') {
-            // Check for inactivity at the start of the game (low plyCount)
-            if (
-              game.plyCount <= 1 &&
-              currentTime - game.lastActivityTime > INACTIVITY_THRESHOLD_MS
-            ) {
-              // Forfeit condition
-              game.status = 'timeout'; // Use 'timeout' or introduce 'forfeit' status
-              console.debug('[HydraGameEngine] inactivity forfeit', {
-                gameId,
-                lastActivityTime: game.lastActivityTime,
-                currentTime
-              });
-              // In a real application, you'd trigger a server-side function to record this forfeit
-              // and update player Elo accordingly.
-            }
+      this.updateRunningGames(currentTime);
+    });
+  }
 
-            const elapsedTime = currentTime - game.lastMoveTime;
-            const newTimeRemaining = { ...game.timeRemaining };
-
-            if (game.turn === 'w') {
-              newTimeRemaining.white -= elapsedTime;
-              if (newTimeRemaining.white <= 0) {
-                game.status = 'timeout';
-                newTimeRemaining.white = 0;
-                console.debug('[HydraGameEngine] timeout reached', {
-                  gameId,
-                  side: 'white',
-                  elapsedTime
-                });
-              }
-            } else {
-              newTimeRemaining.black -= elapsedTime;
-              if (newTimeRemaining.black <= 0) {
-                game.status = 'timeout';
-                newTimeRemaining.black = 0;
-                console.debug('[HydraGameEngine] timeout reached', {
-                  gameId,
-                  side: 'black',
-                  elapsedTime
-                });
-              }
-            }
-            newMap.set(gameId, {
-              ...game,
-              timeRemaining: newTimeRemaining,
-              lastMoveTime: currentTime
-            });
-          }
-        });
-        return newMap;
+  private updateRunningGames(currentTime: number) {
+    const INACTIVITY_THRESHOLD_MS = 20 * 1000;
+    this.gamesMap.update((currentMap) => {
+      const newMap = new Map(currentMap);
+      newMap.forEach((game, gameId) => {
+        if (game.status === 'playing') {
+          this.checkInactivity(game, gameId, currentTime, INACTIVITY_THRESHOLD_MS);
+          this.updateGameTimer(game, gameId, currentTime, newMap);
+        }
       });
+      return newMap;
+    });
+  }
+
+  private checkInactivity(game: HydraGame, gameId: string, currentTime: number, threshold: number) {
+    if (game.plyCount <= 1 && currentTime - game.lastActivityTime > threshold) {
+      game.status = 'timeout';
+      console.debug('[HydraGameEngine] inactivity forfeit', {
+        gameId,
+        lastActivityTime: game.lastActivityTime,
+        currentTime
+      });
+    }
+  }
+
+  private updateGameTimer(game: HydraGame, gameId: string, currentTime: number, map: Map<string, HydraGame>) {
+    const elapsedTime = currentTime - game.lastMoveTime;
+    const newTimeRemaining = { ...game.timeRemaining };
+
+    if (game.turn === 'w') {
+      newTimeRemaining.white -= elapsedTime;
+      if (newTimeRemaining.white <= 0) {
+        game.status = 'timeout';
+        newTimeRemaining.white = 0;
+        console.debug('[HydraGameEngine] timeout reached', { gameId, side: 'white', elapsedTime });
+      }
+    } else {
+      newTimeRemaining.black -= elapsedTime;
+      if (newTimeRemaining.black <= 0) {
+        game.status = 'timeout';
+        newTimeRemaining.black = 0;
+        console.debug('[HydraGameEngine] timeout reached', { gameId, side: 'black', elapsedTime });
+      }
+    }
+    map.set(gameId, {
+      ...game,
+      timeRemaining: newTimeRemaining,
+      lastMoveTime: currentTime
     });
   }
 
@@ -155,57 +154,71 @@ export class HydraGameEngineService {
     const moveResult = game.chess.move({ from, to, promotion });
 
     if (moveResult) {
-      const now = Date.now();
-      const currentTurn = game.turn;
-
-      const newTimeRemaining = { ...game.timeRemaining };
-      if (currentTurn === 'w') {
-        newTimeRemaining.white += game.increment * 1000;
-      } else {
-        newTimeRemaining.black += game.increment * 1000;
-      }
-
-      game.turn = game.chess.turn(); // Update turn after move
-      this.updateGame(gameId, {
-        fen: game.chess.fen(),
-        lastMove: { from, to },
-        plyCount: game.chess.history().length,
-        status: this.getGameStatus(game.chess),
-        timeRemaining: newTimeRemaining,
-        lastMoveTime: now,
-        lastActivityTime: now, // Update last activity time
-        turn: game.chess.turn(),
-        opponentJustMoved: false // Player just moved, so opponent hasn't yet
-      });
-
-      // If it's now bot's turn, make its move
-      if (game.status === 'playing' && game.turn !== game.playerColor) {
-        // Reset opponentJustMoved for all games, then set for current
-        this.gamesMap.update((currentMap) => {
-          const newMap = new Map(currentMap);
-          newMap.forEach((g, id) => {
-            newMap.set(id, { ...g, opponentJustMoved: false });
-          });
-          console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-            clearedGameIds: Array.from(newMap.keys())
-          });
-          newMap.set(gameId, { ...newMap.get(gameId)!, opponentJustMoved: true });
-          console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-            activeGame: gameId,
-            activeValue: true
-          });
-          return newMap;
-        });
-        const botDelayMs = 500 + Math.random() * 1500;
-        console.debug('[HydraGameEngine] scheduling bot move', {
-          gameId,
-          botDelayMs
-        });
-        setTimeout(() => this.makeBotMove(gameId), botDelayMs); // Simulate thinking time
-      }
+      this.applyMove(game, gameId, from, to);
+      this.handleBotTurn(game, gameId);
       return true;
     }
     return false;
+  }
+
+  private applyMove(game: HydraGame, gameId: string, from: string, to: string) {
+    const now = Date.now();
+    // currentTurn was unused
+    // const currentTurn = game.turn; 
+
+    // Logic from original:
+    // const newTimeRemaining = ... (increment)
+    // game.turn = game.chess.turn();
+
+    const newTimeRemaining = { ...game.timeRemaining };
+    // We increment the side that just moved.
+    // If turn is now 'b', it means 'w' just moved.
+    // Assuming game.turn was NOT yet updated in my previous logic but chess.turn() IS updated.
+    // The original logic used `currentTurn` captured before `game.turn = game.chess.turn()`.
+
+    // Let's rely on `game.turn` before update.
+    if (game.turn === 'w') {
+      newTimeRemaining.white += game.increment * 1000;
+    } else {
+      newTimeRemaining.black += game.increment * 1000;
+    }
+
+    game.turn = game.chess.turn(); // Now update it.
+
+    this.updateGame(gameId, {
+      fen: game.chess.fen(),
+      lastMove: { from, to },
+      plyCount: game.chess.history().length,
+      status: this.getGameStatus(game.chess),
+      timeRemaining: newTimeRemaining,
+      lastMoveTime: now,
+      lastActivityTime: now,
+      turn: game.chess.turn(),
+      opponentJustMoved: false
+    });
+  }
+
+  private handleBotTurn(game: HydraGame, gameId: string) {
+    if (game.status === 'playing' && game.turn !== game.playerColor) {
+      this.setOpponentJustMoved(gameId, true);
+
+      const botDelayMs = 500 + Math.random() * 1500;
+      console.debug('[HydraGameEngine] scheduling bot move', { gameId, botDelayMs });
+      setTimeout(() => this.makeBotMove(gameId), botDelayMs);
+    }
+  }
+
+  private setOpponentJustMoved(gameId: string, isMoving: boolean) {
+    this.gamesMap.update((currentMap) => {
+      const newMap = new Map(currentMap);
+      newMap.forEach((g, id) => {
+        newMap.set(id, { ...g, opponentJustMoved: false });
+      });
+      if (isMoving) {
+        newMap.set(gameId, { ...newMap.get(gameId)!, opponentJustMoved: true });
+      }
+      return newMap;
+    });
   }
 
   private makeBotMove(gameId: string): void {
@@ -214,41 +227,19 @@ export class HydraGameEngineService {
       return;
     }
 
-    // Simple bot logic: choose a random legal move
     const legalMoves = game.chess.moves({ verbose: true });
     if (legalMoves.length > 0) {
       const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
-      // Bot makes a move, so set opponentJustMoved to true for this game
-      this.gamesMap.update((currentMap) => {
-        const newMap = new Map(currentMap);
-        newMap.forEach((g, id) => {
-          newMap.set(id, { ...g, opponentJustMoved: false });
-        });
-        console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-          clearedGameIds: Array.from(newMap.keys())
-        });
-        newMap.set(gameId, { ...newMap.get(gameId)!, opponentJustMoved: true });
-        console.debug('[HydraGameEngine] opponentJustMoved toggled', {
-          activeGame: gameId,
-          activeValue: true
-        });
-        return newMap;
-      });
+      this.setOpponentJustMoved(gameId, true);
+
       console.debug('[HydraGameEngine] executing bot move', {
         gameId,
         move: { from: randomMove.from, to: randomMove.to }
       });
       this.makeMove(gameId, randomMove.from, randomMove.to, randomMove.promotion);
     } else {
-      // If no legal moves, game is over (stalemate, checkmate)
       this.updateGame(gameId, { status: this.getGameStatus(game.chess) });
-      this.gamesMap.update((currentMap) => {
-        const newMap = new Map(currentMap);
-        newMap.forEach((g, id) => {
-          newMap.set(id, { ...g, opponentJustMoved: false });
-        });
-        return newMap;
-      });
+      this.setOpponentJustMoved(gameId, false);
     }
   }
 
@@ -284,9 +275,6 @@ export class HydraGameEngineService {
       return 'stalemate';
     }
     if (chess.isDraw()) {
-      return 'draw';
-    }
-    if (chess.isThreefoldRepetition() || chess.isInsufficientMaterial() || chess.isFiftyMoves()) {
       return 'draw';
     }
     return 'playing';

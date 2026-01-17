@@ -30,14 +30,14 @@ export interface GameState {
   fenHistory: string[];
   viewIndex: number;
   status:
-    | 'active'
-    | 'checkmate'
-    | 'stalemate'
-    | 'draw'
-    | 'resigned'
-    | 'timeout'
-    | 'waiting'
-    | 'aborted';
+  | 'active'
+  | 'checkmate'
+  | 'stalemate'
+  | 'draw'
+  | 'resigned'
+  | 'timeout'
+  | 'waiting'
+  | 'aborted';
   turn: 'w' | 'b';
   lastMove: { from: string; to: string } | null;
 
@@ -122,6 +122,11 @@ export class ChessSimulService {
   /**
    * Starts a Simultaneous Exhibition as the Host.
    */
+  // ... (previous code)
+
+  /**
+   * Starts a Simultaneous Exhibition as the Host.
+   */
   startSimulHosting(config: GameConfig) {
     this.config = config;
     this.gamesMap.clear();
@@ -138,52 +143,53 @@ export class ChessSimulService {
     });
 
     for (let i = 0; i < config.opponentCount; i++) {
-      const chess = new Chess();
-      const hostIsWhite = true;
-
-      const game: GameState = {
-        id: i,
-        sessionId: `simul-${Date.now()}-${i}`,
-        mode: 'simul-host',
-        chess: chess,
-        fen: chess.fen(),
-        pgn: chess.pgn(),
-        history: [],
-        fenHistory: [chess.fen()],
-        viewIndex: -1,
-        status: 'active',
-        turn: 'w',
-        lastMove: null,
-        playerName: 'Hôte (Vous)',
-        playerRating: this.auth.currentUser()?.elo ?? 1200,
-        playerColor: 'w',
-        opponentName: `Challenger #${i + 1}`,
-        opponentColor: 'b',
-        opponentRating: 1200 + Math.floor(Math.random() * 800),
-        opponentAvatar: `https://api.dicebear.com/7.x/notionists/svg?seed=challenger${i}`,
-        systemMessage: 'En attente du coup...',
-        chat: [
-          {
-            id: 'sys',
-            sender: 'Système',
-            text: 'Début de la partie.',
-            isSelf: false,
-            timestamp: Date.now()
-          }
-        ],
-        isProcessing: false,
-        initialTime: baseTimeMs,
-        whiteTime: baseTimeMs,
-        blackTime: baseTimeMs,
-        lastMoveTime: Date.now(),
-        isHostTurn: hostIsWhite,
-        requiresAttention: false
-      };
-
+      const game = this.createSimulGame(i, baseTimeMs);
       this.gamesMap.set(i, game);
       newGames.push(game);
     }
     this.games.set(newGames);
+  }
+
+  private createSimulGame(i: number, baseTimeMs: number): GameState {
+    const chess = new Chess();
+    return {
+      id: i,
+      sessionId: `simul-${Date.now()}-${i}`,
+      mode: 'simul-host',
+      chess: chess,
+      fen: chess.fen(),
+      pgn: chess.pgn(),
+      history: [],
+      fenHistory: [chess.fen()],
+      viewIndex: -1,
+      status: 'active',
+      turn: 'w',
+      lastMove: null,
+      playerName: 'Hôte (Vous)',
+      playerRating: this.auth.currentUser()?.elo ?? 1200,
+      playerColor: 'w',
+      opponentName: `Challenger #${i + 1}`,
+      opponentColor: 'b',
+      opponentRating: 1200 + Math.floor(Math.random() * 800),
+      opponentAvatar: `https://api.dicebear.com/7.x/notionists/svg?seed=challenger${i}`,
+      systemMessage: 'En attente du coup...',
+      chat: [
+        {
+          id: 'sys',
+          sender: 'Système',
+          text: 'Début de la partie.',
+          isSelf: false,
+          timestamp: Date.now()
+        }
+      ],
+      isProcessing: false,
+      initialTime: baseTimeMs,
+      whiteTime: baseTimeMs,
+      blackTime: baseTimeMs,
+      lastMoveTime: Date.now(),
+      isHostTurn: true,
+      requiresAttention: false
+    };
   }
 
   /**
@@ -274,58 +280,60 @@ export class ChessSimulService {
       const move = game.chess.move({ from, to, promotion });
       if (move) {
         this.updateGameState(gameId, move);
-
-        if (game.mode === 'simul-host') {
-          game.systemMessage = "Tour de l'adversaire...";
-          game.isHostTurn = false;
-
-          // Simulation: Opponent plays back after 3 seconds (random move)
-          setTimeout(
-            () => {
-              if (game.status === 'active') {
-                const possibleMoves = game.chess.moves();
-                if (possibleMoves.length > 0) {
-                  const randomMove =
-                    possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                  const m = game.chess.move(randomMove);
-                  game.blackTime += this.config.incrementSeconds * 1000;
-                  this.updateGameState(gameId, m);
-                  game.systemMessage = 'À vous de jouer !';
-                  game.isHostTurn = true;
-                  game.requiresAttention = true;
-                  this.games.set([...this.gamesMap.values()]);
-                }
-              }
-            },
-            3000 + Math.random() * 2000
-          );
-        } else if (game.mode === 'online') {
-          // For the demo, we simulate online opponent move
-          // In real app, this would be handled by socket event
-          game.systemMessage = "En attente de l'adversaire...";
-          setTimeout(() => {
-            if (game.status === 'active' && game.turn !== 'w') {
-              // Assuming player is white for demo
-              const possibleMoves = game.chess.moves();
-              if (possibleMoves.length > 0) {
-                const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                const m = game.chess.move(randomMove);
-                game.blackTime += this.config.incrementSeconds * 1000;
-                this.updateGameState(gameId, m);
-                game.systemMessage = 'À vous de jouer !';
-                this.games.set([...this.gamesMap.values()]);
-              }
-            }
-          }, 2000);
-        } else {
-          game.systemMessage = game.turn === 'w' ? 'Tour des Blancs' : 'Tour des Noirs';
-        }
-
+        this.handleMoveResponse(gameId, game);
         this.games.set([...this.gamesMap.values()]);
       }
     } catch (e) {
       console.error('Invalid move', e);
     }
+  }
+
+  private handleMoveResponse(gameId: number, game: GameState) {
+    if (game.mode === 'simul-host') {
+      this.handleSimulHostResponse(gameId, game);
+    } else if (game.mode === 'online') {
+      this.handleOnlineResponse(gameId, game);
+    } else {
+      game.systemMessage = game.turn === 'w' ? 'Tour des Blancs' : 'Tour des Noirs';
+    }
+  }
+
+  private handleSimulHostResponse(gameId: number, game: GameState) {
+    game.systemMessage = "Tour de l'adversaire...";
+    game.isHostTurn = false;
+
+    setTimeout(() => {
+      if (game.status === 'active') {
+        const possibleMoves = game.chess.moves();
+        if (possibleMoves.length > 0) {
+          const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+          const m = game.chess.move(randomMove);
+          game.blackTime += this.config.incrementSeconds * 1000;
+          this.updateGameState(gameId, m);
+          game.systemMessage = 'À vous de jouer !';
+          game.isHostTurn = true;
+          game.requiresAttention = true;
+          this.games.set([...this.gamesMap.values()]);
+        }
+      }
+    }, 3000 + Math.random() * 2000);
+  }
+
+  private handleOnlineResponse(gameId: number, game: GameState) {
+    game.systemMessage = "En attente de l'adversaire...";
+    setTimeout(() => {
+      if (game.status === 'active' && game.turn !== 'w') {
+        const possibleMoves = game.chess.moves();
+        if (possibleMoves.length > 0) {
+          const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+          const m = game.chess.move(randomMove);
+          game.blackTime += this.config.incrementSeconds * 1000;
+          this.updateGameState(gameId, m);
+          game.systemMessage = 'À vous de jouer !';
+          this.games.set([...this.gamesMap.values()]);
+        }
+      }
+    }, 2000);
   }
 
   // --- CHAT FUNCTIONALITY ---
@@ -446,70 +454,74 @@ export class ChessSimulService {
         return;
       }
 
-      const delta = now - game.lastMoveTime;
-
-      let newWhiteTime = game.whiteTime;
-      let newBlackTime = game.blackTime;
-      let newStatus: GameState['status'] = game.status;
-      let newMsg = game.systemMessage;
-      let gameEndedInLoop = false;
-
-      if (game.turn === 'w') {
-        newWhiteTime -= delta;
-        if (newWhiteTime <= 0) {
-          newWhiteTime = 0;
-          newStatus = 'timeout';
-          newMsg = 'Temps écoulé ! Les Noirs gagnent.';
-          gameEndedInLoop = true;
-        }
-      } else {
-        newBlackTime -= delta;
-        if (newBlackTime <= 0) {
-          newBlackTime = 0;
-          newStatus = 'timeout';
-          newMsg = 'Temps écoulé ! Les Blancs gagnent.';
-          gameEndedInLoop = true;
-        }
-      }
-
-      const currentWhiteSeconds = Math.floor(newWhiteTime / 1000);
-      const oldWhiteSeconds = Math.floor(game.whiteTime / 1000);
-      const currentBlackSeconds = Math.floor(newBlackTime / 1000);
-      const oldBlackSeconds = Math.floor(game.blackTime / 1000);
-
-      const updatedGame: GameState = {
-        ...game,
-        whiteTime: newWhiteTime,
-        blackTime: newBlackTime,
-        lastMoveTime: now,
-        status: newStatus,
-        systemMessage: newMsg
-      };
-
-      this.gamesMap.set(id, updatedGame);
-
-      if (gameEndedInLoop) {
-        let result: 'win' | 'loss' = 'loss'; // Default to loss
-        if (game.playerColor === 'w' && newBlackTime <= 0) {
-          // White player, black ran out of time
-          result = 'win';
-        } else if (game.playerColor === 'b' && newWhiteTime <= 0) {
-          // Black player, white ran out of time
-          result = 'win';
-        }
-        this.recordGame(updatedGame, result);
+      const result = this.processGameTimer(game, now);
+      if (result.updated) {
+        this.gamesMap.set(id, result.game);
         shouldUpdateSignal = true;
-      } else if (
-        currentWhiteSeconds !== oldWhiteSeconds ||
-        currentBlackSeconds !== oldBlackSeconds
-      ) {
-        shouldUpdateSignal = true;
+
+        if (result.gameEnded) {
+          this.handleTimerExpiry(result.game);
+        }
       }
     });
 
     if (shouldUpdateSignal) {
       this.games.set([...this.gamesMap.values()]);
     }
+  }
+
+  private processGameTimer(game: GameState, now: number): { updated: boolean; game: GameState; gameEnded: boolean } {
+    const delta = now - game.lastMoveTime;
+    let newWhiteTime = game.whiteTime;
+    let newBlackTime = game.blackTime;
+    let newStatus = game.status;
+    let newMsg = game.systemMessage;
+    let gameEnded = false;
+
+    if (game.turn === 'w') {
+      newWhiteTime -= delta;
+      if (newWhiteTime <= 0) {
+        newWhiteTime = 0;
+        newStatus = 'timeout';
+        newMsg = 'Temps écoulé ! Les Noirs gagnent.';
+        gameEnded = true;
+      }
+    } else {
+      newBlackTime -= delta;
+      if (newBlackTime <= 0) {
+        newBlackTime = 0;
+        newStatus = 'timeout';
+        newMsg = 'Temps écoulé ! Les Blancs gagnent.';
+        gameEnded = true;
+      }
+    }
+
+    const currentWhiteSeconds = Math.floor(newWhiteTime / 1000);
+    const oldWhiteSeconds = Math.floor(game.whiteTime / 1000);
+    const currentBlackSeconds = Math.floor(newBlackTime / 1000);
+    const oldBlackSeconds = Math.floor(game.blackTime / 1000);
+
+    const updatedGame = {
+      ...game,
+      whiteTime: newWhiteTime,
+      blackTime: newBlackTime,
+      lastMoveTime: now,
+      status: newStatus,
+      systemMessage: newMsg
+    };
+
+    const updated = gameEnded || currentWhiteSeconds !== oldWhiteSeconds || currentBlackSeconds !== oldBlackSeconds;
+    return { updated, game: updatedGame, gameEnded };
+  }
+
+  private handleTimerExpiry(game: GameState) {
+    let result: 'win' | 'loss' = 'loss';
+    if (game.playerColor === 'w' && game.blackTime <= 0) {
+      result = 'win';
+    } else if (game.playerColor === 'b' && game.whiteTime <= 0) {
+      result = 'win';
+    }
+    this.recordGame(game, result);
   }
 
   private updateGameState(gameId: number, lastMove: Move | null) {
@@ -576,9 +588,6 @@ export class ChessSimulService {
       this.recordGame(game, 'draw');
     } else if (game.status === 'resigned') {
       // This case should be handled by the resign() method directly setting resignedBy.
-      // However, if it reaches here (e.g., from an external event), we ensure consistency.
-      // For now, we assume resign() sets it. No changes needed here for `resignedBy` if resign() is called first.
-      // The recordGame (loss) is handled by the resign() call itself.
     }
     this.gamesMap.set(game.id, { ...game });
   }
@@ -666,3 +675,4 @@ export class ChessSimulService {
     return 10;
   }
 }
+

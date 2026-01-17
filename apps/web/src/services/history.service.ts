@@ -114,15 +114,28 @@ export class HistoryService {
       return;
     }
 
+    const opponentIds = this.extractOpponentIds(data, user.id);
+    const profileMap = await this.fetchOpponentProfiles(opponentIds);
+    const mapped = this.mapGamesToResults(data ?? [], user.id, profileMap);
+
+    this.history.set(mapped.sort((a, b) => b.date - a.date));
+    this.loading.set(false);
+    this.ensureRealtimeSubscription(user.id);
+  }
+
+  private extractOpponentIds(data: any[], userId: string): Set<string> {
     const opponentIds = new Set<string>();
     for (const game of data ?? []) {
-      const isWhite = game.white_id === user.id;
+      const isWhite = game.white_id === userId;
       const opponentId = isWhite ? game.black_id : game.white_id;
       if (opponentId) {
         opponentIds.add(opponentId);
       }
     }
+    return opponentIds;
+  }
 
+  private async fetchOpponentProfiles(opponentIds: Set<string>) {
     let profileMap = new Map<string, { id: string; username: string; avatar_url: string | null }>();
     if (opponentIds.size > 0) {
       const { data: profiles } = await this.supabase.client
@@ -132,9 +145,12 @@ export class HistoryService {
 
       profileMap = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
     }
+    return profileMap;
+  }
 
-    const mapped: GameResult[] = (data ?? []).map((game) => {
-      const playerColor = game.white_id === user.id ? 'w' : 'b';
+  private mapGamesToResults(games: any[], userId: string, profileMap: Map<string, any>): GameResult[] {
+    return games.map((game) => {
+      const playerColor = game.white_id === userId ? 'w' : 'b';
       const opponentId = playerColor === 'w' ? game.black_id : game.white_id;
       const opponentProfile = opponentId ? profileMap.get(opponentId) : null;
 
@@ -150,10 +166,6 @@ export class HistoryService {
         eloDelta: 0
       };
     });
-
-    this.history.set(mapped.sort((a, b) => b.date - a.date));
-    this.loading.set(false);
-    this.ensureRealtimeSubscription(user.id);
   }
 
   async teardownRealtime() {

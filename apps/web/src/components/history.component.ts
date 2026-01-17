@@ -230,6 +230,11 @@ export class HistoryComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const { svg, radius, color } = this.setupChartSvg(element, d3Any);
+    this.drawChartData(svg, stats, radius, color, d3Any);
+  }
+
+  private setupChartSvg(element: HTMLElement, d3Any: any) {
     const width = 200;
     const height = 128;
     const radius = Math.min(width, height) / 2;
@@ -248,6 +253,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
       .domain(['wins', 'losses', 'draws'])
       .range(['#FFF48D', '#1D1C1C', '#d1d5db']); // Yellow Wins, Black Losses
 
+    return { svg, radius, color };
+  }
+
+  private drawChartData(svg: any, stats: any, radius: number, color: any, d3Any: any) {
     const pie = d3Any
       .pie()
       .value((d: any) => d.value)

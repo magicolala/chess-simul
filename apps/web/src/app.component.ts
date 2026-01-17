@@ -144,6 +144,11 @@ export class AppComponent {
   currentElo = signal(1200);
 
   constructor() {
+    this.handleInitialRouting();
+    this.setupAuthEffects();
+  }
+
+  private handleInitialRouting() {
     const params = new URLSearchParams(window.location.search);
     const rrSession = params.get('rr_session');
     const rrInvite = params.get('rr_invite');
@@ -158,8 +163,9 @@ export class AppComponent {
       this.currentView.set('round-robin-simul');
       this.viewParam.set(rrSession);
     }
+  }
 
-    // Routing Logic based on Auth State
+  private setupAuthEffects() {
     effect(
       () => {
         const user = this.auth.currentUser();

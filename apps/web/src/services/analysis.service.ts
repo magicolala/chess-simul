@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Chess } from 'chess.js';
+import { Chess, type Piece } from 'chess.js';
 
 export interface AnalysisNode {
   fen: string;
@@ -31,30 +31,7 @@ export class AnalysisService {
           return;
         }
 
-        // Mock Evaluation Logic
-        // We use a simple material count + random noise to simulate eval
-        let score = 0;
-        const board = chess.board();
-        for (const row of board) {
-          for (const piece of row) {
-            if (!piece) {
-              continue;
-            }
-            const val =
-              piece.type === 'p'
-                ? 1
-                : piece.type === 'n'
-                  ? 3
-                  : piece.type === 'b'
-                    ? 3
-                    : piece.type === 'r'
-                      ? 5
-                      : piece.type === 'q'
-                        ? 9
-                        : 0;
-            score += piece.color === 'w' ? val : -val;
-          }
-        }
+        const score = this.evaluateBoard(chess.board());
 
         // Add random positional noise (-0.5 to +0.5)
         const noise = Math.random() - 0.5;
@@ -63,18 +40,7 @@ export class AnalysisService {
         // Pick a random "Best Move"
         const bestMove = moves.length > 0 ? moves[Math.floor(Math.random() * moves.length)] : null;
 
-        // Determine classification based on randomness for demo
-        const rand = Math.random();
-        let cls: AnalysisNode['classification'] = 'good';
-        if (rand > 0.95) {
-          cls = 'brilliant';
-        } else if (rand > 0.8) {
-          cls = 'best';
-        } else if (rand < 0.1) {
-          cls = 'blunder';
-        } else if (rand < 0.2) {
-          cls = 'mistake';
-        }
+        const cls = this.classifyMove();
 
         resolve({
           eval: Math.round(finalEval),
@@ -83,6 +49,40 @@ export class AnalysisService {
         });
       }, 300); // 300ms thinking time
     });
+  }
+
+  private evaluateBoard(board: (Piece | null)[][]): number {
+    let score = 0;
+    for (const row of board) {
+      for (const piece of row) {
+        if (!piece) {
+          continue;
+        }
+        const val = this.getPieceValue(piece.type);
+        score += piece.color === 'w' ? val : -val;
+      }
+    }
+    return score;
+  }
+
+  private getPieceValue(type: Piece['type']): number {
+    switch (type) {
+      case 'p': return 1;
+      case 'n': return 3;
+      case 'b': return 3;
+      case 'r': return 5;
+      case 'q': return 9;
+      default: return 0;
+    }
+  }
+
+  private classifyMove(): AnalysisNode['classification'] {
+    const rand = Math.random();
+    if (rand > 0.95) { return 'brilliant'; }
+    if (rand > 0.8) { return 'best'; }
+    if (rand < 0.1) { return 'blunder'; }
+    if (rand < 0.2) { return 'mistake'; }
+    return 'good';
   }
 
   getPgnFromHistory(moves: string[]): string {

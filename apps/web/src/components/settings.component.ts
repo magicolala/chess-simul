@@ -1,7 +1,7 @@
 import { Component, inject, signal, type OnInit, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
-import { PreferencesService, BOARD_THEMES } from '../services/preferences.service';
+import { PreferencesService, BOARD_THEMES, type GameSettings, type NotificationSettings, type PrivacySettings } from '../services/preferences.service';
 import { AuthService } from '../services/auth.service';
 
 type SettingsTab =
@@ -573,7 +573,7 @@ export class SettingsComponent implements OnInit {
     this.auth.toggle2FA(!current);
   }
 
-  updateGameSetting(key: keyof import('../services/preferences.service').GameSettings, event: any) {
+  updateGameSetting(key: keyof GameSettings, event: any) {
     this.prefs.updateGameSettings({ [key]: event.target.checked });
   }
 
@@ -582,13 +582,13 @@ export class SettingsComponent implements OnInit {
   }
 
   updateNotif(
-    key: keyof import('../services/preferences.service').NotificationSettings,
+    key: keyof NotificationSettings,
     event: any
   ) {
     this.prefs.updateNotifications({ [key]: event.target.checked });
   }
 
-  updatePrivacy(key: keyof import('../services/preferences.service').PrivacySettings, event: any) {
+  updatePrivacy(key: keyof PrivacySettings, event: any) {
     this.prefs.updatePrivacy({ [key]: event.target.checked });
   }
 

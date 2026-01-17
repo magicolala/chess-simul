@@ -28,7 +28,7 @@ export class SupabaseSimulService {
   loading = signal(false);
   error = signal<string | null>(null);
 
-  constructor(private supabaseClient: SupabaseClientService) {}
+  constructor(private supabaseClient: SupabaseClientService) { }
 
   simulStatus = computed((): SimulStatus | null => this.activeSimul()?.status ?? null);
   tableStatus = computed((): string | null => this.activeTable()?.status ?? null);
@@ -167,29 +167,53 @@ export class SupabaseSimulService {
       throw new Error('Connexion requise');
     }
 
-    const { data: table, error: tableError } = await this.supabase
+    const table = await this.getTable(simulTableId);
+    if (!table) { return null; }
+
+    const simul = await this.getSimul(table.simul_id);
+    if (!simul) { return null; }
+
+    this.validateStartTable(simul, table, user.data.user.id);
+
+    if (table.game_id) {
+      return this.loadExistingGame(table.game_id, table.simul_id);
+    }
+
+    return this.createNewSimulGame(simul, table);
+  }
+
+  private async getTable(id: string) {
+    const { data, error } = await this.supabase
       .from('simul_tables')
       .select('id, simul_id, challenger_id, game_id, seat_no, status')
-      .eq('id', simulTableId)
+      .eq('id', id)
       .maybeSingle();
 
-    if (tableError || !table) {
-      this.error.set(tableError?.message ?? 'Table introuvable');
-      throw tableError ?? new Error('table not found');
+    if (error || !data) {
+      this.error.set(error?.message ?? 'Table introuvable');
+      if (error) { throw error; }
+      return null; // Should ideally throw if not found to stop execution or handle consistently
     }
+    return data;
+  }
 
-    const { data: simul, error: simulError } = await this.supabase
+  private async getSimul(id: string) {
+    const { data, error } = await this.supabase
       .from('simuls')
       .select('id, host_id, status')
-      .eq('id', table.simul_id)
+      .eq('id', id)
       .maybeSingle();
 
-    if (simulError || !simul) {
-      this.error.set(simulError?.message ?? 'Simultanée introuvable');
-      throw simulError ?? new Error('simul not found');
+    if (error || !data) {
+      this.error.set(error?.message ?? 'Simultanée introuvable');
+      if (error) { throw error; }
+      return null;
     }
+    return data;
+  }
 
-    if (simul.host_id !== user.data.user.id) {
+  private validateStartTable(simul: any, table: any, userId: string) {
+    if (simul.host_id !== userId) {
       this.error.set("Seul l'hôte peut démarrer une table");
       throw new Error('only host can start');
     }
@@ -198,20 +222,23 @@ export class SupabaseSimulService {
       this.error.set('Aucun challenger sur cette table');
       throw new Error('table has no challenger');
     }
+  }
 
-    if (table.game_id) {
-      const { data: existingGame } = await this.supabase
-        .from('games')
-        .select('*')
-        .eq('id', table.game_id)
-        .maybeSingle();
-      if (existingGame) {
-        this.activeGame.set(existingGame as SimulGame);
-        await this.fetchSimul(table.simul_id);
-        return existingGame as SimulGame;
-      }
+  private async loadExistingGame(gameId: string, simulId: string) {
+    const { data: existingGame } = await this.supabase
+      .from('games')
+      .select('*')
+      .eq('id', gameId)
+      .maybeSingle();
+    if (existingGame) {
+      this.activeGame.set(existingGame as SimulGame);
+      await this.fetchSimul(simulId);
+      return existingGame as SimulGame;
     }
+    return null; // Or throw?
+  }
 
+  private async createNewSimulGame(simul: any, table: any) {
     const { data: newGame, error: gameError } = await this.supabase
       .from('games')
       .insert({
@@ -233,7 +260,7 @@ export class SupabaseSimulService {
     await this.supabase
       .from('simul_tables')
       .update({ game_id: newGame.id, status: 'playing' })
-      .eq('id', simulTableId);
+      .eq('id', table.id);
 
     await this.supabase
       .from('simuls')

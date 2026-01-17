@@ -1,4 +1,4 @@
-import { Component, inject, output, signal, computed } from '@angular/core';
+import { Component, effect, inject, output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MultiplayerService } from '../services/multiplayer.service';
@@ -215,5 +215,3 @@ export class GameRoomComponent {
     this.goBack.emit();
   }
 }
-
-import { effect } from '@angular/core';

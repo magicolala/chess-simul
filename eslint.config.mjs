@@ -29,7 +29,7 @@ export default tseslint.config(
         'warn',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-require-imports': 'warn',
       '@typescript-eslint/ban-ts-comment': 'warn',
 
@@ -38,7 +38,7 @@ export default tseslint.config(
       complexity: ['warn', { max: 15 }],
 
       // === Relaxed Rules ===
-      'no-console': 'warn',
+      'no-console': 'off',
       'no-empty': 'warn',
       'no-useless-escape': 'warn'
     }

@@ -19,7 +19,9 @@ vi.mock('chess.js', () => {
       }
 
       move({ from, to, promotion }: any) {
-        if (this.noLegalMoves) return null;
+        if (this.noLegalMoves) {
+          return null;
+        }
         const move = { from, to, promotion };
         this.historyMoves.push(move);
         this.currentTurn = this.currentTurn === 'w' ? 'b' : 'w';

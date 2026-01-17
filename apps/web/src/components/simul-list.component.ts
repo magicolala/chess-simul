@@ -141,7 +141,9 @@ export class SimulListComponent {
   filteredSimuls = computed(() => {
     const all = this.simulService.simuls();
     const f = this.filter();
-    if (f === 'all') return all;
+    if (f === 'all') {
+      return all;
+    }
     return all.filter((s) => s.status === f);
   });
 }

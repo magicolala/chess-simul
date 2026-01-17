@@ -1,12 +1,12 @@
 import {
   Component,
   inject,
-  ElementRef,
+  type ElementRef,
   viewChild,
   effect,
   output,
-  OnInit,
-  OnDestroy
+  type OnInit,
+  type OnDestroy
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { HistoryService } from '../services/history.service';
@@ -226,7 +226,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
     d3Any.select(element).selectAll('*').remove();
 
     const stats = this.stats();
-    if (!hasData || stats.wins + stats.losses + stats.draws === 0) return;
+    if (!hasData || stats.wins + stats.losses + stats.draws === 0) {
+      return;
+    }
 
     const width = 200;
     const height = 128;

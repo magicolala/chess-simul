@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, delay } from 'rxjs';
+import { type Observable, of, delay } from 'rxjs';
 
 // DTOs (Data Transfer Objects) - Contracts with the backend
 export interface CreateGameRequest {

@@ -1,7 +1,7 @@
 import { Component, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GameConfig } from '../services/chess-logic.service';
+import { type GameConfig } from '../services/chess-logic.service';
 
 @Component({
   selector: 'app-simul-create',

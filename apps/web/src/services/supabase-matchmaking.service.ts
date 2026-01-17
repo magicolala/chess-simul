@@ -46,7 +46,9 @@ export class SupabaseMatchmakingService {
   }
 
   async joinQueue(timeControl: string) {
-    if (!this.ensureUser()) return null;
+    if (!this.ensureUser()) {
+      return null;
+    }
 
     const trimmed = timeControl.trim();
     if (!trimmed) {
@@ -78,7 +80,9 @@ export class SupabaseMatchmakingService {
   }
 
   async leaveQueue(timeControl?: string) {
-    if (!this.ensureUser()) return;
+    if (!this.ensureUser()) {
+      return;
+    }
 
     const body = timeControl ? { time_control: timeControl } : undefined;
     const { error } = await this.supabase.functions.invoke('leave-queue', { body });
@@ -95,7 +99,9 @@ export class SupabaseMatchmakingService {
 
   async sendInvite(toUserId: string, timeControl: string) {
     const user = this.ensureUser();
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
     const target = toUserId.trim();
     const cadence = timeControl.trim();
@@ -119,7 +125,9 @@ export class SupabaseMatchmakingService {
   }
 
   async acceptInvite(inviteId: string) {
-    if (!this.ensureUser()) return null;
+    if (!this.ensureUser()) {
+      return null;
+    }
 
     const { data, error } = await this.supabase.functions.invoke('accept-invite', {
       body: { invite_id: inviteId }
@@ -143,7 +151,9 @@ export class SupabaseMatchmakingService {
 
   async declineInvite(inviteId: string) {
     const user = this.ensureUser();
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
     const { error } = await this.supabase
       .from('invites')
@@ -163,7 +173,9 @@ export class SupabaseMatchmakingService {
 
   async refreshInvites() {
     const user = this.supabaseService.currentUser();
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
     const { data, error } = await this.supabase
       .from('invites')

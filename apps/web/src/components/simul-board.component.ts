@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, inject } from '@angular/core';
+import { Component, Input, type OnChanges, inject } from '@angular/core';
 import { SupabaseSimulService } from '../services/supabase-simul.service';
 
 @Component({

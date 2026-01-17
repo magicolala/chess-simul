@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed } from '@angular/core';
+import { Component, type OnDestroy, type OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RoundRobinLobbyComponent } from '../components/round-robin-lobby.component';
 import { RoundRobinGamesComponent } from '../components/round-robin-games.component';
-import { RoundRobinSimulService } from '../services/round-robin-simul.service';
-import { RoundRobinRealtimeService } from '../services/round-robin-realtime.service';
+import { type RoundRobinSimulService } from '../services/round-robin-simul.service';
+import { type RoundRobinRealtimeService } from '../services/round-robin-realtime.service';
 import { Subscription } from 'rxjs';
-import { SupabaseClientService } from '../services/supabase-client.service';
+import { type SupabaseClientService } from '../services/supabase-client.service';
 
 @Component({
   selector: 'app-round-robin-simul-page',
@@ -173,7 +173,9 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.realtimeService.roster$.subscribe((roster) => {
         const existing = this.session();
-        if (!existing) return;
+        if (!existing) {
+          return;
+        }
         this.simulService.session.set({ ...existing, participants: roster });
       })
     );
@@ -213,7 +215,9 @@ export class RoundRobinSimulPageComponent implements OnInit, OnDestroy {
     }
 
     const resolved = await this.simulService.fetchSessionByInvite(inviteCode);
-    if (!resolved) return;
+    if (!resolved) {
+      return;
+    }
 
     if (resolved.status === 'draft') {
       const joined = await this.simulService.joinSession(resolved.id, inviteCode);

@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { SupabaseClientService } from './supabase-client.service';
+import { type SupabaseClientService } from './supabase-client.service';
 import { environment } from '../environments/environment';
 import type {
   RoundRobinGameSummary,

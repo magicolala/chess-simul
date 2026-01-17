@@ -1,7 +1,7 @@
-import { Injectable, OnDestroy, inject } from '@angular/core';
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { Injectable, type OnDestroy, inject } from '@angular/core';
+import { type RealtimeChannel, type RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
-import { PresenceUser, SimulTableRow } from '../models/realtime.model';
+import { type PresenceUser, type SimulTableRow } from '../models/realtime.model';
 import { SupabaseClientService } from './supabase-client.service';
 
 @Injectable({ providedIn: 'root' })
@@ -18,7 +18,9 @@ export class RealtimeSimulService implements OnDestroy {
   readonly presence$ = this.presenceSubject.asObservable();
 
   subscribe(simulId: string, presence?: PresenceUser) {
-    if (!simulId) return;
+    if (!simulId) {
+      return;
+    }
 
     void this.teardown();
     this.currentSimulId = simulId;
@@ -79,7 +81,9 @@ export class RealtimeSimulService implements OnDestroy {
   }
 
   private upsertTable(table: SimulTableRow | null) {
-    if (!table?.id) return;
+    if (!table?.id) {
+      return;
+    }
 
     const nextTables = [...this.tablesSubject.value.filter((t) => t.id !== table.id), table];
     this.tablesSubject.next(this.sortTables(nextTables));

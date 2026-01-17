@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Chess } from 'chess.js';
-import { Observable, interval, map, Subject } from 'rxjs';
+import { type Observable, interval, map, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 export interface HydraGame {
@@ -277,11 +277,18 @@ export class HydraGameEngineService {
   }
 
   private getGameStatus(chess: Chess): HydraGame['status'] {
-    if (chess.isCheckmate()) return 'checkmate';
-    if (chess.isStalemate()) return 'stalemate';
-    if (chess.isDraw()) return 'draw';
-    if (chess.isThreefoldRepetition() || chess.isInsufficientMaterial() || chess.isFiftyMoves())
+    if (chess.isCheckmate()) {
+      return 'checkmate';
+    }
+    if (chess.isStalemate()) {
+      return 'stalemate';
+    }
+    if (chess.isDraw()) {
       return 'draw';
+    }
+    if (chess.isThreefoldRepetition() || chess.isInsufficientMaterial() || chess.isFiftyMoves()) {
+      return 'draw';
+    }
     return 'playing';
   }
 

@@ -1,5 +1,5 @@
-import { Injectable, OnDestroy, inject } from '@angular/core';
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { Injectable, type OnDestroy, inject } from '@angular/core';
+import { type RealtimeChannel, type RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
 import { SupabaseClientService } from './supabase-client.service';
 import type { Database } from '@supabase/types/database.types';
@@ -22,7 +22,9 @@ export class HydraRealtimeService implements OnDestroy {
   readonly scoreEvents$ = this.scoreEventsSubject.asObservable();
 
   subscribe(tournamentId: string) {
-    if (!tournamentId) return;
+    if (!tournamentId) {
+      return;
+    }
 
     void this.teardown();
 

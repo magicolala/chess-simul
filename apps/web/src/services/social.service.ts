@@ -168,7 +168,9 @@ export class SocialService {
 
   acceptRequest(id: string) {
     const req = this.friendRequests().find((r) => r.id === id);
-    if (!req) return;
+    if (!req) {
+      return;
+    }
 
     const newFriend: Friend = {
       id: req.id,

@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { GameConfig } from './chess-logic.service';
+import { type GameConfig } from './chess-logic.service';
 
 export interface MultiplayerRoom {
   id: string;
@@ -34,9 +34,15 @@ export class MultiplayerService {
   latency = signal<number>(25); // ms
   connectionStatus = computed<ConnectionStatus>(() => {
     const lat = this.latency();
-    if (lat < 0) return 'offline';
-    if (lat < 100) return 'excellent';
-    if (lat < 300) return 'good';
+    if (lat < 0) {
+      return 'offline';
+    }
+    if (lat < 100) {
+      return 'excellent';
+    }
+    if (lat < 300) {
+      return 'good';
+    }
     return 'poor';
   });
 
@@ -60,7 +66,9 @@ export class MultiplayerService {
       let newLat = Math.max(10, this.latency() + variation);
 
       // Random spikes
-      if (Math.random() > 0.95) newLat += 300;
+      if (Math.random() > 0.95) {
+        newLat += 300;
+      }
 
       this.latency.set(Math.floor(newLat));
 
@@ -155,8 +163,12 @@ export class MultiplayerService {
       this.rooms().find((r) => r.id === roomId) ||
       (this.currentRoom()?.id === roomId ? this.currentRoom() : null);
 
-    if (!room) throw new Error('Salon introuvable');
-    if (room.status !== 'waiting') throw new Error('Le salon est complet ou la partie a commencé');
+    if (!room) {
+      throw new Error('Salon introuvable');
+    }
+    if (room.status !== 'waiting') {
+      throw new Error('Le salon est complet ou la partie a commencé');
+    }
 
     const updatedRoom = { ...room };
     updatedRoom.players = [
@@ -190,7 +202,9 @@ export class MultiplayerService {
 
   toggleReady() {
     const room = this.currentRoom();
-    if (!room) return;
+    if (!room) {
+      return;
+    }
 
     // Toggle "Me" (assuming last player added is local for this demo context)
     const myIndex = room.players.length - 1;
@@ -212,7 +226,9 @@ export class MultiplayerService {
 
   sendMessage(text: string, sender: string) {
     const room = this.currentRoom();
-    if (!room) return;
+    if (!room) {
+      return;
+    }
 
     const updatedRoom = {
       ...room,

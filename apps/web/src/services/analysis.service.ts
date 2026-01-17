@@ -37,7 +37,9 @@ export class AnalysisService {
         const board = chess.board();
         for (const row of board) {
           for (const piece of row) {
-            if (!piece) continue;
+            if (!piece) {
+              continue;
+            }
             const val =
               piece.type === 'p'
                 ? 1
@@ -64,10 +66,15 @@ export class AnalysisService {
         // Determine classification based on randomness for demo
         const rand = Math.random();
         let cls: AnalysisNode['classification'] = 'good';
-        if (rand > 0.95) cls = 'brilliant';
-        else if (rand > 0.8) cls = 'best';
-        else if (rand < 0.1) cls = 'blunder';
-        else if (rand < 0.2) cls = 'mistake';
+        if (rand > 0.95) {
+          cls = 'brilliant';
+        } else if (rand > 0.8) {
+          cls = 'best';
+        } else if (rand < 0.1) {
+          cls = 'blunder';
+        } else if (rand < 0.2) {
+          cls = 'mistake';
+        }
 
         resolve({
           eval: Math.round(finalEval),

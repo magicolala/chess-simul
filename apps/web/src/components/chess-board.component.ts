@@ -219,14 +219,22 @@ export class ChessBoardComponent {
     const CYAN = '#7AF7F7';
     const PREMOVE = '#fbbf24';
 
-    if (isSelected) return CYAN;
+    if (isSelected) {
+      return CYAN;
+    }
 
-    if (isPremove) return isLight ? PREMOVE : '#f59e0b';
+    if (isPremove) {
+      return isLight ? PREMOVE : '#f59e0b';
+    }
 
     // Engine Suggestion Overlay
-    if (isBestTo || isBestFrom) return isLight ? '#a5b4fc' : '#818cf8'; // Indigo-ish
+    if (isBestTo || isBestFrom) {
+      return isLight ? '#a5b4fc' : '#818cf8';
+    } // Indigo-ish
 
-    if (isLastMove) return isLight ? '#d4fdfd' : '#aefbfb';
+    if (isLastMove) {
+      return isLight ? '#d4fdfd' : '#aefbfb';
+    }
 
     return isLight ? theme.light : theme.dark;
   }
@@ -249,7 +257,9 @@ export class ChessBoardComponent {
     const interactive = this.isInteractive();
     const premoveMode = !interactive && this.canUsePremoves();
 
-    if (!interactive && !premoveMode) return;
+    if (!interactive && !premoveMode) {
+      return;
+    }
 
     const piece = game.get(square as any);
     const selected = this.selectedSquare();
@@ -368,7 +378,9 @@ export class ChessBoardComponent {
     try {
       const fen = this.fen();
       const segments = fen.split(' ');
-      if (segments.length < 2) return null;
+      if (segments.length < 2) {
+        return null;
+      }
       segments[1] = this.allowedColor() === 'both' ? this.chess().turn() : this.allowedColor();
       return new Chess(segments.join(' '));
     } catch (error) {
@@ -379,7 +391,9 @@ export class ChessBoardComponent {
 
   private isPremoveLegal(from: string, to: string): boolean {
     const premoveBoard = this.getPremoveBoard();
-    if (!premoveBoard) return false;
+    if (!premoveBoard) {
+      return false;
+    }
     const moves = premoveBoard.moves({ square: from as any, verbose: true });
     return moves.some((m) => m.to === to);
   }
@@ -402,7 +416,9 @@ export class ChessBoardComponent {
   }
 
   isKingInCheck(piece: any): boolean {
-    if (!piece) return false;
+    if (!piece) {
+      return false;
+    }
     return piece.type === 'k' && piece.color === this.chess().turn() && this.chess().inCheck();
   }
 }

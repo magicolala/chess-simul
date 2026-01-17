@@ -94,8 +94,11 @@ export class PreferencesService {
       localStorage.setItem('simul_notif', JSON.stringify(this.notifications()));
       localStorage.setItem('simul_privacy', JSON.stringify(this.privacy()));
 
-      if (this.darkMode()) document.body.classList.add('dark');
-      else document.body.classList.remove('dark');
+      if (this.darkMode()) {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
     });
   }
 
@@ -123,11 +126,23 @@ export class PreferencesService {
     const sNotif = localStorage.getItem('simul_notif');
     const sPriv = localStorage.getItem('simul_privacy');
 
-    if (sTheme) this.activeThemeId.set(sTheme);
-    if (sPiece) this.activePieceSetId.set(sPiece);
-    if (sDark) this.darkMode.set(JSON.parse(sDark));
-    if (sGame) this.gameSettings.set({ ...this.gameSettings(), ...JSON.parse(sGame) });
-    if (sNotif) this.notifications.set({ ...this.notifications(), ...JSON.parse(sNotif) });
-    if (sPriv) this.privacy.set({ ...this.privacy(), ...JSON.parse(sPriv) });
+    if (sTheme) {
+      this.activeThemeId.set(sTheme);
+    }
+    if (sPiece) {
+      this.activePieceSetId.set(sPiece);
+    }
+    if (sDark) {
+      this.darkMode.set(JSON.parse(sDark));
+    }
+    if (sGame) {
+      this.gameSettings.set({ ...this.gameSettings(), ...JSON.parse(sGame) });
+    }
+    if (sNotif) {
+      this.notifications.set({ ...this.notifications(), ...JSON.parse(sNotif) });
+    }
+    if (sPriv) {
+      this.privacy.set({ ...this.privacy(), ...JSON.parse(sPriv) });
+    }
   }
 }

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
-import { RoundRobinSimulService } from '../services/round-robin-simul.service';
-import { SupabaseClientService } from '../services/supabase-client.service';
+import { type RoundRobinSimulService } from '../services/round-robin-simul.service';
+import { type SupabaseClientService } from '../services/supabase-client.service';
 
 @Component({
   selector: 'app-round-robin-lobby',
@@ -103,7 +103,9 @@ export class RoundRobinLobbyComponent {
   ) {}
 
   async copyInvite() {
-    if (!this.inviteLink()) return;
+    if (!this.inviteLink()) {
+      return;
+    }
     try {
       await navigator.clipboard.writeText(this.inviteLink()!);
       this.copied.set(true);
@@ -115,14 +117,20 @@ export class RoundRobinLobbyComponent {
 
   async startSession() {
     const session = this.session();
-    if (!session) return;
+    if (!session) {
+      return;
+    }
     await this.simulService.startSession(session.id);
   }
 
   async deleteSession() {
     const session = this.session();
-    if (!session) return;
-    if (!confirm('Supprimer cette session ?')) return;
+    if (!session) {
+      return;
+    }
+    if (!confirm('Supprimer cette session ?')) {
+      return;
+    }
     await this.simulService.deleteSession(session.id);
   }
 }

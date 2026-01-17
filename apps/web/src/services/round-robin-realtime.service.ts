@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { SupabaseClientService } from './supabase-client.service';
+import { type RealtimeChannel, type RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { type SupabaseClientService } from './supabase-client.service';
 import type { RoundRobinParticipant, RoundRobinGameSummary } from '@chess-simul/shared';
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +19,9 @@ export class RoundRobinRealtimeService {
   constructor(private supabaseClient: SupabaseClientService) {}
 
   subscribeRoster(sessionId: string) {
-    if (!sessionId) return;
+    if (!sessionId) {
+      return;
+    }
 
     void this.unsubscribeRoster();
     const channel = this.supabase.channel(`rr-roster:${sessionId}`);
@@ -58,7 +60,9 @@ export class RoundRobinRealtimeService {
   }
 
   subscribeGames(gameIds: string[]) {
-    if (!gameIds.length) return;
+    if (!gameIds.length) {
+      return;
+    }
 
     void this.unsubscribeGames();
     const filter = `id=in.(${gameIds.join(',')})`;
@@ -71,7 +75,9 @@ export class RoundRobinRealtimeService {
         const newRow = (payload.new ?? null) as Record<string, unknown> | null;
         const id = newRow?.id as string | undefined;
         const status = newRow?.status as string | undefined;
-        if (!id || !status) return;
+        if (!id || !status) {
+          return;
+        }
         this.gamesSubject.next({
           ...this.gamesSubject.value,
           [id]: status

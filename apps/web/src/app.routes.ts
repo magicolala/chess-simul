@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { type Routes } from '@angular/router';
 import { LoginPageComponent } from './pages/login-page.component';
 import { RegisterPageComponent } from './pages/register-page.component';
 import { SettingsPageComponent } from './pages/settings-page.component';

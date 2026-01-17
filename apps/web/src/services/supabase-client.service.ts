@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { createClient, type Session, type SupabaseClient, type User } from '@supabase/supabase-js';
+import { BehaviorSubject, type Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -44,7 +44,9 @@ export class SupabaseClientService {
 
   isAnonymousUser(user?: User | null) {
     const target = user ?? this.userSubject.value;
-    if (!target) return false;
+    if (!target) {
+      return false;
+    }
     const metadata = target.app_metadata as Record<string, unknown> | undefined;
     return Boolean((target as any).is_anonymous || metadata?.provider === 'anonymous');
   }
@@ -72,7 +74,9 @@ export class SupabaseClientService {
       resolvedUser = data.user ?? null;
     }
 
-    if (!resolvedUser) return;
+    if (!resolvedUser) {
+      return;
+    }
 
     this.profileEnsureInFlight ??= this.ensureProfileExists(resolvedUser).finally(() => {
       this.profileEnsureInFlight = null;

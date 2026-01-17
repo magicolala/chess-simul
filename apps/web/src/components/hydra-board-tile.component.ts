@@ -38,7 +38,9 @@ export class HydraBoardTileComponent {
 
   get estimatedSecondsRemaining() {
     const [minutes] = this.game.time_control.split('+').map((value) => Number(value));
-    if (!Number.isFinite(minutes)) return 0;
+    if (!Number.isFinite(minutes)) {
+      return 0;
+    }
     const elapsed = (Date.now() - new Date(this.game.start_time).getTime()) / 1000;
     const total = minutes * 60;
     return Math.max(0, Math.round(total - elapsed));

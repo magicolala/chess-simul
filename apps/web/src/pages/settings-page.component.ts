@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { SupabaseClientService } from '../services/supabase-client.service';
-import { Profile } from '../models/profile.model';
+import { type Profile } from '../models/profile.model';
 import { RealtimeSandboxComponent } from '../components/realtime-sandbox.component';
 
 @Component({
@@ -85,7 +85,9 @@ export class SettingsPageComponent {
 
   profile$ = this.supabase.user$.pipe(
     map((user) => {
-      if (!user) return null;
+      if (!user) {
+        return null;
+      }
       const profile: Profile = {
         id: user.id,
         username: user.email ?? 'user',

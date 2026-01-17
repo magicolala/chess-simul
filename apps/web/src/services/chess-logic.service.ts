@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { Chess, Move } from 'chess.js';
+import { Chess, type Move } from 'chess.js';
 import { HistoryService } from './history.service';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
@@ -256,14 +256,19 @@ export class ChessSimulService {
 
   makeMove(gameId: number, from: string, to: string, promotion: string = 'q') {
     const game = this.gamesMap.get(gameId);
-    if (!game || game.status !== 'active') return;
+    if (!game || game.status !== 'active') {
+      return;
+    }
 
     if (game.mode === 'simul-host') {
       game.requiresAttention = false;
     }
 
-    if (game.turn === 'w') game.whiteTime += this.config.incrementSeconds * 1000;
-    else game.blackTime += this.config.incrementSeconds * 1000;
+    if (game.turn === 'w') {
+      game.whiteTime += this.config.incrementSeconds * 1000;
+    } else {
+      game.blackTime += this.config.incrementSeconds * 1000;
+    }
 
     try {
       const move = game.chess.move({ from, to, promotion });
@@ -326,7 +331,9 @@ export class ChessSimulService {
   // --- CHAT FUNCTIONALITY ---
   sendChatMessage(gameId: number, text: string) {
     const game = this.gamesMap.get(gameId);
-    if (!game) return;
+    if (!game) {
+      return;
+    }
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -358,7 +365,9 @@ export class ChessSimulService {
 
   navigateHistory(gameId: number, direction: 'start' | 'prev' | 'next' | 'end') {
     const game = this.gamesMap.get(gameId);
-    if (!game) return;
+    if (!game) {
+      return;
+    }
 
     const lastHistoricalIndex = Math.max(0, game.fenHistory.length - 2);
     const atLatestPosition = game.viewIndex === -1;
@@ -374,7 +383,9 @@ export class ChessSimulService {
           : Math.max(0, game.viewIndex - 1);
         break;
       case 'next':
-        if (atLatestPosition) return;
+        if (atLatestPosition) {
+          return;
+        }
         nextIndex = game.viewIndex + 1 > lastHistoricalIndex ? -1 : game.viewIndex + 1;
         break;
       case 'end':
@@ -389,7 +400,9 @@ export class ChessSimulService {
 
   resign(gameId: number) {
     const game = this.gamesMap.get(gameId);
-    if (!game || game.status !== 'active') return;
+    if (!game || game.status !== 'active') {
+      return;
+    }
 
     game.status = 'resigned';
     game.resignedBy = game.playerColor; // Set the color of the player who resigned
@@ -403,7 +416,9 @@ export class ChessSimulService {
   offerDraw(gameId: number) {
     // Simulation: Opponent refuses or accepts randomly
     const game = this.gamesMap.get(gameId);
-    if (!game || game.status !== 'active') return;
+    if (!game || game.status !== 'active') {
+      return;
+    }
 
     game.systemMessage = 'Nulle proposée...';
     this.games.set([...this.gamesMap.values()]);
@@ -427,7 +442,9 @@ export class ChessSimulService {
 
     Array.from(this.gamesMap.keys()).forEach((id) => {
       const game = this.gamesMap.get(id);
-      if (!game || game.status !== 'active') return;
+      if (!game || game.status !== 'active') {
+        return;
+      }
 
       const delta = now - game.lastMoveTime;
 
@@ -497,7 +514,9 @@ export class ChessSimulService {
 
   private updateGameState(gameId: number, lastMove: Move | null) {
     const game = this.gamesMap.get(gameId);
-    if (!game) return;
+    if (!game) {
+      return;
+    }
 
     game.fen = game.chess.fen();
     game.fenHistory.push(game.fen);
@@ -530,8 +549,11 @@ export class ChessSimulService {
   }
 
   private handleGameOver(game: GameState) {
-    if (['checkmate', 'stalemate', 'draw', 'timeout', 'resigned', 'aborted'].includes(game.status))
+    if (
+      ['checkmate', 'stalemate', 'draw', 'timeout', 'resigned', 'aborted'].includes(game.status)
+    ) {
       return;
+    }
 
     if (game.chess.isCheckmate()) {
       game.status = 'checkmate';
@@ -608,8 +630,12 @@ export class ChessSimulService {
   }
 
   private calculateHydraPoints(result: 'win' | 'loss' | 'draw') {
-    if (result === 'win') return 3;
-    if (result === 'draw') return 1;
+    if (result === 'win') {
+      return 3;
+    }
+    if (result === 'draw') {
+      return 1;
+    }
     return -1;
   }
 
@@ -631,8 +657,12 @@ export class ChessSimulService {
 
   private getKFactor(playerRating: number): number {
     const gamesPlayed = this.historyService.history().length;
-    if (gamesPlayed < 30) return 40;
-    if (playerRating < 2400) return 20;
+    if (gamesPlayed < 30) {
+      return 40;
+    }
+    if (playerRating < 2400) {
+      return 20;
+    }
     return 10;
   }
 }

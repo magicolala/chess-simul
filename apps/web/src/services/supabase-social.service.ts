@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { SupabaseClientService } from './supabase-client.service';
-import { Friend, ChatMessage, UserProfile } from './social.service';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { type Friend, type ChatMessage, type UserProfile } from './social.service';
+import { type RealtimeChannel } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root'
@@ -89,7 +89,9 @@ export class SupabaseSocialService {
   }
 
   async getFriendRequests(): Promise<void> {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId) {
+      return;
+    }
 
     const { data, error } = await this.supabase.rpc('get_friend_requests');
 
@@ -109,7 +111,9 @@ export class SupabaseSocialService {
   }
 
   async getFriends(): Promise<void> {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId) {
+      return;
+    }
 
     const { data, error } = await this.supabase.rpc('get_friends');
 
@@ -163,7 +167,9 @@ export class SupabaseSocialService {
   }
 
   async getMessages(friendId: string): Promise<void> {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId) {
+      return;
+    }
 
     const { data, error } = await this.supabase.rpc('get_messages', { friend_id: friendId });
 
@@ -192,10 +198,14 @@ export class SupabaseSocialService {
 
   async sendMessage(friendId: string, text: string): Promise<void> {
     const senderId = this.currentUserId;
-    if (!senderId) return;
+    if (!senderId) {
+      return;
+    }
 
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
 
     const { data, error } = await this.supabase.rpc('send_message', {
       receiver_id: friendId,
@@ -222,7 +232,9 @@ export class SupabaseSocialService {
   }
 
   private async ensureRealtime() {
-    if (this.realtimeChannel || !this.currentUserId) return;
+    if (this.realtimeChannel || !this.currentUserId) {
+      return;
+    }
 
     const userId = this.currentUserId;
     this.realtimeChannel = this.supabase

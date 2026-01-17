@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed } from '@angular/core';
-import { RoundRobinSimulService } from '../services/round-robin-simul.service';
+import { type RoundRobinSimulService } from '../services/round-robin-simul.service';
 
 @Component({
   selector: 'app-round-robin-games',

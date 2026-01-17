@@ -133,7 +133,9 @@ export class AuthService {
 
   async updateProfile(updates: Partial<User>) {
     const current = this.currentUser();
-    if (!current) return;
+    if (!current) {
+      return;
+    }
 
     this.isLoading.set(true);
     this.error.set(null);
@@ -162,9 +164,13 @@ export class AuthService {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-      if (newP.length < 6) throw new Error('Nouveau mot de passe trop court.');
+      if (newP.length < 6) {
+        throw new Error('Nouveau mot de passe trop court.');
+      }
       const { error } = await this.supabase.client.auth.updateUser({ password: newP });
-      if (error) throw new Error(error.message);
+      if (error) {
+        throw new Error(error.message);
+      }
       return true;
     } catch (e: any) {
       this.error.set(e.message);
@@ -178,7 +184,9 @@ export class AuthService {
     this.isLoading.set(true);
     await new Promise((r) => setTimeout(r, 800));
     const user = this.currentUser();
-    if (user) this.finishAuth({ ...user, twoFactorEnabled: enable });
+    if (user) {
+      this.finishAuth({ ...user, twoFactorEnabled: enable });
+    }
     this.isLoading.set(false);
   }
 
@@ -186,7 +194,9 @@ export class AuthService {
     this.isLoading.set(true);
     await new Promise((r) => setTimeout(r, 1500)); // Payment processing
     const user = this.currentUser();
-    if (user) this.finishAuth({ ...user, isPremium: true });
+    if (user) {
+      this.finishAuth({ ...user, isPremium: true });
+    }
     this.isLoading.set(false);
   }
 
@@ -194,7 +204,9 @@ export class AuthService {
     this.isLoading.set(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (code !== '1234') throw new Error('Code invalide (Essayez 1234)');
+      if (code !== '1234') {
+        throw new Error('Code invalide (Essayez 1234)');
+      }
 
       const user = this.currentUser();
       if (user) {
@@ -227,11 +239,15 @@ export class AuthService {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-      if (!email.includes('@')) throw new Error('Email invalide');
+      if (!email.includes('@')) {
+        throw new Error('Email invalide');
+      }
       const { error } = await this.supabase.client.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/update-password'
       });
-      if (error) throw new Error(error.message);
+      if (error) {
+        throw new Error(error.message);
+      }
       return true;
     } catch (e: any) {
       this.error.set(e.message);

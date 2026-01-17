@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, type OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HydraGameEngineService } from '../services/hydra-game-engine.service';
 import { ChessBoardComponent } from './chess-board.component'; // Reuse existing component
@@ -138,9 +138,15 @@ export class HydraGameComponent implements OnInit {
 
   getGridClass(): string {
     const gameCount = this.hydraGameEngine.games().length;
-    if (gameCount === 1) return 'grid-cols-1';
-    if (gameCount >= 2 && gameCount <= 4) return 'grid-cols-2';
-    if (gameCount >= 5 && gameCount <= 9) return 'grid-cols-3';
+    if (gameCount === 1) {
+      return 'grid-cols-1';
+    }
+    if (gameCount >= 2 && gameCount <= 4) {
+      return 'grid-cols-2';
+    }
+    if (gameCount >= 5 && gameCount <= 9) {
+      return 'grid-cols-3';
+    }
     return 'grid-cols-4'; // Fallback for more than 9, or adjust as needed
   }
 }

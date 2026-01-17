@@ -1,7 +1,7 @@
-import { Injectable, OnDestroy, inject } from '@angular/core';
-import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { Injectable, type OnDestroy, inject } from '@angular/core';
+import { type RealtimeChannel, type RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
-import { GameRow, MoveRow, PresenceUser } from '../models/realtime.model';
+import { type GameRow, type MoveRow, type PresenceUser } from '../models/realtime.model';
 import { SupabaseClientService } from './supabase-client.service';
 
 @Injectable({ providedIn: 'root' })
@@ -26,7 +26,9 @@ export class RealtimeGameService implements OnDestroy {
   readonly hasMoreMoves$ = this.hasMoreMovesSubject.asObservable();
 
   subscribe(gameId: string, presence?: PresenceUser) {
-    if (!gameId) return;
+    if (!gameId) {
+      return;
+    }
 
     void this.teardown();
     this.resetState();
@@ -74,8 +76,9 @@ export class RealtimeGameService implements OnDestroy {
   }
 
   async loadNextMovesPage(pageSize = this.defaultPageSize) {
-    if (!this.currentGameId || this.loadingMovesSubject.value || !this.hasMoreMovesSubject.value)
+    if (!this.currentGameId || this.loadingMovesSubject.value || !this.hasMoreMovesSubject.value) {
       return;
+    }
 
     this.loadingMovesSubject.next(true);
     const from = this.loadedMoves;
@@ -144,7 +147,9 @@ export class RealtimeGameService implements OnDestroy {
   }
 
   private mergeMoves(incoming: MoveRow[]) {
-    if (!incoming || incoming.length === 0) return;
+    if (!incoming || incoming.length === 0) {
+      return;
+    }
 
     const existingById = new Map<number, MoveRow>();
     for (const move of this.movesSubject.value) {

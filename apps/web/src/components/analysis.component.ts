@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, effect, input } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChessBoardComponent } from './chess-board.component';
-import { AnalysisService, AnalysisNode } from '../services/analysis.service';
+import { AnalysisService, type AnalysisNode } from '../services/analysis.service';
 import { Chess } from 'chess.js';
 
 @Component({
@@ -226,7 +226,9 @@ export class AnalysisComponent {
   // Computed
   evalHeight = computed(() => {
     const data = this.engineData();
-    if (!data || data.eval === undefined) return 50;
+    if (!data || data.eval === undefined) {
+      return 50;
+    }
     // Clamp between -500 and 500 cp for the bar visual
     const score = Math.max(-500, Math.min(500, data.eval));
     // 50% is 0. +500 is 100%, -500 is 0%.
@@ -236,8 +238,12 @@ export class AnalysisComponent {
 
   evalText = computed(() => {
     const data = this.engineData();
-    if (!data) return '0.0';
-    if (data.eval !== undefined) return (data.eval / 100).toFixed(1);
+    if (!data) {
+      return '0.0';
+    }
+    if (data.eval !== undefined) {
+      return (data.eval / 100).toFixed(1);
+    }
     return 'Mate';
   });
 
@@ -249,7 +255,9 @@ export class AnalysisComponent {
   });
 
   lastMove = computed(() => {
-    if (this.currentMoveIndex() === -1) return null;
+    if (this.currentMoveIndex() === -1) {
+      return null;
+    }
     const h = this.history[this.currentMoveIndex()];
     return h ? { from: h.move.from, to: h.move.to } : null;
   });
@@ -310,10 +318,18 @@ export class AnalysisComponent {
     const max = this.history.length - 1;
     let curr = this.currentMoveIndex();
 
-    if (direction === 'start') curr = -1;
-    if (direction === 'prev') curr = Math.max(-1, curr - 1);
-    if (direction === 'next') curr = Math.min(max, curr + 1);
-    if (direction === 'end') curr = max;
+    if (direction === 'start') {
+      curr = -1;
+    }
+    if (direction === 'prev') {
+      curr = Math.max(-1, curr - 1);
+    }
+    if (direction === 'next') {
+      curr = Math.min(max, curr + 1);
+    }
+    if (direction === 'end') {
+      curr = max;
+    }
 
     this.currentMoveIndex.set(curr);
     this.updateBoardState();

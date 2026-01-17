@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, type OnDestroy, type OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, distinctUntilChanged, map, takeUntil } from 'rxjs';
 import {
   HydraBoardMosaicComponent,
-  HydraBoardSortMode
+  type HydraBoardSortMode
 } from '../components/hydra-board-mosaic.component';
 import { HydraLeaderboardComponent } from '../components/hydra-leaderboard.component';
 import { HydraMatchmakingService } from '../services/hydra-matchmaking.service';
@@ -120,12 +120,16 @@ export class HydraTournamentPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.tournamentId = this.route.snapshot.paramMap.get('id') ?? '';
-    if (!this.tournamentId) return;
+    if (!this.tournamentId) {
+      return;
+    }
 
     this.hydraRealtime.subscribe(this.tournamentId);
     void this.loadInitialGames();
     this.highlightedGameId$.pipe(takeUntil(this.destroy$)).subscribe((gameId) => {
-      if (!gameId || !this.soundEnabled) return;
+      if (!gameId || !this.soundEnabled) {
+        return;
+      }
       this.playAlertSound();
     });
   }
@@ -173,12 +177,18 @@ export class HydraTournamentPageComponent implements OnInit, OnDestroy {
 
   private toLeaderboard(participants: HydraParticipantRow[]): LeaderboardEntry[] {
     const sorted = [...participants].sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
       if (a.eliminated_at && b.eliminated_at) {
         return new Date(a.eliminated_at).getTime() - new Date(b.eliminated_at).getTime();
       }
-      if (a.eliminated_at) return 1;
-      if (b.eliminated_at) return -1;
+      if (a.eliminated_at) {
+        return 1;
+      }
+      if (b.eliminated_at) {
+        return -1;
+      }
       return 0;
     });
 

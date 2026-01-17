@@ -137,7 +137,9 @@ describe('AuthService', () => {
       supabaseMock.signUp.mockResolvedValue({ error: null });
 
       const result = await service.register('NewUser', 'new@example.com', 'password123');
-      if (!result) console.log('Register failed with error:', service.error());
+      if (!result) {
+        console.log('Register failed with error:', service.error());
+      }
       expect(result).toBe(true);
       expect(supabaseMock.signUp).toHaveBeenCalledWith('new@example.com', 'password123');
       expect(service.error()).toBeNull();

@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChessSimulService, GameState, GameConfig } from './services/chess-logic.service';
+import { ChessSimulService, type GameState, type GameConfig } from './services/chess-logic.service';
 import { AuthService } from './services/auth.service';
 import { HistoryService } from './services/history.service';
 import { PreferencesService } from './services/preferences.service';
@@ -223,12 +223,16 @@ export class AppComponent {
 
   // --- Helpers ---
   getDisplayFen(game: GameState): string {
-    if (game.viewIndex === -1) return game.fen;
+    if (game.viewIndex === -1) {
+      return game.fen;
+    }
     return game.fenHistory[game.viewIndex] || game.fen;
   }
 
   getDisplayLastMove(game: GameState): { from: string; to: string } | null {
-    if (game.viewIndex === -1) return game.lastMove;
+    if (game.viewIndex === -1) {
+      return game.lastMove;
+    }
     return null;
   }
 
@@ -363,7 +367,9 @@ export class AppComponent {
   }
 
   formatTime(ms: number): string {
-    if (ms < 0) ms = 0;
+    if (ms < 0) {
+      ms = 0;
+    }
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -375,7 +381,9 @@ export class AppComponent {
   }
 
   getTimePercentage(current: number, initial: number): string {
-    if (!initial || initial === 0) return '0%';
+    if (!initial || initial === 0) {
+      return '0%';
+    }
     const pct = (current / initial) * 100;
     return `${Math.max(0, Math.min(100, pct))}%`;
   }

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, inject } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { SimulTableStatus } from '../models/simul.model';
-import { PresenceUser } from '../models/realtime.model';
+import { Component, Input, type OnChanges, type OnDestroy, inject } from '@angular/core';
+import { type Subscription } from 'rxjs';
+import { type SimulTableStatus } from '../models/simul.model';
+import { type PresenceUser } from '../models/realtime.model';
 import { RealtimeSimulService } from '../services/realtime-simul.service';
 import { SupabaseClientService } from '../services/supabase-client.service';
 import { SupabaseSimulService } from '../services/supabase-simul.service';
@@ -116,12 +116,16 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
 
   get reservedCount() {
     const simul = this.simulService.activeSimul();
-    if (!simul) return 0;
+    if (!simul) {
+      return 0;
+    }
     return simul.simul_tables.filter((t) => t.status !== 'open').length;
   }
 
   ngOnChanges(): void {
-    if (!this.simulId || this.simulId === this.lastSimulId) return;
+    if (!this.simulId || this.simulId === this.lastSimulId) {
+      return;
+    }
 
     this.lastSimulId = this.simulId;
 
@@ -180,7 +184,9 @@ export class SimulLobbyComponent implements OnChanges, OnDestroy {
     this.tablesSub?.unsubscribe();
     this.tablesSub = this.realtimeSimul.tables$.subscribe((updates) => {
       const active = this.simulService.activeSimul();
-      if (!active || updates.length === 0) return;
+      if (!active || updates.length === 0) {
+        return;
+      }
 
       const mergedTables = active.simul_tables.map((table) => {
         const updatedTable = updates.find((u) => u.id === table.id);

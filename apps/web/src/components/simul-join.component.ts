@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, inject } from '@angular/core';
+import { Component, Input, type OnChanges, inject } from '@angular/core';
 import { SupabaseSimulService } from '../services/supabase-simul.service';
-import { SimulTable } from '../models/simul.model';
+import { type SimulTable } from '../models/simul.model';
 
 @Component({
   selector: 'app-simul-join',
@@ -56,7 +56,9 @@ export class SimulJoinComponent implements OnChanges {
 
   get freeSeats() {
     const simul = this.simulService.activeSimul();
-    if (!simul) return 0;
+    if (!simul) {
+      return 0;
+    }
     return simul.simul_tables.filter((t) => t.status === 'open').length;
   }
 

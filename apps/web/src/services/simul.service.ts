@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { GameConfig } from './chess-logic.service';
+import { type GameConfig } from './chess-logic.service';
 import { AuthService } from './auth.service';
 
 export interface SimulEvent {

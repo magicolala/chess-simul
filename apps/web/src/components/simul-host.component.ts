@@ -361,13 +361,16 @@ export class SimulHostComponent {
   cycleGame(direction: number) {
     const games = this.games(); // Cycle through all or just active? Let's cycle all active.
     const active = games.filter((g) => g.status === 'active');
-    if (active.length === 0) return;
+    if (active.length === 0) {
+      return;
+    }
 
     const currentId = this.focusedGameId();
     let currentIndex = active.findIndex((g) => g.id === currentId);
 
-    if (currentIndex === -1) currentIndex = 0;
-    else {
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    } else {
       currentIndex = (currentIndex + direction + active.length) % active.length;
     }
 
@@ -382,7 +385,9 @@ export class SimulHostComponent {
   }
 
   formatTime(ms: number): string {
-    if (ms < 0) ms = 0;
+    if (ms < 0) {
+      ms = 0;
+    }
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;

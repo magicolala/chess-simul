@@ -1,13 +1,13 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { SupabaseClientService } from './supabase-client.service';
+import { type SupabaseClientService } from './supabase-client.service';
 import {
-  GameStatus,
-  Simul,
-  SimulGame,
-  SimulStatus,
-  SimulTable,
-  SimulWithTables,
-  TimeControl
+  type GameStatus,
+  type Simul,
+  type SimulGame,
+  type SimulStatus,
+  type SimulTable,
+  type SimulWithTables,
+  type TimeControl
 } from '../models/simul.model';
 
 interface RpcError {
@@ -72,7 +72,9 @@ export class SupabaseSimulService {
           simul.simul_tables.find(
             (t) => t.challenger_id === this.supabaseClient.currentUser()?.id
           ) ?? null;
-        if (seat) this.activeTable.set(seat);
+        if (seat) {
+          this.activeTable.set(seat);
+        }
       }
     }
     this.loading.set(false);
@@ -102,7 +104,9 @@ export class SupabaseSimulService {
 
     if (simulError || !newSimul) {
       this.loading.set(false);
-      if (simulError) this.error.set(simulError.message);
+      if (simulError) {
+        this.error.set(simulError.message);
+      }
       throw simulError ?? new Error('Impossible de créer la simultanée');
     }
 
@@ -280,12 +284,22 @@ export class SupabaseSimulService {
   }
 
   friendlyError(err: unknown): string {
-    if (!err) return 'Erreur inconnue';
+    if (!err) {
+      return 'Erreur inconnue';
+    }
     const rpc = err as RpcError;
-    if (rpc.message?.includes('no open')) return 'Toutes les places sont déjà prises.';
-    if (rpc.message?.includes('not open')) return 'Les inscriptions sont closes.';
-    if (rpc.message?.includes('only host')) return "Seul l'hôte peut effectuer cette action.";
-    if (rpc.message?.includes('no challenger')) return 'Cette table n’a pas encore de challenger.';
+    if (rpc.message?.includes('no open')) {
+      return 'Toutes les places sont déjà prises.';
+    }
+    if (rpc.message?.includes('not open')) {
+      return 'Les inscriptions sont closes.';
+    }
+    if (rpc.message?.includes('only host')) {
+      return "Seul l'hôte peut effectuer cette action.";
+    }
+    if (rpc.message?.includes('no challenger')) {
+      return 'Cette table n’a pas encore de challenger.';
+    }
     return rpc.message || 'Une erreur est survenue.';
   }
 }

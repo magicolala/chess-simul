@@ -272,7 +272,9 @@ export class OnlineGameComponent {
 
   resign() {
     if (this.game()) {
-      if (!confirm('Êtes-vous sûr de vouloir abandonner ?')) return;
+      if (!confirm('Êtes-vous sûr de vouloir abandonner ?')) {
+        return;
+      }
       this.logic.resign(this.game()!.id);
     }
   }
@@ -298,7 +300,9 @@ export class OnlineGameComponent {
   }
 
   formatTime(ms: number): string {
-    if (ms < 0) ms = 0;
+    if (ms < 0) {
+      ms = 0;
+    }
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -307,7 +311,9 @@ export class OnlineGameComponent {
 
   getResultTitle() {
     const g = this.game();
-    if (!g) return '';
+    if (!g) {
+      return '';
+    }
     const isPlayerWhite = g.playerColor === 'w';
 
     if (g.status === 'checkmate') {

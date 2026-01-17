@@ -71,7 +71,9 @@ export class LoginPageComponent {
   });
 
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      return;
+    }
     this.loading.set(true);
     this.error.set(null);
 

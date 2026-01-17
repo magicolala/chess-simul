@@ -179,7 +179,9 @@ export class GameRoomComponent {
   // For robustness, let's assume we toggle the state and the UI reflects the room state.
   isMeReady = computed(() => {
     const room = this.mpService.currentRoom();
-    if (!room) return false;
+    if (!room) {
+      return false;
+    }
     // Simple heuristic for demo: If I created, I am index 0. If I joined, I am index 1.
     // But mpService handles toggle logic abstractly. We just check if *someone* is ready for visual feedback or check last added.
     // Better: Check if ALL are ready to auto-start.

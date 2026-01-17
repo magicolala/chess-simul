@@ -28,7 +28,9 @@ export class HistoryService {
   stats = computed(() => {
     const games = this.history();
     const total = games.length;
-    if (total === 0) return { wins: 0, losses: 0, draws: 0, winRate: 0 };
+    if (total === 0) {
+      return { wins: 0, losses: 0, draws: 0, winRate: 0 };
+    }
 
     const wins = games.filter((g) => g.result === 'win').length;
     const losses = games.filter((g) => g.result === 'loss').length;
@@ -116,7 +118,9 @@ export class HistoryService {
     for (const game of data ?? []) {
       const isWhite = game.white_id === user.id;
       const opponentId = isWhite ? game.black_id : game.white_id;
-      if (opponentId) opponentIds.add(opponentId);
+      if (opponentId) {
+        opponentIds.add(opponentId);
+      }
     }
 
     let profileMap = new Map<string, { id: string; username: string; avatar_url: string | null }>();
@@ -153,13 +157,17 @@ export class HistoryService {
   }
 
   async teardownRealtime() {
-    if (!this.realtimeChannel) return;
+    if (!this.realtimeChannel) {
+      return;
+    }
     await this.supabase.client.removeChannel(this.realtimeChannel);
     this.realtimeChannel = undefined;
   }
 
   private ensureRealtimeSubscription(userId: string) {
-    if (this.realtimeChannel) return;
+    if (this.realtimeChannel) {
+      return;
+    }
 
     this.realtimeChannel = this.supabase.client
       .channel(`game-history:${userId}`)
@@ -181,7 +189,9 @@ export class HistoryService {
   }
 
   private handleRealtimeGame(game: any) {
-    if (!game?.status) return;
+    if (!game?.status) {
+      return;
+    }
     if (['checkmate', 'draw', 'resigned', 'aborted'].includes(game.status)) {
       void this.fetchHistoryFromSupabase();
     }
@@ -192,7 +202,9 @@ export class HistoryService {
     turn: 'w' | 'b' | null,
     playerColor: 'w' | 'b'
   ): 'win' | 'loss' | 'draw' {
-    if (status === 'draw' || status === 'aborted') return 'draw';
+    if (status === 'draw' || status === 'aborted') {
+      return 'draw';
+    }
 
     if (status === 'checkmate' && turn) {
       const winner = turn === 'w' ? 'b' : 'w';

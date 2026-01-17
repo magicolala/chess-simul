@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, type OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { PresenceUser } from '../models/realtime.model';
+import { type Subscription } from 'rxjs';
+import { type PresenceUser } from '../models/realtime.model';
 import { RealtimeGameService } from '../services/realtime-game.service';
 import { RealtimeSimulService } from '../services/realtime-simul.service';
 import { SupabaseClientService } from '../services/supabase-client.service';

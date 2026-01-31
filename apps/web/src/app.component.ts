@@ -40,6 +40,7 @@ import { SocialHubComponent } from './components/social-hub.component';
 import { PublicProfileComponent } from './components/public-profile.component';
 import { AnalysisComponent } from './components/analysis.component';
 import { RoundRobinSimulPageComponent } from './pages/round-robin-simul-page.component';
+import { MemoryModePageComponent } from './pages/memory-mode-page.component';
 
 type ViewState =
   | 'landing'
@@ -64,7 +65,8 @@ type ViewState =
   | 'online-game'
   | 'social-hub'
   | 'public-profile'
-  | 'analysis';
+  | 'analysis'
+  | 'memory';
 
 @Component({
   selector: 'app-root',
@@ -94,7 +96,8 @@ type ViewState =
     SocialHubComponent,
     PublicProfileComponent,
     AnalysisComponent,
-    RoundRobinSimulPageComponent
+    RoundRobinSimulPageComponent,
+    MemoryModePageComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -4,9 +4,15 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
@@ -14,13 +20,26 @@
     "jsx": "react-jsx",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["./*"],
-      "@shared/*": ["../../packages/shared/src/*"],
-      "@chess-simul/shared": ["../../packages/shared/src/index.ts"],
-      "@supabase/*": ["../../supabase/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@shared/*": [
+        "../../packages/shared/src/*"
+      ],
+      "@chess-simul/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
+      "@supabase/*": [
+        "../../supabase/*"
+      ],
+      "@supabase/types/*": [
+        "../../supabase/types/*"
+      ]
     }
   },
-  "files": ["./index.tsx"],
+  "files": [
+    "./index.tsx"
+  ],
   "angularCompilerOptions": {
     "disableTypeScriptVersionCheck": true
   }

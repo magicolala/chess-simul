@@ -6,6 +6,7 @@ import { HydraTournamentPageComponent } from './pages/hydra-tournament-page.comp
 import { RoundRobinSimulPageComponent } from './pages/round-robin-simul-page.component';
 import { LocalGamePageComponent } from './pages/local-game-page.component';
 import { LocalPlayPageComponent } from './pages/local-play-page.component';
+import { MemoryModePageComponent } from './pages/memory-mode-page.component';
 
 import { DashboardComponent } from './components/dashboard.component';
 import { OnlineGameComponent } from './components/online-game.component';
@@ -29,98 +30,98 @@ import { GuestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
   { path: '', canActivate: [GuestGuard], component: LandingComponent },
-  
+
   // Public / Auth
   { path: 'login', canActivate: [GuestGuard], component: LoginPageComponent },
   { path: 'register', canActivate: [GuestGuard], component: RegisterPageComponent },
-  
+
   // App Pages (Guarded)
-  { 
-    path: 'dashboard', 
-    canActivate: [AuthGuard], 
-    component: DashboardComponent 
+  {
+    path: 'dashboard',
+    canActivate: [AuthGuard],
+    component: DashboardComponent
   },
-  { 
+  {
     path: 'game', // The "Table de jeu" page (Local)
-    canActivate: [AuthGuard], 
-    component: LocalGamePageComponent 
+    canActivate: [AuthGuard],
+    component: LocalGamePageComponent
   },
   {
     path: 'local/:id',
     canActivate: [AuthGuard],
     component: LocalPlayPageComponent
   },
-  { 
+  {
     path: 'play', // Multiplayer Lobby
-    canActivate: [AuthGuard], 
-    component: MultiplayerLobbyComponent 
+    canActivate: [AuthGuard],
+    component: MultiplayerLobbyComponent
   },
-  { 
-    path: 'online-game/:id', 
-    canActivate: [AuthGuard], 
-    component: OnlineGameComponent 
+  {
+    path: 'online-game/:id',
+    canActivate: [AuthGuard],
+    component: OnlineGameComponent
   },
-  { 
+  {
     path: 'games', // My Games Grid
-    canActivate: [AuthGuard], 
-    component: GamesGridComponent 
+    canActivate: [AuthGuard],
+    component: GamesGridComponent
   },
-  { 
-    path: 'history', 
-    canActivate: [AuthGuard], 
-    component: HistoryComponent 
+  {
+    path: 'history',
+    canActivate: [AuthGuard],
+    component: HistoryComponent
   },
-  { 
-    path: 'analysis', 
-    canActivate: [AuthGuard], 
-    component: AnalysisComponent 
+  {
+    path: 'analysis',
+    canActivate: [AuthGuard],
+    component: AnalysisComponent
   },
-  { 
-    path: 'social', 
-    canActivate: [AuthGuard], 
-    component: SocialHubComponent 
+  {
+    path: 'social',
+    canActivate: [AuthGuard],
+    component: SocialHubComponent
   },
-  { 
-    path: 'u/:id', 
-    canActivate: [AuthGuard], 
-    component: PublicProfileComponent 
+  {
+    path: 'u/:id',
+    canActivate: [AuthGuard],
+    component: PublicProfileComponent
   },
-  { 
-    path: 'friend-lobby', 
-    canActivate: [AuthGuard], 
-    component: FriendLobbyComponent 
+  {
+    path: 'friend-lobby',
+    canActivate: [AuthGuard],
+    component: FriendLobbyComponent
   },
-  { 
-    path: 'settings', 
-    canActivate: [AuthGuard], 
-    component: SettingsPageComponent 
+  {
+    path: 'settings',
+    canActivate: [AuthGuard],
+    component: SettingsPageComponent
   },
 
   // Simuls
-  { 
-    path: 'simuls', 
-    canActivate: [AuthGuard], 
-    component: SimulListComponent 
+  {
+    path: 'simuls',
+    canActivate: [AuthGuard],
+    component: SimulListComponent
   },
-  { 
-    path: 'simuls/create', 
-    canActivate: [AuthGuard], 
-    component: SimulCreateComponent 
+  {
+    path: 'simuls/create',
+    canActivate: [AuthGuard],
+    component: SimulCreateComponent
   },
-  { 
-    path: 'simuls/:id', 
-    canActivate: [AuthGuard], 
-    component: SimulLobbyComponent 
+  {
+    path: 'simuls/:id',
+    canActivate: [AuthGuard],
+    component: SimulLobbyComponent
   },
-  { 
-    path: 'simuls/:id/host', 
-    canActivate: [AuthGuard], 
-    component: SimulHostComponent 
+  {
+    path: 'simuls/:id/host',
+    canActivate: [AuthGuard],
+    component: SimulHostComponent
   },
-  { 
-    path: 'simuls/:id/play', 
-    canActivate: [AuthGuard], 
-    component: SimulPlayerComponent 
+  {
+    path: 'simuls/:id/play',
+    canActivate: [AuthGuard],
+    component: SimulPlayerComponent
   },
 
   // Special Events
@@ -129,6 +130,9 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     component: HydraTournamentPageComponent
   },
+  // Memory Mode (Public)
+  { path: 'memory', component: MemoryModePageComponent },
+
   { path: 'round-robin-simul', component: RoundRobinSimulPageComponent },
 
   { path: '**', redirectTo: 'dashboard' }

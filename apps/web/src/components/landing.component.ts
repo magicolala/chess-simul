@@ -134,10 +134,10 @@ import { RouterModule } from '@angular/router';
             <div class="flex items-center gap-6 text-left">
               <div>
                 <p class="text-3xl font-black font-display leading-none">
-                  <span class="text-4xl">3</span> modes
+                  <span class="text-4xl">4</span> modes
                 </p>
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-500">
-                  Duel · Simultanée · Analyse
+                  Duel · Simultanée · Analyse · Memory
                 </p>
               </div>
               <div class="w-px h-12 bg-gray-300"></div>
@@ -221,24 +221,18 @@ import { RouterModule } from '@angular/router';
 
             <div class="ui-card p-6 space-y-3 bg-white/80">
               <div class="flex items-center justify-between">
-                <h3 class="text-2xl font-black font-display uppercase">Analyse</h3>
-                <span class="text-sm font-bold px-3 py-1 border-2 border-[#1D1C1C] bg-white"
-                  >PGN & Lichess</span
+                <h3 class="text-2xl font-black font-display uppercase">Memory</h3>
+                <span class="text-sm font-bold px-3 py-1 border-2 border-[#1D1C1C] bg-[#FFF48D]"
+                  >Nouveau !</span
                 >
               </div>
               <p class="text-gray-700 font-medium">
-                Rejouez vos parties, marquez vos coups clés et exportez tout en un clic. Les
-                positions sont prêtes pour Stockfish.
+                Testez votre mémoire de Grand Maître. 3 vies pour retrouver les 20 premiers coups
+                de parties légendaires.
               </p>
-              <div class="flex items-center gap-3 text-sm font-bold text-gray-800">
-                <span class="px-3 py-2 border-2 border-[#1D1C1C] bg-[#7AF7F7]/60"
-                  >Repères visuels</span
-                >
-                <span class="px-3 py-2 border-2 border-[#1D1C1C] bg-white"
-                  >Positions critiques</span
-                >
-                <span class="px-3 py-2 border-2 border-[#1D1C1C] bg-[#FFF48D]/60">Plan de jeu</span>
-              </div>
+              <a routerLink="/memory" class="w-full ui-btn ui-btn-ghost border-2 border-[#1D1C1C] font-bold text-center block">
+                Lancer le défi 🧠
+              </a>
             </div>
 
             <div class="ui-card p-6 space-y-3 bg-[#1D1C1C] text-white border-4 border-[#FFF48D]">
@@ -372,4 +366,4 @@ import { RouterModule } from '@angular/router';
     </div>
   `
 })
-export class LandingComponent {}
+export class LandingComponent { }

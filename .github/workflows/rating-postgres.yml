@@ -1,0 +1,57 @@
+name: Secure Elo rating — PostgreSQL integration
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/rating-postgres.yml'
+      - 'supabase/migrations/20261104200000_secured_game_ratings.sql'
+      - 'supabase/tests/sql/rating_*.sql'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ratings:
+    name: Rating RPC, eligibility and profile grants
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: test_only
+          POSTGRES_DB: rating_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rating_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGDATABASE: rating_test
+      PGUSER: postgres
+      PGPASSWORD: test_only
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+
+      - name: Create isolated old-schema fixture
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/sql/rating_fixture.sql
+
+      - name: Apply secured rating migration
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261104200000_secured_game_ratings.sql
+
+      - name: Test permissions, Elo and idempotency
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/sql/rating_assertions.sql

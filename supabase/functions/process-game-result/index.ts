@@ -1,214 +1,107 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
-import { createSupabaseClient } from '../_shared/supabase-client.ts';
-import { calculateEloDelta, determineKFactor, hydraScoreForOutcome } from './elo.ts';
-import { Outcome, PlayerContext } from './types.ts';
+import { createSupabaseClient, createAdminClient } from '../_shared/supabase-client.ts';
 
-// This function processes a completed game, updates player ELOs and Hydra scores.
+const respond = (status: number, body: Record<string, unknown>) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+
+const isUuid = (input: unknown): input is string =>
+  typeof input === 'string' &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input);
+
+type RatingResult = {
+  ok: boolean;
+  error?: string;
+  already_processed?: boolean;
+  game_id?: string;
+  white_delta?: number;
+  black_delta?: number;
+  white_elo?: number;
+  black_elo?: number;
+};
+
+/**
+ * Finalize an already completed and server-authorized STANDARD game.
+ * A player may request settlement of their own game, but may never submit
+ * the outcome, winner, mode or Elo change. The locked DB RPC derives all
+ * of these from the persisted game and only executes as service_role.
+ *
+ * Hydra tournaments use a separate hydra_games ledger and must never be
+ * processed here. The caller's JWT is checked both by the gateway
+ * (verify_jwt=true) and by auth.getUser().
+ */
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders, status: 200 });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method !== 'POST') return respond(405, { error: 'method_not_allowed' });
 
   try {
-    const supabase = createSupabaseClient(req);
+    const input: unknown = await req.json().catch(() => null);
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      return respond(400, { error: 'invalid_payload' });
+    }
 
-    // This function will be called by a trusted source (e.g., another Supabase function, or a webhook)
-    // so we don't need user authentication here for the context of this task.
-    // However, in a production environment, proper authorization is crucial.
-
-    const body = await req.json().catch(() => ({}));
-    const { game_id, outcome, tournament_mode, hydra_mode } = body as {
-      game_id?: string;
-      outcome?: Outcome;
-      tournament_mode?: string;
-      hydra_mode?: boolean;
-    };
-
-    if (!game_id) {
-      return new Response(JSON.stringify({ error: 'game_id and outcome are required.' }), {
-        status: 400,
-        headers: corsHeaders
+    const body = input as Record<string, unknown>;
+    if (Object.keys(body).length !== 1 || !isUuid(body.game_id)) {
+      return respond(400, {
+        error: 'invalid_payload',
+        message: 'Only game_id is accepted. The server determines the outcome.'
       });
     }
 
-    const validOutcomes: Outcome[] = ['white_won', 'black_won', 'draw'];
+    const caller = createSupabaseClient(req);
+    const { data: { user }, error: authError } = await caller.auth.getUser();
+    if (authError || !user) return respond(401, { error: 'unauthorized' });
 
-    if (!outcome || !validOutcomes.includes(outcome)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid outcome. Expect white_won, black_won, or draw.' }),
-        {
-          status: 400,
-          headers: corsHeaders
-        }
-      );
-    }
-
-    // Fetch game details
-    const { data: game, error: gameError } = await supabase
+    const admin = createAdminClient();
+    const { data: game, error: loadError } = await admin
       .from('games')
-      .select('white_id, black_id, status')
-      .eq('id', game_id)
-      .single();
+      .select('id,white_id,black_id')
+      .eq('id', body.game_id)
+      .maybeSingle();
 
-    if (gameError || !game) {
-      return new Response(
-        JSON.stringify({ error: 'Game not found or error fetching game details.' }),
-        { status: 404, headers: corsHeaders }
-      );
+    if (loadError) {
+      console.error('[process-game-result] Could not read game:', loadError.code);
+      return respond(500, { error: 'game_read_failed' });
+    }
+    if (!game) return respond(404, { error: 'game_not_found' });
+    if (user.id !== game.white_id && user.id !== game.black_id) {
+      return respond(403, { error: 'forbidden' });
     }
 
-    if (game.status === 'draw' || game.status === 'white_won' || game.status === 'black_won') {
-      return new Response(JSON.stringify({ message: 'Game already processed.' }), {
-        status: 200,
-        headers: corsHeaders
-      });
-    }
-
-    const getPlayerProfile = async (playerId: string) => {
-      const profileQuery = await supabase
-        .from('profiles')
-        .select('elo, age, games_played')
-        .eq('id', playerId)
-        .single();
-
-      if (profileQuery.error?.code === '42703') {
-        const fallbackProfileQuery = await supabase
-          .from('profiles')
-          .select('elo')
-          .eq('id', playerId)
-          .single();
-
-        return {
-          data: fallbackProfileQuery.data
-            ? { elo: fallbackProfileQuery.data.elo, age: null, games_played: null }
-            : null,
-          error: fallbackProfileQuery.error
-        } as { data: { elo: number; age: number | null; games_played: number | null } | null; error: unknown };
-      }
-
-      return profileQuery as unknown as {
-        data: { elo: number; age: number | null; games_played: number | null } | null;
-        error: unknown;
-      };
-    };
-
-    const getGamesPlayed = async (playerId: string) => {
-      const { count, error } = await supabase
-        .from('games')
-        .select('id', { count: 'exact', head: true })
-        .or(`white_id.eq.${playerId},black_id.eq.${playerId}`)
-        .in('status', ['white_won', 'black_won', 'draw']);
-
-      if (error) {
-        console.error('Error counting player games:', error);
-        return null;
-      }
-
-      return count ?? null;
-    };
-
-    const mapToPlayerContext = async (playerId: string): Promise<PlayerContext | null> => {
-      const { data, error } = await getPlayerProfile(playerId);
-
-      if (error || !data) {
-        console.error('Error fetching player profile:', error);
-        return null;
-      }
-
-      const gamesPlayed =
-        data.games_played ?? (await getGamesPlayed(playerId)) ?? 0;
-
-      return {
-        elo: data.elo,
-        age: typeof data.age === 'number' ? data.age : null,
-        gamesPlayed
-      };
-    };
-
-    const whiteContext = await mapToPlayerContext(game.white_id);
-    const blackContext = await mapToPlayerContext(game.black_id);
-
-    if (!whiteContext || !blackContext) {
-      return new Response(
-        JSON.stringify({ error: 'Error fetching player profiles for ELO update.' }),
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
-    const isHydraTournament = tournament_mode === 'hydra' || hydra_mode === true;
-
-    const whiteDelta = isHydraTournament
-      ? hydraScoreForOutcome(outcome, true)
-      : calculateEloDelta(
-          whiteContext.elo,
-          blackContext.elo,
-          outcome,
-          determineKFactor(whiteContext.elo, whiteContext.gamesPlayed, whiteContext.age),
-          true
-        );
-
-    const blackDelta = isHydraTournament
-      ? hydraScoreForOutcome(outcome, false)
-      : calculateEloDelta(
-          blackContext.elo,
-          whiteContext.elo,
-          outcome,
-          determineKFactor(blackContext.elo, blackContext.gamesPlayed, blackContext.age),
-          false
-        );
-
-    const newWhiteElo = whiteContext.elo + whiteDelta;
-    const newBlackElo = blackContext.elo + blackDelta;
-
-    const { error: updateWhiteError } = await supabase
-      .from('profiles')
-      .update({ elo: newWhiteElo })
-      .eq('id', game.white_id);
-
-    const { error: updateBlackError } = await supabase
-      .from('profiles')
-      .update({ elo: newBlackElo })
-      .eq('id', game.black_id);
-
-    if (updateWhiteError || updateBlackError) {
-      console.error('Error updating player ELOs:', updateWhiteError, updateBlackError);
-      return new Response(JSON.stringify({ error: 'Error updating player ELOs.' }), {
-        status: 500,
-        headers: corsHeaders
-      });
-    }
-
-    // Update game status to reflect it's processed
-    const { error: updateGameStatusError } = await supabase
-      .from('games')
-      .update({ status: outcome })
-      .eq('id', game_id);
-
-    if (updateGameStatusError) {
-      console.error('Error updating game status:', updateGameStatusError);
-      return new Response(
-        JSON.stringify({ error: 'Error updating game status after processing result.' }),
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({
-        message: 'Game result processed successfully.',
-        game_id: game_id,
-        white_elo_change: whiteDelta,
-        black_elo_change: blackDelta,
-        new_white_elo: newWhiteElo,
-        new_black_elo: newBlackElo
-      }),
-      { headers: corsHeaders }
-    );
-  } catch (error) {
-    console.error('process-game-result error', error);
-    return new Response(JSON.stringify({ error: 'Failed to process game result' }), {
-      status: 500,
-      headers: corsHeaders
+    const { data, error } = await admin.rpc('apply_completed_game_rating', {
+      p_game_id: body.game_id
     });
+    if (error) {
+      console.error('[process-game-result] Settlement failed:', error.code);
+      return respond(500, { error: 'rating_settlement_failed' });
+    }
+
+    const result = data as RatingResult | null;
+    if (!result?.ok) {
+      const code = result?.error ?? 'rating_rejected';
+      return respond(
+        code === 'game_not_found' ? 404 :
+        code === 'not_rated' ? 403 :
+        code === 'invalid_game_id' ? 400 : 409,
+        { error: code }
+      );
+    }
+    return respond(200, {
+      success: true,
+      game_id: result.game_id ?? body.game_id,
+      already_processed: Boolean(result.already_processed),
+      ...(result.already_processed ? {} : {
+        white_elo_change: result.white_delta,
+        black_elo_change: result.black_delta,
+        new_white_elo: result.white_elo,
+        new_black_elo: result.black_elo
+      })
+    });
+  } catch (error) {
+    console.error('[process-game-result] Unexpected error:', error);
+    return respond(500, { error: 'unexpected_error' });
   }
 });

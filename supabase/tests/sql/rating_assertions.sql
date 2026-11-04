@@ -41,10 +41,14 @@ DECLARE
   hydra_game uuid := 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   duplicate_game uuid := 'ffffffff-ffff-4fff-8fff-ffffffffffff';
   auto_game uuid := '99999999-9999-4999-8999-999999999999';
+  resigned_game uuid := '88888888-8888-4888-8888-888888888888';
+  timeout_game uuid := '77777777-7777-4777-8777-777777777777';
   invite_win uuid := 'abababab-abab-4aba-8aba-abababababab';
   invite_draw uuid := 'bcbcbcbc-bcbc-4bcb-8bcb-bcbcbcbcbcbc';
   invite_invalid uuid := 'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd';
   invite_auto uuid := 'dededede-dede-4ded-8ded-dededededede';
+  invite_resign uuid := 'efefefef-efef-4fef-8fef-efefefefefef';
+  invite_timeout uuid := 'a0a0a0a0-a0a0-40a0-80a0-a0a0a0a0a0a0';
   result jsonb;
   w_elo integer;
   b_elo integer;
@@ -58,7 +62,9 @@ BEGIN
     (invite_win,white_id,black_id,'accepted'),
     (invite_draw,white_id,black_id,'accepted'),
     (invite_invalid,white_id,black_id,'accepted'),
-    (invite_auto,white_id,black_id,'accepted');
+    (invite_auto,white_id,black_id,'accepted'),
+    (invite_resign,white_id,black_id,'accepted'),
+    (invite_timeout,white_id,black_id,'accepted');
 
   -- The database contains historical completed games: never re-rate them.
   INSERT INTO public.games(id,white_id,black_id,status,winner_id)
@@ -182,7 +188,37 @@ BEGIN
 
   SELECT count(*) INTO count_events FROM public.game_rating_events;
   IF count_events <> 3 THEN
-    RAISE EXCEPTION 'Unexpected rating ledger size: %',count_events;
+    RAISE EXCEPTION 'Unexpected rating ledger size before resignation/timeout: %',count_events;
+  END IF;
+
+  -- Abandon and flag fall use the SAME trusted terminal-status contract.
+  INSERT INTO public.games(id,white_id,black_id,status)
+  VALUES (resigned_game,white_id,black_id,'active');
+  INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
+  VALUES (resigned_game,'accepted_invite',invite_resign);
+  UPDATE public.games
+    SET status='resigned',winner_id='22222222-2222-4222-8222-222222222222'::uuid
+    WHERE id=resigned_game;
+
+  INSERT INTO public.games(id,white_id,black_id,status)
+  VALUES (timeout_game,white_id,black_id,'active');
+  INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
+  VALUES (timeout_game,'accepted_invite',invite_timeout);
+  UPDATE public.games
+    SET status='timeout',winner_id='22222222-2222-4222-8222-222222222222'::uuid
+    WHERE id=timeout_game;
+
+  SELECT count(*) INTO count_events FROM public.game_rating_events AS e
+  WHERE e.game_id IN (resigned_game,timeout_game)
+    AND e.winner_id=e.black_id
+    AND e.status IN ('resigned','timeout');
+  IF count_events <> 2 THEN
+    RAISE EXCEPTION 'Abandon or timeout did not automatically apply the correct Elo result';
+  END IF;
+
+  SELECT count(*) INTO count_events FROM public.game_rating_events;
+  IF count_events <> 5 THEN
+    RAISE EXCEPTION 'Unexpected total rating ledger size: %',count_events;
   END IF;
 END;
 $rating_smoke$;

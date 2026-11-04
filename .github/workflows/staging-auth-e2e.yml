@@ -1,0 +1,78 @@
+name: Chess Simul — Staging Auth E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "I confirm this run can create and clean up temporary Auth accounts on Chess Simul staging only"
+        required: true
+        type: choice
+        options:
+          - DO_NOT_RUN
+          - APPROVE_STAGING_TEST_USERS
+        default: DO_NOT_RUN
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chess-simul-staging-auth-e2e
+  cancel-in-progress: false
+
+jobs:
+  staging-auth:
+    if: ${{ inputs.confirm == 'APPROVE_STAGING_TEST_USERS' }}
+    name: Real Auth login and two isolated browser contexts
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+
+    env:
+      CI: 'true'
+      PLAYWRIGHT_SUITE: staging
+      PLAYWRIGHT_STAGING_CONFIRM: I_ACCEPT_TEST_DATA_CHANGES
+      PLAYWRIGHT_TEST_SUPABASE_REF: kjgcgnqeyxzivilkiruz
+      PLAYWRIGHT_TEST_SUPABASE_URL: https://kjgcgnqeyxzivilkiruz.supabase.co
+      PLAYWRIGHT_TEST_SERVICE_ROLE_KEY: ${{ secrets.CHESS_SIMUL_STAGING_SERVICE_ROLE_KEY }}
+      SUPABASE_URL: https://kjgcgnqeyxzivilkiruz.supabase.co
+      SUPABASE_URL_DEV: https://kjgcgnqeyxzivilkiruz.supabase.co
+      SUPABASE_ANON_KEY: ${{ secrets.CHESS_SIMUL_STAGING_ANON_KEY }}
+      SUPABASE_ANON_KEY_DEV: ${{ secrets.CHESS_SIMUL_STAGING_ANON_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the approved staging credentials are present
+        shell: bash
+        run: |
+          if [[ -z "$PLAYWRIGHT_TEST_SERVICE_ROLE_KEY" || -z "$SUPABASE_ANON_KEY" ]]; then
+            echo "::error::Configure CHESS_SIMUL_STAGING_SERVICE_ROLE_KEY and CHESS_SIMUL_STAGING_ANON_KEY as encrypted repository secrets."
+            exit 1
+          fi
+          [[ "$PLAYWRIGHT_TEST_SUPABASE_REF" == 'kjgcgnqeyxzivilkiruz' ]] || exit 1
+          [[ "$SUPABASE_URL" == "$PLAYWRIGHT_TEST_SUPABASE_URL" ]] || exit 1
+          [[ "$SUPABASE_URL_DEV" == "$PLAYWRIGHT_TEST_SUPABASE_URL" ]] || exit 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run real authenticated staging E2E
+        run: npx playwright test --config playwright.config.ts --project=chromium e2e/auth.staging.spec.ts
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-auth-playwright-diagnostics
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 3
+          if-no-files-found: ignore

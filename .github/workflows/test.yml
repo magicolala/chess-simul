@@ -72,6 +72,13 @@ jobs:
       - name: List selected smoke tests
         run: npx playwright test --config playwright.config.ts --list
 
+      # Discovery loads and type-transpiles staging test files, but never runs
+      # fixtures, reads credentials or creates any remote accounts.
+      - name: Validate staging E2E test discovery (no remote calls)
+        env:
+          PLAYWRIGHT_SUITE: staging
+        run: npx playwright test --config playwright.config.ts --list
+
       - name: Run deterministic E2E smoke
         run: npm run test:e2e --workspace=web
       

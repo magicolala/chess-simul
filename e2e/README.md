@@ -30,6 +30,83 @@ Failure artifacts (HTML report, test-results, traces, screenshots) are uploaded.
 `npx playwright test --config playwright.config.ts --list` displays exactly
 which tests CI will run.
 
+## Authenticated staging suite (issue #62)
+
+A separate, opt-in Playwright suite runs **real** sign-in flows against an
+independent Supabase test project:
+
+```sh
+PLAYWRIGHT_SUITE=staging npm run test:e2e --workspace=web
+```
+
+It uses `e2e/auth.staging.spec.ts` with two accounts provisioned through
+`auth.admin.createUser` **only in Node test fixtures**, not inside the
+browser bundle. Both users are deleted in a `finally` cleanup step.
+The tests verify the actual /login → /settings flow, guarded /dashboard,
+session persistence and isolation between separate browser contexts.
+
+The existing Supabase project `kjgcgnqeyxzivilkiruz` has been confirmed by the
+owner as **staging only**, with old test data and no active users. The fixture
+explicitly allowlists **only this exact project ref** and refuses any other
+Supabase project. Never assume another project's safety without review.
+
+Required environment variables, set in a trusted terminal or encrypted CI
+secrets (never commit the keys):
+
+- `PLAYWRIGHT_SUITE=staging`
+- `PLAYWRIGHT_STAGING_CONFIRM=I_ACCEPT_TEST_DATA_CHANGES`
+- `PLAYWRIGHT_TEST_SUPABASE_URL`: `https://kjgcgnqeyxzivilkiruz.supabase.co`.
+- `PLAYWRIGHT_TEST_SUPABASE_REF`: `kjgcgnqeyxzivilkiruz`, matching the URL.
+- `PLAYWRIGHT_TEST_SERVICE_ROLE_KEY`: staging **secret**, used only by
+  Playwright's Node process. Never expose it in `environment.ts`, a build,
+  browser page, public GitHub output or screenshot.
+- When Angular is started locally by Playwright, `SUPABASE_URL` and
+  `SUPABASE_URL_DEV` must both equal the test URL and the corresponding
+  `SUPABASE_ANON_KEY` / `SUPABASE_ANON_KEY_DEV` must both point to the
+  test project's publishable/anon key.
+
+A deployed frontend is **not supported** for this suite yet: the fixture
+requires local Angular with `SUPABASE_URL` and `SUPABASE_URL_DEV` both equal
+to the approved staging URL. This prevents tests from accidentally contacting
+a frontend compiled against a different Supabase instance.
+
+Without these explicit settings, `PLAYWRIGHT_SUITE=staging` **fails
+closed** instead of silently running against production.
+The default `smoke` suite never provisions accounts.
+`--list` discovery is safe and performs no account creation.
+
+The staging Auth tests are scaffolding until the approved staging URL and
+keys are configured **in the local test environment** and the integration
+tests actually pass. The legacy `full`
+suite continues to need migration and validation, including local play,
+round-robin, Hydra, Stockfish and accessibility.
+
+### GitHub Actions — lancement manuel (après fusion de la PR)
+
+Le fichier `.github/workflows/staging-auth-e2e.yml` prépare une exécution
+**volontairement manuelle** : ni un `push` ni une PR ne créent de comptes
+Supabase. Le workflow doit d'abord être présent sur la branche par défaut
+pour apparaître dans l'interface GitHub Actions.
+
+Dans **Settings > Secrets and variables > Actions**, enregistrer dans des
+**secrets chiffrés du dépôt**, jamais dans le code, ces deux valeurs :
+
+- `CHESS_SIMUL_STAGING_ANON_KEY` : clé publique/anon de l'instance staging ;
+- `CHESS_SIMUL_STAGING_SERVICE_ROLE_KEY` : clé service-role **privée**,
+  réservée au job Node.js (jamais visible par Angular).
+
+Puis, dans **Actions > Chess Simul — Staging Auth E2E > Run workflow**,
+sélectionner explicitement `APPROVE_STAGING_TEST_USERS`. La valeur par défaut
+est `DO_NOT_RUN`. Le job teste uniquement l'instance
+`kjgcgnqeyxzivilkiruz`, sous Chromium, avec deux comptes temporaires par
+scénario et un nettoyage en `finally`.
+
+Le workflow échoue sans ces secrets. En cas d'interruption brutale de la CI,
+vérifier manuellement la présence d'éventuels comptes dont l'adresse commence
+par `chess-simul-staging-` ; ne jamais supprimer des comptes plus anciens
+sans une vérification explicite. Les résultats et les traces de débogage
+ne doivent jamais contenir la clé `service_role`.
+
 ## Full E2E suite — manual with a dedicated staging backend
 
 These test files remain in the repository; they are not skipped, deleted or

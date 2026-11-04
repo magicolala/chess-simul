@@ -16,7 +16,12 @@ GRANT UPDATE (username, avatar_url, bio, onboarding_completed)
 CREATE TABLE IF NOT EXISTS public.rated_game_authorizations (
   game_id uuid PRIMARY KEY REFERENCES public.games(id) ON DELETE CASCADE,
   source text NOT NULL CHECK (source IN ('accepted_invite', 'trusted_matchmaking')),
-  created_at timestamptz NOT NULL DEFAULT now()
+  source_invite_id uuid UNIQUE REFERENCES public.invites(id) ON DELETE RESTRICT,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT rated_game_authorization_origin CHECK (
+    (source = 'accepted_invite' AND source_invite_id IS NOT NULL)
+    OR (source = 'trusted_matchmaking' AND source_invite_id IS NULL)
+  )
 );
 
 -- Durable idempotency ledger. Unique game_id prevents repeated Elo awards;

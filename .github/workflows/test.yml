@@ -29,6 +29,14 @@ jobs:
 
 
       
+      - name: Setup Deno for Edge helper tests
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Check Edge clock protocol
+        run: deno test --allow-net supabase/tests/game_clock_test.ts
+
       - name: Run unit tests
         run: npm run test:unit --workspace=web
       

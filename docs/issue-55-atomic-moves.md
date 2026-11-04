@@ -24,10 +24,35 @@ This branch is **not deployed**. Supabase remains the production backend and its
   the state changes. It does not accept a user ID, FEN or clock from the browser.
 - `check-timeout` now calls the atomic RPC. `resign-game` refuses to overwrite
   an already-ended game. Angular displays legacy seconds clocks consistently.
-- Draws from stalemate/insufficient material/50-move rules are detected from
-  the FEN + move. **Threefold repetition is still incomplete** because the old
-  game history is absent: full historical repetition detection must reconstruct
-  prior positions, not just load the current FEN.
+- Draws from stalemate, insufficient material and the 50-move rule are
+  detected from the FEN + move. Threefold repetition is now evaluated by
+  replaying **verified complete stored moves** from the standard starting
+  position before the proposed move. Missing / truncated / inconsistent
+  histories fall back to FEN-only validation instead of fabricating a draw.
+  Historical games whose moves were never stored cannot be reconstructed.
+
+## Disposable PostgreSQL integration gate
+
+The draft PR now includes
+`.github/workflows/game-rpc-postgres.yml`. It boots a temporary
+PostgreSQL 17 container, recreates the existing production move trigger from
+`supabase/tests/sql/atomic_move_fixture.sql`, applies the proposed migration
+and executes `supabase/tests/sql/atomic_move_assertions.sql`.
+
+It checks permissions, persistence of the game and move in one transaction,
+stale request rejection, invalid actor rejection, clock increment and flag
+fall. **All assertions passed** in GitHub Actions after correcting the SQL
+parser error revealed by the first run. This verifies a disposable schema,
+not live Supabase Auth / RLS / Realtime behaviour.
+
+The shared-history helper also has Vitest coverage and the staging Deno
+integration test now includes the sequence
+`Nf3 Nf6 Ng1 Ng8 Nf3 Nf6 Ng1 Ng8` for threefold repetition.
+The Deno integration test has **not** run against a real Supabase staging
+project yet.
+
+**Do not** run SQL fixtures against production: they create dummy roles and
+tables. The workflow deliberately uses an isolated database container.
 
 ## Test instructions (staging only)
 
@@ -75,7 +100,8 @@ This branch is **not deployed**. Supabase remains the production backend and its
   production Supabase database or the Neon fallback.
 - The hosted `check-timeout` function was not listed as deployed at audit
   time; deploy it explicitly in staging before the timeout integration test.
-- Existing `process-game-result` has a separate legacy status protocol and
-  needs a compatibility review before production rollout.
+- Existing `process-game-result` has a separate legacy status and ELO protocol
+  and must be secured and made idempotent before release: see
+  [issue #63](https://github.com/magicolala/chess-simul/issues/63).
 - Historical `games` rows with non-zero `move_count` and empty `moves`
   cannot have their missing moves reconstructed reliably from FEN.

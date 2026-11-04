@@ -69,10 +69,11 @@ serve(async (req) => {
           fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', // Initial FEN
           turn: 'w',
           clocks: {
+            unit: 'ms',
             initialSeconds: player.time_control_initial * 60,
             incrementSeconds: player.time_control_increment,
-            white: player.time_control_initial * 60,
-            black: player.time_control_initial * 60
+            white: player.time_control_initial * 60 * 1000,
+            black: player.time_control_initial * 60 * 1000
           }
         });
 

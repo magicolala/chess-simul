@@ -1,208 +1,168 @@
 import { serve } from 'https://deno.land/std@0.210.0/http/server.ts';
-import { createSupabaseClient, createAdminClient } from '../_shared/supabase-client.ts';
 import { Chess } from 'npm:chess.js@1.0.0';
 import { corsHeaders } from '../_shared/cors.ts';
+import { createSupabaseClient, createAdminClient } from '../_shared/supabase-client.ts';
+import { afterMoveClock } from '../_shared/game-clock.ts';
+import { recoverVerifiedHistory, type StoredChessMove } from '../_shared/chess-history.ts';
 
-type SubmitMoveBody = {
-  game_id?: string;
-  uci?: string;
-};
+const respond = (status: number, body: Record<string, unknown>) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+
+const isUuid = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
+const isUci = (value: unknown): value is string =>
+  typeof value === 'string' && /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(value);
+
+type PersistResult = { ok: boolean; error?: string; ply?: number };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method !== 'POST') return respond(405, { error: 'method_not_allowed' });
 
   try {
-    const supabaseClient = createSupabaseClient(req);
-
-    const payload = (await req.json().catch(() => ({}))) as SubmitMoveBody;
-    const gameId = payload.game_id?.trim();
-    const rawUci = payload.uci?.trim();
-
-    if (!gameId || !rawUci) {
-      return respond(400, {
-        error: 'invalid_payload',
-        message: 'Both game_id and uci are required.'
-      });
+    const body = await req.json().catch(() => null);
+    const gameId = body?.game_id;
+    const uci = body?.uci;
+    if (!isUuid(gameId) || !isUci(uci)) {
+      return respond(400, { error: 'invalid_payload', message: 'Expected UUID game_id and UCI move.' });
     }
 
-    const {
-      data: { user },
-      error: authError
-    } = await supabaseClient.auth.getUser();
+    // Authentication is checked with the caller's JWT, never a client-supplied actor id.
+    const caller = createSupabaseClient(req);
+    const { data: { user }, error: authError } = await caller.auth.getUser();
+    if (authError || !user) return respond(401, { error: 'unauthorized' });
 
-    if (authError || !user) {
-      console.error('[SubmitMove] GetUser error:', authError);
-      return respond(401, {
-        error: 'unauthorized',
-        message: `Auth failed: ${authError?.message}. Header len: ${req.headers.get('Authorization')?.length}`
-      });
-    }
-
-    console.log('[SubmitMove] User authenticated:', user.id);
-
-    const { data: game, error: gameError } = await supabaseClient
+    const admin = createAdminClient();
+    const { data: game, error: loadError } = await admin
       .from('games')
       .select('id, fen, turn, white_id, black_id, status, move_count, clocks, updated_at, created_at')
       .eq('id', gameId)
       .single();
 
-    if (gameError || !game) {
-      return respond(404, {
-        error: 'game_not_found',
-        message: gameError?.message ?? 'Game not found.'
+    if (loadError || !game) return respond(404, { error: 'game_not_found' });
+    const actorColor = user.id === game.white_id ? 'w' : user.id === game.black_id ? 'b' : null;
+    if (!actorColor) return respond(403, { error: 'forbidden' });
+    if (game.status !== 'active') return respond(409, { error: 'game_over' });
+    if (game.turn !== actorColor) return respond(409, { error: 'not_your_turn' });
+
+    const updatedAt: string = game.updated_at || game.created_at;
+    const clock = afterMoveClock(game.clocks, actorColor, updatedAt, Date.now());
+
+    const finalizeTimeout = async () => {
+      const { data, error } = await admin.rpc('finalize_game_timeout', {
+        p_game_id: gameId,
+        p_actor_id: user.id,
+        p_expected_ply: game.move_count,
+        p_expected_updated_at: game.updated_at
       });
+      if (error) throw error;
+      return data as { ok: boolean; timeout?: boolean; error?: string };
+    };
+
+    if (clock.expired) {
+      const result = await finalizeTimeout();
+      return respond(409, { error: result.timeout ? 'clock_expired' : 'concurrent_update' });
     }
 
-    // Validate player
-    const userColor = user.id === game.white_id ? 'w' : user.id === game.black_id ? 'b' : null;
-    if (!userColor) {
-      return respond(403, { error: 'forbidden', message: 'You are not a player in this game.' });
+    let chess: Chess;
+    try {
+      // isThreefoldRepetition needs *prior* positions. New games store each
+      // move in public.moves; legacy games may lack history, so fall back
+      // safely to the current FEN rather than claiming a repetition.
+      let history: StoredChessMove[] = [];
+      if (game.move_count > 0 && game.move_count <= 2000) {
+        const { data: rows, error: historyError } = await admin
+          .from('moves')
+          .select('ply,uci')
+          .eq('game_id', gameId)
+          .order('ply', { ascending: true })
+          .limit(game.move_count);
+        if (historyError) {
+          console.warn('[submit-move] History unavailable; FEN-only validation:', historyError.code);
+        } else {
+          history = (rows ?? []) as StoredChessMove[];
+        }
+      }
+      chess = recoverVerifiedHistory(
+        game.fen,
+        game.move_count,
+        history,
+        () => new Chess(),
+        (fen) => new Chess(fen)
+      ).chess;
+    } catch {
+      return respond(409, { error: 'invalid_game_position' });
     }
 
-    if (game.status !== 'active') {
-      return respond(400, { error: 'game_over', message: 'Game is not active.' });
-    }
-
-    if (game.turn !== userColor) {
-      return respond(400, { error: 'not_your_turn', message: 'It is not your turn.' });
-    }
-
-    const chess = new Chess(game.fen);
-    
-    // Attempt move
     let move;
     try {
-      // Support UCI format like "e2e4" or "a7a8q"
       move = chess.move({
-        from: rawUci.slice(0, 2),
-        to: rawUci.slice(2, 4),
-        promotion: rawUci.length > 4 ? rawUci[4] : undefined
+        from: uci.slice(0, 2),
+        to: uci.slice(2, 4),
+        promotion: uci.length === 5 ? uci[4] : undefined
       });
-    } catch (e) {
-      // Fallback: try raw string (could be SAN in some clients, but we expect UCI)
-      try {
-        move = chess.move(rawUci);
-      } catch (e2) {
-        move = null;
-      }
+    } catch {
+      return respond(400, { error: 'invalid_move' });
     }
 
-    if (!move) {
-      return respond(400, { error: 'invalid_move', message: `Invalid move: ${rawUci}` });
-    }
-
-    const newFen = chess.fen();
-    const nextTurn = chess.turn(); // 'w' or 'b'
-    const normalizedUci = move.lan; // e2e4
-    const nextPly = game.move_count + 1; // Increment ply (half-move)
+    if (!move) return respond(400, { error: 'invalid_move' });
     const isCheckmate = chess.isCheckmate();
-    const isDraw = chess.isDraw();
+    const isDraw = !isCheckmate && chess.isDraw();
+    const nextStatus = isCheckmate ? 'checkmate' : isDraw ? 'draw' : 'active';
 
-    if (isDraw) {
-        // Handle draw status update if needed, for now we let it remain active or handle separate endpoint
-        // But let's checkmate specifically
+    // One PostgreSQL transaction locks the game, verifies the expected state,
+    // advances the game AND writes the move (or rolls everything back).
+    const { data, error } = await admin.rpc('persist_validated_move', {
+      p_game_id: gameId,
+      p_actor_id: user.id,
+      p_expected_ply: game.move_count,
+      p_expected_fen: game.fen,
+      p_expected_updated_at: game.updated_at,
+      p_uci: move.lan,
+      p_san: move.san,
+      p_next_fen: chess.fen(),
+      p_next_turn: chess.turn(),
+      p_next_status: nextStatus,
+      p_winner_id: isCheckmate ? user.id : null
+    });
+
+    if (error) {
+      console.error('[submit-move] RPC failed:', error.code, error.message);
+      return respond(500, { error: 'move_persistence_failed' });
     }
 
-    // TIME LOGIC
-    const now = new Date().toISOString();
-    const lastUpdate = new Date(game.updated_at || game.created_at).getTime();
-    const elapsed = Date.now() - lastUpdate;
-    const currentMoveCount = game.move_count; // Define currentMoveCount
-    
-    let newClocks = game.clocks as { white: number; black: number } | null;
-    
-    if (newClocks && typeof newClocks === 'object') {
-       // Deduct time from the player who JUST moved (game.turn is the one who was "to move").
-       // game.turn is the side whose turn it WAS. (e.g. 'w').
-       // So we deduct time from 'w' (if white just moved).
-       const color = game.turn === 'w' ? 'white' : 'black';
-       const currentClock = newClocks[color];
-       
-       newClocks = {
-         ...newClocks,
-         [color]: Math.max(0, currentClock - elapsed)
-       };
-    } else {
-      // Initialize if missing (fallback)
-      newClocks = { white: 600_000, black: 600_000 };
-    }
-
-    // Check for timeout
-    let gameStatus = isCheckmate ? 'checkmate' : 'active';
-    let winnerId: string | null = null;
-    
-    if (newClocks && typeof newClocks === 'object') {
-      // The player who just moved is game.turn (the previous turn)
-      const playerColor = game.turn === 'w' ? 'white' : 'black';
-      
-      if (newClocks[playerColor] <= 0) {
-        // Player ran out of time during their turn
-        gameStatus = playerColor === 'white' ? 'black_won' : 'white_won';
-        winnerId = playerColor === 'white' ? game.black_id : game.white_id;
-        console.log(`[SubmitMove] Timeout detected for ${playerColor}. Winner: ${winnerId}`);
+    const result = data as PersistResult;
+    if (!result?.ok) {
+      if (result?.error === 'clock_expired') {
+        const timeout = await finalizeTimeout();
+        return respond(409, {
+          error: timeout.timeout ? 'clock_expired' : 'concurrent_update'
+        });
       }
-    }
-    
-    // If checkmate, set the winner
-    if (isCheckmate && !winnerId) {
-      // The player who was checkmated is the one whose turn it NOW is (nextTurn)
-      winnerId = nextTurn === 'w' ? game.black_id : game.white_id;
-    }
-
-    const adminClient = createAdminClient();
-
-    console.log(`[SubmitMove] Attempting update for gameId: ${gameId}, move_count (DB read): ${currentMoveCount}, nextPly: ${nextPly}`);
-
-    const { data: updatedGame, error: updateError } = await adminClient
-      .from('games')
-      .update({
-        fen: newFen,
-        turn: nextTurn,
-        last_move_uci: normalizedUci,
-        move_count: nextPly,
-        updated_at: now,
-        clocks: newClocks,
-        status: gameStatus,
-        winner_id: winnerId
-      })
-      .eq('id', gameId)
-      // .eq('move_count', currentMoveCount) // Temporarily disabled to unblock updates
-      .select('id')
-      .maybeSingle();
-
-    if (updateError) {
-      return respond(500, { error: 'game_update_failed', message: updateError.message });
-    }
-
-    if (!updatedGame) {
-      return respond(409, {
-        error: 'concurrent_update',
-        message: 'Game changed before the update was applied.'
-      });
+      const code = result?.error ?? 'move_rejected';
+      const status = code === 'game_not_found' ? 404
+        : code === 'forbidden' ? 403
+        : code === 'invalid_transition' ? 400 : 409;
+      return respond(status, { error: code });
     }
 
     return respond(200, {
       success: true,
-      fen: newFen,
-      turn: nextTurn,
-      ply: nextPly,
+      fen: chess.fen(),
+      turn: chess.turn(),
+      ply: result.ply,
       san: move.san,
-      isCheckmate
+      status: nextStatus,
+      isCheckmate,
+      isDraw
     });
   } catch (error) {
-    console.error('submit-move unexpected error', error);
-    return respond(500, {
-      error: 'unexpected_error',
-      message: (error as Error)?.message ?? 'Unexpected error'
-    });
+    console.error('[submit-move] Unexpected error:', error);
+    return respond(500, { error: 'unexpected_error' });
   }
 });
-
-function respond(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  });
-}

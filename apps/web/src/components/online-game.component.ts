@@ -202,10 +202,11 @@ export class OnlineGameComponent implements OnDestroy {
   // Clocks
   myTime = computed(() => {
     const g = this.game();
-    const clocks = g?.clocks as { white: number; black: number } | undefined;
+    const clocks = g?.clocks as { white: number; black: number; unit?: string; initialSeconds?: number } | undefined;
     if (!clocks) return 0;
     
-    const baseTime = this.isMeWhite() ? clocks.white : clocks.black;
+    const legacySeconds = clocks.unit === 's' || (!clocks.unit && clocks.initialSeconds !== undefined);
+    const baseTime = (this.isMeWhite() ? clocks.white : clocks.black) * (legacySeconds ? 1000 : 1);
     if (this.isMyTurn() && g?.status === 'active' && g.updated_at) {
         // If my turn, subtract elapsed time
         const elapsed = this.now() - new Date(g.updated_at).getTime();
@@ -216,10 +217,11 @@ export class OnlineGameComponent implements OnDestroy {
 
   opponentTime = computed(() => {
     const g = this.game();
-    const clocks = g?.clocks as { white: number; black: number } | undefined;
+    const clocks = g?.clocks as { white: number; black: number; unit?: string; initialSeconds?: number } | undefined;
     if (!clocks) return 0;
     
-    const baseTime = this.isMeWhite() ? clocks.black : clocks.white;
+    const legacySeconds = clocks.unit === 's' || (!clocks.unit && clocks.initialSeconds !== undefined);
+    const baseTime = (this.isMeWhite() ? clocks.black : clocks.white) * (legacySeconds ? 1000 : 1);
     if (this.isOpponentTurn() && g?.status === 'active' && g.updated_at) {
          const elapsed = this.now() - new Date(g.updated_at).getTime();
          return Math.max(0, baseTime - elapsed);

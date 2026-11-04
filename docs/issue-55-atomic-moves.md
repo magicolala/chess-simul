@@ -11,10 +11,11 @@ project currently exists for Chess Simul.
   staging project via Supabase. Both service-only RPCs are present; the
   `timeout` constraint is active. EXECUTE checks: `anon=false`,
   `authenticated=false`, `service_role=true` for both RPCs.
-- Edge Functions deployed to staging: `submit-move` **v11** (previous v10)
-  and the new `check-timeout` **v1**. Both perform their own user JWT
-  verification because the prior function had `verify_jwt=false`; enable
-  gateway JWT verification in a separate reviewed security step.
+- Edge Functions deployed to staging: `submit-move` **v12** (previous v10)
+  and the new `check-timeout` **v2**. Both have **gateway JWT verification
+  enabled** (`verify_jwt=true`) in `supabase/config.toml` and verify the
+  authenticated caller in the handler. Actual authorized HTTP calls still
+  require two-user staging tests.
 - Live PostgreSQL smoke successfully tested a legal move, stale replay
   rejection, clock expiry and timeout winner. All created test rows were
   rolled back automatically in a nested SQL transaction.
@@ -70,6 +71,11 @@ fall. **All assertions passed** in GitHub Actions after correcting the SQL
 parser error revealed by the first run. This verifies a disposable schema,
 not live Supabase Auth / RLS / Realtime behaviour.
 
+A rollback-only SQL smoke test is versioned as
+`supabase/tests/sql/atomic_move_staging_rollback.sql`. It was run against
+the approved staging project with successful results. Its temporary games
+and moves are rolled back in a nested PostgreSQL subtransaction.
+
 The shared-history helper also has Vitest coverage and the staging Deno
 integration test now includes the sequence
 `Nf3 Nf6 Ng1 Ng8 Nf3 Nf6 Ng1 Ng8` for threefold repetition.
@@ -112,7 +118,7 @@ tables. The workflow deliberately uses an isolated database container.
 2. **Done:** Apply `20261104161355_atomic_move_submission.sql` on staging,
    matching the actual version in `supabase_migrations.schema_migrations`.
    Validate RPC grants and the existing trigger.
-3. **Partly done:** `submit-move` v11 and `check-timeout` v1 are deployed.
+3. **Partly done:** `submit-move` v12 and `check-timeout` v2 are deployed.
    `resign-game`, `join-queue` and `accept-invite` have NOT yet been
    updated to this PR's source on staging; `process-hydra-queue` is not
    among the currently deployed functions.

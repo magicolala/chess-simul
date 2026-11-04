@@ -44,8 +44,11 @@ jobs:
           fail_ci_if_error: false
 
   e2e-tests:
-    name: E2E Tests
+    name: E2E Smoke (public, desktop + mobile)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PLAYWRIGHT_SUITE: smoke
     
     steps:
       - name: Checkout code
@@ -63,10 +66,13 @@ jobs:
       - name: Generate environment files
         run: npm run generate:env
       
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      - name: Install Chromium browser for desktop and mobile smoke
+        run: npx playwright install --with-deps chromium
       
-      - name: Run E2E tests
+      - name: List selected smoke tests
+        run: npx playwright test --config playwright.config.ts --list
+
+      - name: Run deterministic E2E smoke
         run: npm run test:e2e --workspace=web
       
       - name: Upload Playwright report

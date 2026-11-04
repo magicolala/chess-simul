@@ -5,14 +5,21 @@ import { defineConfig, devices } from '@playwright/test';
  * a dedicated Supabase staging backend and must be explicitly requested
  * with PLAYWRIGHT_SUITE=full. No tests are deleted or silently marked passing.
  */
-const fullSuite = process.env.PLAYWRIGHT_SUITE === 'full';
+const suite = process.env.PLAYWRIGHT_SUITE ?? 'smoke';
+if (!['smoke', 'staging', 'full'].includes(suite)) {
+  throw new Error(`Unknown PLAYWRIGHT_SUITE: ${suite}`);
+}
+const fullSuite = suite === 'full';
+const stagingSuite = suite === 'staging';
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: fullSuite ? '**/*.spec.ts' : '**/*.smoke.spec.ts',
-  timeout: fullSuite ? 60_000 : 25_000,
-  globalTimeout: fullSuite ? 45 * 60_000 : 8 * 60_000,
+  testMatch: fullSuite
+    ? '**/*.spec.ts'
+    : stagingSuite ? '**/*.staging.spec.ts' : '**/*.smoke.spec.ts',
+  timeout: fullSuite ? 60_000 : stagingSuite ? 45_000 : 25_000,
+  globalTimeout: fullSuite ? 45 * 60_000 : stagingSuite ? 12 * 60_000 : 8 * 60_000,
   expect: {
     timeout: 5_000,
     toHaveScreenshot: {

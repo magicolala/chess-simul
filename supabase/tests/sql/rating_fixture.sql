@@ -3,7 +3,8 @@
 -- authenticated privileges so our migration catches the self-Elo exploit.
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
-CREATE ROLE service_role NOLOGIN;
+-- Supabase service_role has BYPASSRLS; the local fixture must mirror that.
+CREATE ROLE service_role NOLOGIN BYPASSRLS;
 GRANT USAGE ON SCHEMA public TO service_role, anon, authenticated;
 
 CREATE TABLE public.profiles (

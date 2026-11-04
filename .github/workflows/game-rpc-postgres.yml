@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/game-rpc-postgres.yml'
-      - 'supabase/migrations/20261104000000_atomic_move_submission.sql'
+      - 'supabase/migrations/20261104161355_atomic_move_submission.sql'
       - 'supabase/tests/sql/**'
   workflow_dispatch:
 
@@ -53,7 +53,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/sql/atomic_move_fixture.sql
 
       - name: Apply proposed migration on disposable PostgreSQL only
-        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261104000000_atomic_move_submission.sql
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261104161355_atomic_move_submission.sql
 
       - name: Assert privileges, atomic writes, stale replays and timeouts
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/sql/atomic_move_assertions.sql

@@ -37,8 +37,11 @@ This branch is **not deployed**. Supabase remains the production backend and its
 2. Confirm `get_advisors`, RLS policies and API execution grants. Anonymous and
    authenticated users **must not** have EXECUTE on the two new RPCs;
    `service_role` needs EXECUTE. Do not expose service role secrets to Angular.
-3. Run the stateless clock helper suite:
-   `deno test --allow-net supabase/tests/game_clock_test.ts`
+3. Run the stateless clock helper suite through the existing Vitest workspace:
+   `npm run test:unit -w web -- --run src/services/game-clock.spec.ts`.
+   A Deno helper test also exists in `supabase/tests/game_clock_test.ts` for
+   staging Deno setups; the default CI uses Vitest to avoid loading Angular's
+   CSS entry point as a Deno module.
 4. Set `SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY`, and
    `SUPABASE_TEST_SERVICE_ROLE_KEY` only in the test environment, then run:
    `deno test --allow-net --allow-env supabase/tests/integration/moves.test.ts`.

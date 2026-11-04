@@ -34,10 +34,11 @@ export async function createTestGame(
     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
     move_count: 0,
     clocks: {
+      unit: 'ms',
       initialSeconds: 300,
       incrementSeconds: 0,
-      white: 300,
-      black: 300
+      white: 300_000,
+      black: 300_000
     },
     ...overrides
   };

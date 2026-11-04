@@ -81,6 +81,32 @@ tests actually pass. The legacy `full`
 suite continues to need migration and validation, including local play,
 round-robin, Hydra, Stockfish and accessibility.
 
+### GitHub Actions — lancement manuel (après fusion de la PR)
+
+Le fichier `.github/workflows/staging-auth-e2e.yml` prépare une exécution
+**volontairement manuelle** : ni un `push` ni une PR ne créent de comptes
+Supabase. Le workflow doit d'abord être présent sur la branche par défaut
+pour apparaître dans l'interface GitHub Actions.
+
+Dans **Settings > Secrets and variables > Actions**, enregistrer dans des
+**secrets chiffrés du dépôt**, jamais dans le code, ces deux valeurs :
+
+- `CHESS_SIMUL_STAGING_ANON_KEY` : clé publique/anon de l'instance staging ;
+- `CHESS_SIMUL_STAGING_SERVICE_ROLE_KEY` : clé service-role **privée**,
+  réservée au job Node.js (jamais visible par Angular).
+
+Puis, dans **Actions > Chess Simul — Staging Auth E2E > Run workflow**,
+sélectionner explicitement `APPROVE_STAGING_TEST_USERS`. La valeur par défaut
+est `DO_NOT_RUN`. Le job teste uniquement l'instance
+`kjgcgnqeyxzivilkiruz`, sous Chromium, avec deux comptes temporaires par
+scénario et un nettoyage en `finally`.
+
+Le workflow échoue sans ces secrets. En cas d'interruption brutale de la CI,
+vérifier manuellement la présence d'éventuels comptes dont l'adresse commence
+par `chess-simul-staging-` ; ne jamais supprimer des comptes plus anciens
+sans une vérification explicite. Les résultats et les traces de débogage
+ne doivent jamais contenir la clé `service_role`.
+
 ## Full E2E suite — manual with a dedicated staging backend
 
 These test files remain in the repository; they are not skipped, deleted or

@@ -45,17 +45,18 @@ browser bundle. Both users are deleted in a `finally` cleanup step.
 The tests verify the actual /login → /settings flow, guarded /dashboard,
 session persistence and isolation between separate browser contexts.
 
-**Do not run until a separate staging project exists.** The connected
-production project `kjgcgnqeyxzivilkiruz` is explicitly refused by the
-fixture; do not remove this guard.
+The existing Supabase project `kjgcgnqeyxzivilkiruz` has been confirmed by the
+owner as **staging only**, with old test data and no active users. The fixture
+explicitly allowlists **only this exact project ref** and refuses any other
+Supabase project. Never assume another project's safety without review.
 
 Required environment variables, set in a trusted terminal or encrypted CI
 secrets (never commit the keys):
 
 - `PLAYWRIGHT_SUITE=staging`
 - `PLAYWRIGHT_STAGING_CONFIRM=I_ACCEPT_TEST_DATA_CHANGES`
-- `PLAYWRIGHT_TEST_SUPABASE_URL`: a non-production `https://<ref>.supabase.co`.
-- `PLAYWRIGHT_TEST_SUPABASE_REF`: exact 20-character ref matching the URL.
+- `PLAYWRIGHT_TEST_SUPABASE_URL`: `https://kjgcgnqeyxzivilkiruz.supabase.co`.
+- `PLAYWRIGHT_TEST_SUPABASE_REF`: `kjgcgnqeyxzivilkiruz`, matching the URL.
 - `PLAYWRIGHT_TEST_SERVICE_ROLE_KEY`: staging **secret**, used only by
   Playwright's Node process. Never expose it in `environment.ts`, a build,
   browser page, public GitHub output or screenshot.
@@ -64,18 +65,19 @@ secrets (never commit the keys):
   `SUPABASE_ANON_KEY` / `SUPABASE_ANON_KEY_DEV` must both point to the
   test project's publishable/anon key.
 
-To use a dedicated deployed staging frontend, provide
-`PLAYWRIGHT_BASE_URL` and verify **independently** that its compiled
-Supabase project ref is also staging. The test fixture cannot inspect
-the backend of an arbitrary deployed frontend automatically.
+A deployed frontend is **not supported** for this suite yet: the fixture
+requires local Angular with `SUPABASE_URL` and `SUPABASE_URL_DEV` both equal
+to the approved staging URL. This prevents tests from accidentally contacting
+a frontend compiled against a different Supabase instance.
 
 Without these explicit settings, `PLAYWRIGHT_SUITE=staging` **fails
 closed** instead of silently running against production.
 The default `smoke` suite never provisions accounts.
 `--list` discovery is safe and performs no account creation.
 
-The staging Auth tests are scaffolding until a dedicated staging project
-is configured and integration tests actually pass. The legacy `full`
+The staging Auth tests are scaffolding until the approved staging URL and
+keys are configured **in the local test environment** and the integration
+tests actually pass. The legacy `full`
 suite continues to need migration and validation, including local play,
 round-robin, Hydra, Stockfish and accessibility.
 

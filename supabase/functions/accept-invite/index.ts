@@ -99,7 +99,7 @@ serve(async (req) => {
     // than awarding points from a potentially untrusted origin.
     const { error: ratingAuthorizationError } = await adminClient
       .from('rated_game_authorizations')
-      .insert({ game_id: createdGame.id, source: 'accepted_invite' });
+      .insert({ game_id: createdGame.id, source: 'accepted_invite', source_invite_id: invite.id });
     if (ratingAuthorizationError) {
       console.error('[accept-invite] Game remains unrated:', ratingAuthorizationError.code);
     }

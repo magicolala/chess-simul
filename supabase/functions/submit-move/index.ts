@@ -103,7 +103,6 @@ serve(async (req) => {
       p_san: move.san,
       p_next_fen: chess.fen(),
       p_next_turn: chess.turn(),
-      p_next_clocks: clock.clocks,
       p_next_status: nextStatus,
       p_winner_id: isCheckmate ? user.id : null
     });

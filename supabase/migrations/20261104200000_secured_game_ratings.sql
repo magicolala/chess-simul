@@ -178,3 +178,43 @@ REVOKE ALL ON FUNCTION public.apply_completed_game_rating(uuid)
   FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.apply_completed_game_rating(uuid)
   TO service_role;
+
+-- Only service-role (or the DB owner) may transition the status of a game
+-- under the current RLS policy. A trusted terminal transition is the right
+-- place to settle authorized Elo, in the SAME transaction as game completion.
+-- Never call an Edge Function from a trigger or trust a result in a request.
+CREATE OR REPLACE FUNCTION public.settle_rating_after_game_finish()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public, pg_temp
+AS $trigger$
+BEGIN
+  IF NEW.status IN ('checkmate', 'draw', 'resigned', 'timeout')
+      AND (
+        OLD.status IS DISTINCT FROM NEW.status
+        OR OLD.winner_id IS DISTINCT FROM NEW.winner_id
+      ) THEN
+    PERFORM public.apply_completed_game_rating(NEW.id);
+  END IF;
+  RETURN NEW;
+END;
+$trigger$;
+
+REVOKE ALL ON FUNCTION public.settle_rating_after_game_finish()
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.settle_rating_after_game_finish()
+  TO service_role;
+
+DROP TRIGGER IF EXISTS trg_settle_rating_after_game_finish ON public.games;
+CREATE TRIGGER trg_settle_rating_after_game_finish
+  AFTER UPDATE OF status, winner_id ON public.games
+  FOR EACH ROW
+  WHEN (
+    NEW.status IN ('checkmate', 'draw', 'resigned', 'timeout')
+    AND (
+      OLD.status IS DISTINCT FROM NEW.status
+      OR OLD.winner_id IS DISTINCT FROM NEW.winner_id
+    )
+  )
+  EXECUTE FUNCTION public.settle_rating_after_game_finish();

@@ -40,9 +40,11 @@ DECLARE
   invalid_game uuid := 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
   hydra_game uuid := 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   duplicate_game uuid := 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+  auto_game uuid := '99999999-9999-4999-8999-999999999999';
   invite_win uuid := 'abababab-abab-4aba-8aba-abababababab';
   invite_draw uuid := 'bcbcbcbc-bcbc-4bcb-8bcb-bcbcbcbcbcbc';
   invite_invalid uuid := 'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd';
+  invite_auto uuid := 'dededede-dede-4ded-8ded-dededededede';
   result jsonb;
   w_elo integer;
   b_elo integer;
@@ -55,7 +57,8 @@ BEGIN
   INSERT INTO public.invites(id,from_user,to_user,status) VALUES
     (invite_win,white_id,black_id,'accepted'),
     (invite_draw,white_id,black_id,'accepted'),
-    (invite_invalid,white_id,black_id,'accepted');
+    (invite_invalid,white_id,black_id,'accepted'),
+    (invite_auto,white_id,black_id,'accepted');
 
   -- The database contains historical completed games: never re-rate them.
   INSERT INTO public.games(id,white_id,black_id,status,winner_id)
@@ -147,6 +150,38 @@ BEGIN
 
   SELECT count(*) INTO count_events FROM public.game_rating_events;
   IF count_events <> 2 THEN
+    RAISE EXCEPTION 'Unexpected rating ledger size before auto settlement: %',count_events;
+  END IF;
+
+  -- A legitimately created game is initially active and rated-authorized.
+  -- Its normal terminal UPDATE must automatically settle Elo, without an
+  -- additional HTTP request or a client-provided result.
+  INSERT INTO public.games(id,white_id,black_id,status,winner_id)
+  VALUES(auto_game,white_id,black_id,'active',NULL);
+  INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
+  VALUES(auto_game,'accepted_invite',invite_auto);
+  UPDATE public.games SET status='checkmate',winner_id=white_id WHERE id=auto_game;
+
+  SELECT count(*) INTO count_events FROM public.game_rating_events
+    WHERE game_id=auto_game AND winner_id=white_id;
+  IF count_events <> 1 THEN
+    RAISE EXCEPTION 'Automatic Elo settlement on game finish did not happen';
+  END IF;
+
+  -- A later status retry cannot grant Elo again.
+  UPDATE public.games SET status='checkmate' WHERE id=auto_game;
+  SELECT count(*) INTO count_events FROM public.game_rating_events
+    WHERE game_id=auto_game;
+  IF count_events <> 1 THEN
+    RAISE EXCEPTION 'Repeated terminal UPDATE created a second rating event';
+  END IF;
+  SELECT public.apply_completed_game_rating(auto_game) INTO result;
+  IF result->>'already_processed' IS DISTINCT FROM 'true' THEN
+    RAISE EXCEPTION 'Manual retry after automatic settlement was not idempotent';
+  END IF;
+
+  SELECT count(*) INTO count_events FROM public.game_rating_events;
+  IF count_events <> 3 THEN
     RAISE EXCEPTION 'Unexpected rating ledger size: %',count_events;
   END IF;
 END;

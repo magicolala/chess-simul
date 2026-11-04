@@ -93,9 +93,23 @@ serve(async (req) => {
       throw gameError;
     }
 
+    // Only this authenticated, recipient-verified SERVER path may
+    // authorize a game for rating. Client-created games are never rated.
+    // If authorization fails, the game stays playable but UNRATED rather
+    // than awarding points from a potentially untrusted origin.
+    const { error: ratingAuthorizationError } = await adminClient
+      .from('rated_game_authorizations')
+      .insert({ game_id: createdGame.id, source: 'accepted_invite' });
+    if (ratingAuthorizationError) {
+      console.error('[accept-invite] Game remains unrated:', ratingAuthorizationError.code);
+    }
+
     await adminClient.from('match_queue').delete().in('user_id', [invite.from_user, invite.to_user]);
 
-    return new Response(JSON.stringify({ game: createdGame }), {
+    return new Response(JSON.stringify({
+      game: createdGame,
+      rated: !ratingAuthorizationError
+    }), {
       headers: corsHeaders
     });
   } catch (error) {

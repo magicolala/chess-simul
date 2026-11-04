@@ -64,10 +64,11 @@ serve(async (req) => {
     const parsed = parseTimeControl(invite.time_control);
     const clocks = parsed
       ? {
-          initialSeconds: parsed.initialSeconds,
+          unit: 'ms',
+            initialSeconds: parsed.initialSeconds,
           incrementSeconds: parsed.incrementSeconds,
-          white: parsed.initialSeconds,
-          black: parsed.initialSeconds
+          white: parsed.initialSeconds * 1000,
+          black: parsed.initialSeconds * 1000
         }
       : null;
 

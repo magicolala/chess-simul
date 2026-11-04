@@ -18,7 +18,6 @@ CREATE OR REPLACE FUNCTION public.persist_validated_move(
   p_san text,
   p_next_fen text,
   p_next_turn text,
-  p_next_clocks jsonb,
   p_next_status text,
   p_winner_id uuid
 )
@@ -32,6 +31,10 @@ DECLARE
   v_actor_color text;
   v_clock_color text;
   v_factor numeric;
+  v_elapsed_ms numeric;
+  v_remaining_ms numeric;
+  v_increment_ms numeric;
+  v_clocks jsonb;
 BEGIN
   SELECT * INTO v_game FROM public.games WHERE id = p_game_id FOR UPDATE;
   IF NOT FOUND THEN
@@ -60,28 +63,39 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error', 'concurrent_update');
   END IF;
 
-  -- Trust server time, not a client-computed timeout. Edge requests made just
-  -- before flag fall must not be accepted after the server-side deadline.
+  -- Use database time and calculate the updated clock while holding the
+  -- game row lock. Edge/user-supplied clock values are never persisted.
   IF v_game.clocks IS NOT NULL THEN
     v_clock_color := CASE WHEN v_game.turn = 'w' THEN 'white' ELSE 'black' END;
     v_factor := CASE
       WHEN v_game.clocks->>'unit' = 'ms' OR NOT (v_game.clocks ? 'initialSeconds') THEN 1
       ELSE 1000
     END;
-    IF (v_game.clocks->>v_clock_color)::numeric * v_factor <=
-        greatest(0, extract(epoch FROM (clock_timestamp() - v_game.updated_at)) * 1000) THEN
+    v_elapsed_ms := greatest(0, extract(epoch FROM (clock_timestamp() - v_game.updated_at)) * 1000);
+    v_remaining_ms := (v_game.clocks->>v_clock_color)::numeric * v_factor - v_elapsed_ms;
+    IF v_remaining_ms <= 0 THEN
       RETURN jsonb_build_object('ok', false, 'error', 'clock_expired');
     END IF;
+    v_increment_ms := greatest(0, coalesce((v_game.clocks->>'incrementSeconds')::numeric, 0) * 1000);
+    v_clocks := v_game.clocks || jsonb_build_object(
+      'unit', 'ms',
+      'white', CASE WHEN v_clock_color = 'white'
+        THEN round(v_remaining_ms + v_increment_ms)::bigint
+        ELSE round((v_game.clocks->>'white')::numeric * v_factor)::bigint END,
+      'black', CASE WHEN v_clock_color = 'black'
+        THEN round(v_remaining_ms + v_increment_ms)::bigint
+        ELSE round((v_game.clocks->>'black')::numeric * v_factor)::bigint END
+    );
+  ELSE
+    v_clocks := NULL;
   END IF;
 
   IF p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?$'
       OR p_next_fen IS NULL OR length(p_next_fen) = 0
       OR p_next_turn IS DISTINCT FROM CASE WHEN v_game.turn = 'w' THEN 'b' ELSE 'w' END
-      OR p_next_status NOT IN ('active', 'checkmate', 'draw')
+      OR p_next_status IS NULL OR p_next_status NOT IN ('active', 'checkmate', 'draw')
       OR (p_next_status = 'checkmate' AND p_winner_id IS DISTINCT FROM p_actor_id)
-      OR (p_next_status <> 'checkmate' AND p_winner_id IS NOT NULL)
-      OR ((v_game.clocks IS NULL) <> (p_next_clocks IS NULL))
-      OR (p_next_clocks IS NOT NULL AND p_next_clocks->>'unit' IS DISTINCT FROM 'ms') THEN
+      OR (p_next_status <> 'checkmate' AND p_winner_id IS NOT NULL) THEN
     RETURN jsonb_build_object('ok', false, 'error', 'invalid_transition');
   END IF;
 
@@ -90,7 +104,7 @@ BEGIN
     turn = p_next_turn,
     last_move_uci = p_uci,
     move_count = p_expected_ply + 1,
-    clocks = p_next_clocks,
+    clocks = v_clocks,
     status = p_next_status,
     winner_id = p_winner_id,
     updated_at = clock_timestamp()
@@ -106,7 +120,7 @@ END;
 $function$;
 
 REVOKE ALL ON FUNCTION public.persist_validated_move(
-  uuid, uuid, integer, text, timestamptz, text, text, text, text, jsonb, text, uuid
+  uuid, uuid, integer, text, timestamptz, text, text, text, text, text, uuid
 ) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.persist_validated_move(
   uuid, uuid, integer, text, timestamptz, text, text, text, text, jsonb, text, uuid

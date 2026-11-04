@@ -58,10 +58,11 @@ serve(async (req) => {
       const parsed = parseTimeControl(timeControl);
       const clocks = parsed
         ? {
+            unit: 'ms',
             initialSeconds: parsed.initialSeconds,
             incrementSeconds: parsed.incrementSeconds,
-            white: parsed.initialSeconds,
-            black: parsed.initialSeconds
+            white: parsed.initialSeconds * 1000,
+            black: parsed.initialSeconds * 1000
           }
         : null;
 

@@ -30,6 +30,55 @@ Failure artifacts (HTML report, test-results, traces, screenshots) are uploaded.
 `npx playwright test --config playwright.config.ts --list` displays exactly
 which tests CI will run.
 
+## Authenticated staging suite (issue #62)
+
+A separate, opt-in Playwright suite runs **real** sign-in flows against an
+independent Supabase test project:
+
+```sh
+PLAYWRIGHT_SUITE=staging npm run test:e2e --workspace=web
+```
+
+It uses `e2e/auth.staging.spec.ts` with two accounts provisioned through
+`auth.admin.createUser` **only in Node test fixtures**, not inside the
+browser bundle. Both users are deleted in a `finally` cleanup step.
+The tests verify the actual /login → /settings flow, guarded /dashboard,
+session persistence and isolation between separate browser contexts.
+
+**Do not run until a separate staging project exists.** The connected
+production project `kjgcgnqeyxzivilkiruz` is explicitly refused by the
+fixture; do not remove this guard.
+
+Required environment variables, set in a trusted terminal or encrypted CI
+secrets (never commit the keys):
+
+- `PLAYWRIGHT_SUITE=staging`
+- `PLAYWRIGHT_STAGING_CONFIRM=I_ACCEPT_TEST_DATA_CHANGES`
+- `PLAYWRIGHT_TEST_SUPABASE_URL`: a non-production `https://<ref>.supabase.co`.
+- `PLAYWRIGHT_TEST_SUPABASE_REF`: exact 20-character ref matching the URL.
+- `PLAYWRIGHT_TEST_SERVICE_ROLE_KEY`: staging **secret**, used only by
+  Playwright's Node process. Never expose it in `environment.ts`, a build,
+  browser page, public GitHub output or screenshot.
+- When Angular is started locally by Playwright, `SUPABASE_URL` and
+  `SUPABASE_URL_DEV` must both equal the test URL and the corresponding
+  `SUPABASE_ANON_KEY` / `SUPABASE_ANON_KEY_DEV` must both point to the
+  test project's publishable/anon key.
+
+To use a dedicated deployed staging frontend, provide
+`PLAYWRIGHT_BASE_URL` and verify **independently** that its compiled
+Supabase project ref is also staging. The test fixture cannot inspect
+the backend of an arbitrary deployed frontend automatically.
+
+Without these explicit settings, `PLAYWRIGHT_SUITE=staging` **fails
+closed** instead of silently running against production.
+The default `smoke` suite never provisions accounts.
+`--list` discovery is safe and performs no account creation.
+
+The staging Auth tests are scaffolding until a dedicated staging project
+is configured and integration tests actually pass. The legacy `full`
+suite continues to need migration and validation, including local play,
+round-robin, Hydra, Stockfish and accessibility.
+
 ## Full E2E suite — manual with a dedicated staging backend
 
 These test files remain in the repository; they are not skipped, deleted or

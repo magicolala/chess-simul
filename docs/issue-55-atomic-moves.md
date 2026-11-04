@@ -81,7 +81,7 @@ tables. The workflow deliberately uses an isolated database container.
 ## Deployment sequence, after validation
 
 1. Back up and record current schema and Edge Function versions.
-2. Apply `20261104000000_atomic_move_submission.sql` to *staging* first.
+2. Apply `20261104161355_atomic_move_submission.sql` to *staging* first.
    This expands the `games.status` check constraint to include `timeout`,
    creates two RPCs, and revokes their EXECUTE from `PUBLIC`/`anon`/
    `authenticated`. Check the PostgREST schema cache.

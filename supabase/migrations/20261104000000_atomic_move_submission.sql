@@ -29,6 +29,7 @@ AS $function$
 DECLARE
   v_game public.games%ROWTYPE;
   v_actor_color text;
+  v_expected_next_turn text;
   v_clock_color text;
   v_factor numeric;
   v_elapsed_ms numeric;
@@ -55,6 +56,7 @@ BEGIN
   IF v_game.turn <> v_actor_color THEN
     RETURN jsonb_build_object('ok', false, 'error', 'not_your_turn');
   END IF;
+  v_expected_next_turn := CASE WHEN v_game.turn = 'w' THEN 'b' ELSE 'w' END;
 
   -- A resignation or timeout can modify updated_at without advancing the ply.
   IF v_game.move_count IS DISTINCT FROM p_expected_ply
@@ -92,7 +94,7 @@ BEGIN
 
   IF p_uci IS NULL OR p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?$'
       OR p_next_fen IS NULL OR length(p_next_fen) = 0
-      OR p_next_turn IS DISTINCT FROM CASE WHEN v_game.turn = 'w' THEN 'b' ELSE 'w' END
+      OR p_next_turn IS DISTINCT FROM v_expected_next_turn
       OR p_next_status IS NULL OR p_next_status NOT IN ('active', 'checkmate', 'draw')
       OR (p_next_status = 'checkmate' AND p_winner_id IS DISTINCT FROM p_actor_id)
       OR (p_next_status <> 'checkmate' AND p_winner_id IS NOT NULL) THEN

@@ -30,6 +30,8 @@ AS $function$
 DECLARE
   v_game public.games%ROWTYPE;
   v_actor_color text;
+  v_clock_color text;
+  v_factor numeric;
 BEGIN
   SELECT * INTO v_game FROM public.games WHERE id = p_game_id FOR UPDATE;
   IF NOT FOUND THEN
@@ -58,7 +60,136 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error', 'concurrent_update');
   END IF;
 
-  IF p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?$'
+  -- Trust server time, not a client-computed timeout. Edge requests made just
+  -- before flag fall must not be accepted after the server-side deadline.
+  IF v_game.clocks IS NOT NULL THEN
+    v_clock_color := CASE WHEN v_game.turn = 'w' THEN 'white' ELSE 'black' END;
+    v_factor := CASE
+      WHEN v_game.clocks->>'unit' = 'ms' OR NOT (v_game.clocks ? 'initialSeconds') THEN 1
+      ELSE 1000
+    END;
+    IF (v_game.clocks->>v_clock_color)::numeric * v_factor <=
+        greatest(0, extract(epoch FROM (clock_timestamp() - v_game.updated_at)) * 1000) THEN
+      RETURN jsonb_build_object('ok', false, 'error', 'clock_expired');
+    END IF;
+  END IF;
+
+  IF p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?
+      OR p_next_fen IS NULL OR length(p_next_fen) = 0
+      OR p_next_turn IS DISTINCT FROM CASE WHEN v_game.turn = 'w' THEN 'b' ELSE 'w' END
+      OR p_next_status NOT IN ('active', 'checkmate', 'draw')
+      OR (p_next_status = 'checkmate' AND p_winner_id IS DISTINCT FROM p_actor_id)
+      OR (p_next_status <> 'checkmate' AND p_winner_id IS NOT NULL)
+      OR ((v_game.clocks IS NULL) <> (p_next_clocks IS NULL))
+      OR (p_next_clocks IS NOT NULL AND p_next_clocks->>'unit' IS DISTINCT FROM 'ms') THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'invalid_transition');
+  END IF;
+
+  UPDATE public.games SET
+    fen = p_next_fen,
+    turn = p_next_turn,
+    last_move_uci = p_uci,
+    move_count = p_expected_ply + 1,
+    clocks = p_next_clocks,
+    status = p_next_status,
+    winner_id = p_winner_id,
+    updated_at = clock_timestamp()
+  WHERE id = p_game_id;
+
+  -- Existing AFTER INSERT trigger updates games again, within this same
+  -- transaction. If this insert or the trigger fails, the UPDATE is rolled back.
+  INSERT INTO public.moves (game_id, ply, uci, san, fen_after, played_by)
+  VALUES (p_game_id, p_expected_ply + 1, p_uci, p_san, p_next_fen, p_actor_id);
+
+  RETURN jsonb_build_object('ok', true, 'ply', p_expected_ply + 1);
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.persist_validated_move(
+  uuid, uuid, integer, text, timestamptz, text, text, text, text, jsonb, text, uuid
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.persist_validated_move(
+  uuid, uuid, integer, text, timestamptz, text, text, text, text, jsonb, text, uuid
+) TO service_role;
+
+-- Server-side timeout arbitration uses a row lock and database time.
+-- This prevents a stale timeout request from overwriting a newer move.
+CREATE OR REPLACE FUNCTION public.finalize_game_timeout(
+  p_game_id uuid,
+  p_actor_id uuid,
+  p_expected_ply integer,
+  p_expected_updated_at timestamptz
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public, pg_temp
+AS $function$
+DECLARE
+  v_game public.games%ROWTYPE;
+  v_side text;
+  v_factor numeric;
+  v_elapsed_ms numeric;
+  v_remaining_ms numeric;
+  v_new_clocks jsonb;
+  v_winner_id uuid;
+BEGIN
+  SELECT * INTO v_game FROM public.games WHERE id = p_game_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'game_not_found');
+  END IF;
+  IF p_actor_id NOT IN (v_game.white_id, v_game.black_id) THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'forbidden');
+  END IF;
+  IF v_game.status <> 'active'
+      OR v_game.move_count IS DISTINCT FROM p_expected_ply
+      OR v_game.updated_at IS DISTINCT FROM p_expected_updated_at THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'state_changed');
+  END IF;
+
+  IF v_game.clocks IS NULL THEN
+    RETURN jsonb_build_object('ok', true, 'timeout', false);
+  END IF;
+
+  v_side := CASE WHEN v_game.turn = 'w' THEN 'white' ELSE 'black' END;
+  IF v_game.clocks->>'white' IS NULL OR v_game.clocks->>'black' IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'invalid_clocks');
+  END IF;
+
+  -- Legacy online/Hydra games stored remaining time in seconds; legacy simuls
+  -- without initialSeconds already stored milliseconds.
+  v_factor := CASE
+    WHEN v_game.clocks->>'unit' = 'ms' OR NOT (v_game.clocks ? 'initialSeconds') THEN 1
+    ELSE 1000
+  END;
+  v_remaining_ms := (v_game.clocks->>v_side)::numeric * v_factor;
+  v_elapsed_ms := greatest(0, extract(epoch FROM (clock_timestamp() - v_game.updated_at)) * 1000);
+  IF v_remaining_ms > v_elapsed_ms THEN
+    RETURN jsonb_build_object('ok', true, 'timeout', false);
+  END IF;
+
+  v_winner_id := CASE WHEN v_game.turn = 'w' THEN v_game.black_id ELSE v_game.white_id END;
+  v_new_clocks := v_game.clocks || jsonb_build_object(
+    'unit', 'ms',
+    'white', CASE WHEN v_side = 'white' THEN 0 ELSE round((v_game.clocks->>'white')::numeric * v_factor)::bigint END,
+    'black', CASE WHEN v_side = 'black' THEN 0 ELSE round((v_game.clocks->>'black')::numeric * v_factor)::bigint END
+  );
+  UPDATE public.games SET
+    status = 'timeout',
+    winner_id = v_winner_id,
+    clocks = v_new_clocks,
+    updated_at = clock_timestamp()
+  WHERE id = p_game_id;
+
+  RETURN jsonb_build_object('ok', true, 'timeout', true, 'winner_id', v_winner_id, 'status', 'timeout');
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.finalize_game_timeout(uuid, uuid, integer, timestamptz)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.finalize_game_timeout(uuid, uuid, integer, timestamptz)
+  TO service_role;
+
       OR p_next_fen IS NULL OR length(p_next_fen) = 0
       OR p_next_turn IS DISTINCT FROM CASE WHEN v_game.turn = 'w' THEN 'b' ELSE 'w' END
       OR p_next_status NOT IN ('active', 'checkmate', 'draw')

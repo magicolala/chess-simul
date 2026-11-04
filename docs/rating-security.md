@@ -19,6 +19,9 @@ game starts **unrated**. In the first iteration, only the
 authenticated/recipient-verified `accept-invite` Edge Function writes that
 authorization after successfully creating a standard game. It marks the
 game unrated on authorization failure, rather than fabricating eligibility.
+The authorization ledger includes a UNIQUE `source_invite_id`: even if
+two concurrent requests incorrectly create two games from the same invite,
+only one of them may be rated. The other remains unranked.
 Matchmaking game authorization is deferred until its queuing, RLS and race
 conditions are secured. Simul and Hydra remain separate scoring models.
 
@@ -51,9 +54,14 @@ We do **not** create an unauthenticated automatic result endpoint.
 
 ### Known limitations / follow-up work
 
-- Game results are not settled automatically yet. A verified player needs to
-  invoke `process-game-result` after completion. A secure outbox/worker or
-  integration with the post-move/timeout lifecycle is a separate needed step.
+- Standard games authorized by the server are now settled automatically
+  by `trg_settle_rating_after_game_finish` on a terminal status transition.
+  The trigger is `SECURITY INVOKER`: under the current service-role-only
+  games UPDATE policy, it runs with the trusted database caller. Elo and the
+  final game status commit atomically; a failure rolls the transaction back.
+  `process-game-result` remains as an authenticated, idempotent manual retry.
+  Any other SQL role gaining UPDATE access to game statuses must be reviewed
+  before changing RLS or privileges.
 - The SQL migration is independent of PR #57 in the repository, but actual
   `timeout` games require the new status from PR #57. The staging database
   already has that migration; do not assume another environment does.
@@ -78,7 +86,9 @@ migration, and tests:
 - continued permission to edit legitimate profile fields;
 - old/unapproved games are never rated;
 - expected first-game deltas, both profiles changed together;
-- idempotency on replay, immutable terminal game status;
+- one rated authorization per invite, including duplicate attempt rejection;
+- automatic settlement on a terminal game UPDATE, idempotency on replay,
+  immutable terminal game status;
 - drawn results and invalid winner rejection;
 - Hydra exclusion and audit ledger uniqueness.
 

@@ -90,7 +90,7 @@ BEGIN
     v_clocks := NULL;
   END IF;
 
-  IF p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?$'
+  IF p_uci IS NULL OR p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?$'
       OR p_next_fen IS NULL OR length(p_next_fen) = 0
       OR p_next_turn IS DISTINCT FROM CASE WHEN v_game.turn = 'w' THEN 'b' ELSE 'w' END
       OR p_next_status IS NULL OR p_next_status NOT IN ('active', 'checkmate', 'draw')
@@ -152,7 +152,7 @@ BEGIN
   IF NOT FOUND THEN
     RETURN jsonb_build_object('ok', false, 'error', 'game_not_found');
   END IF;
-  IF p_actor_id NOT IN (v_game.white_id, v_game.black_id) THEN
+  IF p_actor_id IS NULL OR (p_actor_id <> v_game.white_id AND p_actor_id <> v_game.black_id) THEN
     RETURN jsonb_build_object('ok', false, 'error', 'forbidden');
   END IF;
   IF v_game.status <> 'active'

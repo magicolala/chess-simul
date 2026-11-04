@@ -3,6 +3,7 @@ import { Chess } from 'npm:chess.js@1.0.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { createSupabaseClient, createAdminClient } from '../_shared/supabase-client.ts';
 import { afterMoveClock } from '../_shared/game-clock.ts';
+import { recoverVerifiedHistory, type StoredChessMove } from '../_shared/chess-history.ts';
 
 const respond = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), {
@@ -70,7 +71,30 @@ serve(async (req) => {
 
     let chess: Chess;
     try {
-      chess = new Chess(game.fen);
+      // isThreefoldRepetition needs *prior* positions. New games store each
+      // move in public.moves; legacy games may lack history, so fall back
+      // safely to the current FEN rather than claiming a repetition.
+      let history: StoredChessMove[] = [];
+      if (game.move_count > 0 && game.move_count <= 2000) {
+        const { data: rows, error: historyError } = await admin
+          .from('moves')
+          .select('ply,uci')
+          .eq('game_id', gameId)
+          .order('ply', { ascending: true })
+          .limit(game.move_count);
+        if (historyError) {
+          console.warn('[submit-move] History unavailable; FEN-only validation:', historyError.code);
+        } else {
+          history = (rows ?? []) as StoredChessMove[];
+        }
+      }
+      chess = recoverVerifiedHistory(
+        game.fen,
+        game.move_count,
+        history,
+        () => new Chess(),
+        (fen) => new Chess(fen)
+      ).chess;
     } catch {
       return respond(409, { error: 'invalid_game_position' });
     }

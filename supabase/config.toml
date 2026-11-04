@@ -12,3 +12,10 @@ verify_jwt = false
 
 [functions.simul-sessions]
 verify_jwt = false
+
+# Authenticated player requests: require a user JWT at the Edge gateway.
+[functions.submit-move]
+verify_jwt = true
+
+[functions.check-timeout]
+verify_jwt = true

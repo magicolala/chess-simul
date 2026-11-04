@@ -12,3 +12,7 @@ verify_jwt = false
 
 [functions.simul-sessions]
 verify_jwt = false
+
+# Participants may only request settlement of a trusted, completed game.
+[functions.process-game-result]
+verify_jwt = true

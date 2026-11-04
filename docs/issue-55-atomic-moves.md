@@ -1,7 +1,32 @@
-# Issue #55 — atomic move submission (draft rollout plan)
+# Issue #55 — atomic move submission (staging verification)
 
-This branch is **not deployed**. Supabase remains the production backend and its data
-(7 Auth users / 24 games at the initial audit) has not been modified by this change.
+**Environment clarification (2026-11-04):** The project owner confirmed
+`kjgcgnqeyxzivilkiruz` is a staging/development instance, **not production**.
+Its 7 Auth users and 24 games are old test data. No production Supabase
+project currently exists for Chess Simul.
+
+### Verified staging rollout
+
+- Migration `20261104161355_atomic_move_submission` **applied** to the existing
+  staging project via Supabase. Both service-only RPCs are present; the
+  `timeout` constraint is active. EXECUTE checks: `anon=false`,
+  `authenticated=false`, `service_role=true` for both RPCs.
+- Edge Functions deployed to staging: `submit-move` **v11** (previous v10)
+  and the new `check-timeout` **v1**. Both perform their own user JWT
+  verification because the prior function had `verify_jwt=false`; enable
+  gateway JWT verification in a separate reviewed security step.
+- Live PostgreSQL smoke successfully tested a legal move, stale replay
+  rejection, clock expiry and timeout winner. All created test rows were
+  rolled back automatically in a nested SQL transaction.
+- Post-test counts: **7 Auth users, 5 profiles, 24 games, 0 moves**.
+  No historic games or users were altered by the smoke. It is expected that
+  the pre-existing `moves` table is still empty because no game was played
+  through an authenticated HTTP request.
+- Historical SQL fixture CI, Angular checks and browser smoke passed on
+  the previous branch revision; re-check the final PR head before merging.
+- **Still unverified:** actual HTTP/Auth flow with two test users,
+  PostgREST caching and `games UPDATE`/`moves INSERT` Realtime event delivery.
+  No frontend release or branch fusion has occurred.
 
 ## What changes
 
@@ -56,9 +81,10 @@ tables. The workflow deliberately uses an isolated database container.
 
 ## Test instructions (staging only)
 
-1. Provision a **separate** Supabase test project with database migrations and
-   deploy all changed Edge Functions to that project. The initial cloud project
-   was used only for *read-only* schema/trigger inspection.
+1. Use the **existing owner-confirmed staging project** `kjgcgnqeyxzivilkiruz`.
+   A second paid project is not required. The migration and `submit-move` /
+   `check-timeout` functions have already been deployed there. Preserve
+   historic test rows and create uniquely named temporary test accounts.
 2. Confirm `get_advisors`, RLS policies and API execution grants. Anonymous and
    authenticated users **must not** have EXECUTE on the two new RPCs;
    `service_role` needs EXECUTE. Do not expose service role secrets to Angular.
@@ -70,8 +96,9 @@ tables. The workflow deliberately uses an isolated database container.
 4. Set `SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY`, and
    `SUPABASE_TEST_SERVICE_ROLE_KEY` only in the test environment, then run:
    `deno test --allow-net --allow-env supabase/tests/integration/moves.test.ts`.
-   Tests create and clean up their own users and games. **Never point them at
-   the live project.**
+   Tests create and clean up their own users and games. Run them **only
+   against the explicitly approved Chess Simul staging ref**; verify cleanup
+   and never reuse / delete the older test accounts and games.
 5. Verify Realtime `games UPDATE` and `moves INSERT` with two clients, and
    verify simultaneous moves, clock increment, timeout, checkmate, draw,
    promotion, illegal move, off-turn move and retry/reconnect behavior.
@@ -80,26 +107,29 @@ tables. The workflow deliberately uses an isolated database container.
 
 ## Deployment sequence, after validation
 
-1. Back up and record current schema and Edge Function versions.
-2. Apply `20261104161355_atomic_move_submission.sql` to *staging* first.
-   This expands the `games.status` check constraint to include `timeout`,
-   creates two RPCs, and revokes their EXECUTE from `PUBLIC`/`anon`/
-   `authenticated`. Check the PostgREST schema cache.
-3. Deploy the modified functions together:
-   `submit-move`, `check-timeout`, `resign-game`, `join-queue`,
-   `accept-invite` and `process-hydra-queue`. The first two **depend**
-   on the new RPC migration, so must not be deployed before it.
-4. Run staging E2E with at least two users; verify results/ratings,
-   performance, and rollback. Deploy to production only with explicit approval.
-5. Rollback plan: revert Edge Functions to previous versions **before**
-   changing any database RPCs; never delete or reinitialize `games` / `moves`.
+1. **Done:** Record old status check / trigger, Edge versions, row counts and
+   migration SQL in the issue; no historical rows are modified by this migration.
+2. **Done:** Apply `20261104161355_atomic_move_submission.sql` on staging,
+   matching the actual version in `supabase_migrations.schema_migrations`.
+   Validate RPC grants and the existing trigger.
+3. **Partly done:** `submit-move` v11 and `check-timeout` v1 are deployed.
+   `resign-game`, `join-queue` and `accept-invite` have NOT yet been
+   updated to this PR's source on staging; `process-hydra-queue` is not
+   among the currently deployed functions.
+4. **Next:** Run real two-user HTTP/Auth/Realtime tests and review all related
+   functions. The connected staging instance is not public production.
+5. **Rollback:** redeploy the prior `submit-move` v10 source if needed.
+   Never delete/reinitialize `games`/`moves`; a DB rollback must
+   account for any games with new terminal status `timeout`.
 
 ## Remaining constraints
 
-- This migration is checked in for review; it was **not** applied to the
-  production Supabase database or the Neon fallback.
-- The hosted `check-timeout` function was not listed as deployed at audit
-  time; deploy it explicitly in staging before the timeout integration test.
+- The migration and two Edge Functions have been **applied to staging**,
+  which the owner explicitly confirmed is not production; the Neon fallback
+  was not modified.
+- Do not confuse a successful deployment with full authenticated E2E:
+  the Edge Function HTTP route, Auth tokens and Realtime subscriptions still
+  require testing.
 - Existing `process-game-result` has a separate legacy status and ELO protocol
   and must be secured and made idempotent before release: see
   [issue #63](https://github.com/magicolala/chess-simul/issues/63).

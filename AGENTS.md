@@ -97,3 +97,34 @@ export class FeatureComponent {
 - **Testing**: `npm test` (Unit) and `npm run test:e2e` (Playwright).
 - **Migrations**: Always generate migrations for DB changes.
 - **Commits**: Follow Conventional Commits convention.
+
+
+## Project QA Skills (issue #65)
+
+For Chess Simul development, consult [docs/agent-skills.md](docs/agent-skills.md)
+before changing database migrations, authenticated tests, concurrency or RLS.
+Skills listed there were discovered via @omgskills and their pinned SKILL.md
+content was verified. They are external references, **not pre-installed**.
+
+- **PostgreSQL migration / RLS / row locks:** use Supabase's
+  `supabase-postgres-best-practices`, then run PostgreSQL integration checks.
+  Keep transactions short; never use `SECURITY DEFINER` as an RLS shortcut.
+- **Angular Playwright / Auth / real-time / multiplayer:** use Sanity's
+  `playwright-best-practices`. Prefer role/label selectors, isolated browser
+  contexts, and automatic cleanup of test-created accounts and data.
+- **PostgreSQL code review:** use GitHub's `postgresql-code-review`
+  checklist for indexes, JSONB, constraints, triggers, grants and permissions.
+
+Skills are guidance, not proof that a change works. Verify using
+`npm run lint`, `npm test`, Angular build, public smoke, and the relevant
+isolated database/staging integration tests.
+
+### Required workflow
+- Begin each workstream from a GitHub issue; branch name includes issue number.
+- Keep one draft PR per workstream; do not automatically merge or deploy.
+- The currently connected Supabase project is **staging**, as confirmed by
+  the owner. It contains old test data; never destroy existing data without
+  a scoped backup/recovery plan. Use unique test accounts and clean up only
+  resources created by the test itself.
+- Treat service-role keys and authentication state as sensitive. Do not place
+  them in browser bundles, git history, screenshots or CI logs.

@@ -51,18 +51,23 @@ serve(async (req) => {
     // Opponent wins
     const winnerId = userColor === 'w' ? game.black_id : game.white_id;
 
-    const { error: updateError } = await adminClient
+    const { data: updated, error: updateError } = await adminClient
         .from('games')
         .update({
             status: 'resigned',
             winner_id: winnerId,
             updated_at: new Date().toISOString()
         })
-        .eq('id', game_id);
+        .eq('id', game_id)
+        .eq('status', 'active')
+        .select('id')
+        .maybeSingle();
 
     if (updateError) {
         return respond(500, { error: 'update_failed', message: updateError.message });
     }
+
+    if (!updated) return respond(409, { error: 'concurrent_update' });
 
     return respond(200, { success: true });
 

@@ -102,9 +102,9 @@ export class HistoryService {
 
     const { data, error } = await this.supabase.client
       .from('games')
-      .select('id, white_id, black_id, status, turn, fen, updated_at, created_at')
+      .select('id, white_id, black_id, status, turn, fen, winner_id, updated_at, created_at')
       .or(`white_id.eq.${user.id},black_id.eq.${user.id}`)
-      .in('status', ['checkmate', 'draw', 'resigned', 'aborted']);
+      .in('status', ['checkmate', 'draw', 'resigned', 'aborted', 'timeout']);
 
     if (error) {
       this.error.set(error.message ?? 'Impossible de récupérer l\'historique.');
@@ -139,7 +139,7 @@ export class HistoryService {
         opponentName: opponentProfile?.username ?? 'Adversaire',
         opponentRating: 0,
         opponentAvatar: opponentProfile?.avatar_url ?? 'https://placehold.co/48x48',
-        result: this.deriveResult(game.status, game.turn, playerColor),
+        result: this.deriveResult(game.status, game.turn, playerColor, game.winner_id, user.id),
         date: new Date(game.updated_at ?? game.created_at ?? Date.now()).getTime(),
         fen: game.fen,
         hydraPoints: 0,
@@ -174,7 +174,7 @@ export class HistoryService {
 
   private handleRealtimeGame(game: Record<string, unknown>) {
     if (!game?.status) return;
-    if (['checkmate', 'draw', 'resigned', 'aborted'].includes(game.status as string)) {
+    if (['checkmate', 'draw', 'resigned', 'aborted', 'timeout'].includes(game.status as string)) {
       void this.fetchHistoryFromSupabase();
     }
   }
@@ -182,16 +182,19 @@ export class HistoryService {
   private deriveResult(
     status: string,
     turn: 'w' | 'b' | null,
-    playerColor: 'w' | 'b'
+    playerColor: 'w' | 'b',
+    winnerId: string | null,
+    userId: string
   ): 'win' | 'loss' | 'draw' {
     if (status === 'draw' || status === 'aborted') return 'draw';
+    if (winnerId) return winnerId === userId ? 'win' : 'loss';
 
     if (status === 'checkmate' && turn) {
       const winner = turn === 'w' ? 'b' : 'w';
       return winner === playerColor ? 'win' : 'loss';
     }
 
-    if (status === 'resigned' && turn) {
+    if ((status === 'resigned' || status === 'timeout') && turn) {
       return turn === playerColor ? 'loss' : 'win';
     }
 

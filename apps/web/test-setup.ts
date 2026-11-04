@@ -6,67 +6,60 @@ import {
 
 TestBed.initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
 
-// Mock Worker for Stockfish
+// Mock Worker for Stockfish tests. No actual background worker is started.
 class MockWorker implements Worker {
-  onmessage: ((this: Worker, ev: MessageEvent) => any) | null = null;
-  onmessageerror: ((this: Worker, ev: MessageEvent) => any) | null = null;
-  onerror: ((this: Worker, ev: ErrorEvent) => any) | null = null;
-  
+  onmessage: Worker['onmessage'] = null;
+  onmessageerror: Worker['onmessageerror'] = null;
+  onerror: Worker['onerror'] = null;
+
   private listeners: Record<string, EventListenerOrEventListenerObject[]> = {};
 
-  constructor(stringUrl: string | URL, options?: WorkerOptions) {}
-
-  postMessage(message: any, transfer: Transferable[]): void;
-  postMessage(message: any, options?: StructuredSerializeOptions): void;
-  postMessage(message: any, optionsOrTransfer?: any): void {
-      const msg = message as string;
-      // Simulate async response
-      setTimeout(() => {
-          if (msg === 'uci') {
-              this.dispatchEvent(new MessageEvent('message', { data: 'id name Stockfish 16' }));
-              this.dispatchEvent(new MessageEvent('message', { data: 'uciok' }));
-          } else if (msg === 'isready') {
-              this.dispatchEvent(new MessageEvent('message', { data: 'readyok' }));
-          } else if (msg.startsWith('go depth')) {
-              this.dispatchEvent(new MessageEvent('message', { data: 'bestmove e2e4' }));
-          }
-      }, 0);
-  }
-
-  terminate() {}
-
-  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
-     if (!this.listeners[type]) {
-         this.listeners[type] = [];
-     }
-     this.listeners[type].push(listener);
-  }
-
-  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void {
-      if (!this.listeners[type]) return;
-      const index = this.listeners[type].indexOf(listener);
-      if (index !== -1) {
-          this.listeners[type].splice(index, 1);
+  // A Worker constructor may receive a script URL and options; JavaScript
+  // ignores those arguments for this mock's zero-argument constructor.
+  postMessage(message: unknown): void {
+    if (typeof message !== 'string') return;
+    setTimeout(() => {
+      if (message === 'uci') {
+        this.dispatchEvent(new MessageEvent('message', { data: 'id name Stockfish 16' }));
+        this.dispatchEvent(new MessageEvent('message', { data: 'uciok' }));
+      } else if (message === 'isready') {
+        this.dispatchEvent(new MessageEvent('message', { data: 'readyok' }));
+      } else if (message.startsWith('go depth')) {
+        this.dispatchEvent(new MessageEvent('message', { data: 'bestmove e2e4' }));
       }
+    }, 0);
+  }
+
+  terminate(): void {}
+
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
+    (this.listeners[type] ??= []).push(listener);
+  }
+
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
+    const listeners = this.listeners[type];
+    if (!listeners) return;
+    const index = listeners.indexOf(listener);
+    if (index !== -1) listeners.splice(index, 1);
   }
 
   dispatchEvent(event: Event): boolean {
-    const type = event.type;
-    if (this.listeners[type]) {
-        this.listeners[type].forEach(l => {
-            if (typeof l === 'function') {
-                l.call(this, event);
-            } else {
-                l.handleEvent(event);
-            }
-        });
-    }
-    if (type === 'message' && this.onmessage) {
-        this.onmessage.call(this, event as MessageEvent);
+    this.listeners[event.type]?.forEach((listener) => {
+      if (typeof listener === 'function') {
+        listener.call(this, event);
+      } else {
+        listener.handleEvent(event);
+      }
+    });
+    if (event.type === 'message') {
+      this.onmessage?.call(this, event as MessageEvent);
+    } else if (event.type === 'error') {
+      this.onerror?.call(this, event as ErrorEvent);
+    } else if (event.type === 'messageerror') {
+      this.onmessageerror?.call(this, event as MessageEvent);
     }
     return true;
   }
 }
 
-// @ts-ignore
-global.Worker = MockWorker;
+globalThis.Worker = MockWorker;

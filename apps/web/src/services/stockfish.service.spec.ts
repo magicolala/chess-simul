@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
-import { StockfishService, type StockfishBestMove } from './stockfish.service';
+import { StockfishService } from './stockfish.service';
 
 describe('StockfishService', () => {
   let service: StockfishService;
@@ -14,6 +14,8 @@ describe('StockfishService', () => {
 
   afterEach(() => {
     service.terminate();
+    // Restore Worker even if a test fails before its explicit cleanup.
+    vi.unstubAllGlobals();
   });
 
   describe('Initialization', () => {
@@ -39,8 +41,7 @@ describe('StockfishService', () => {
       const originalWorker = global.Worker;
       
       // Remove Worker temporarily
-      // @ts-ignore
-      global.Worker = undefined;
+      vi.stubGlobal('Worker', undefined);
 
       const newService = new StockfishService();
       
@@ -57,8 +58,7 @@ describe('StockfishService', () => {
       const originalWorker = global.Worker;
       
       // Remove Worker to cause failure
-      // @ts-ignore
-      global.Worker = undefined;
+      vi.stubGlobal('Worker', undefined);
 
       const newService = new StockfishService();
       
@@ -82,8 +82,7 @@ describe('StockfishService', () => {
       const originalWorker = global.Worker;
       
       // Remove Worker to cause failure
-      // @ts-ignore
-      global.Worker = undefined;
+      vi.stubGlobal('Worker', undefined);
 
       const newService = new StockfishService();
       
@@ -196,8 +195,7 @@ describe('StockfishService', () => {
       const originalWorker = global.Worker;
       
       // Remove Worker to cause failure
-      // @ts-ignore
-      global.Worker = undefined;
+      vi.stubGlobal('Worker', undefined);
 
       const newService = new StockfishService();
       

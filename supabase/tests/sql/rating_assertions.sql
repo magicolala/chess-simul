@@ -39,6 +39,10 @@ DECLARE
   rated_draw uuid := 'cccccccc-cccc-4ccc-cccc-cccccccccccc';
   invalid_game uuid := 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
   hydra_game uuid := 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  duplicate_game uuid := 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+  invite_win uuid := 'abababab-abab-4aba-8aba-abababababab';
+  invite_draw uuid := 'bcbcbcbc-bcbc-4bcb-8bcb-bcbcbcbcbcbc';
+  invite_invalid uuid := 'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd';
   result jsonb;
   w_elo integer;
   b_elo integer;
@@ -48,6 +52,10 @@ DECLARE
 BEGIN
   INSERT INTO public.profiles(id,username,elo) VALUES
     (white_id,'WhiteQA',1200), (black_id,'BlackQA',1200);
+  INSERT INTO public.invites(id,from_user,to_user,status) VALUES
+    (invite_win,white_id,black_id,'accepted'),
+    (invite_draw,white_id,black_id,'accepted'),
+    (invite_invalid,white_id,black_id,'accepted');
 
   -- The database contains historical completed games: never re-rate them.
   INSERT INTO public.games(id,white_id,black_id,status,winner_id)
@@ -59,8 +67,20 @@ BEGIN
 
   INSERT INTO public.games(id,white_id,black_id,status,winner_id)
   VALUES(rated_win,white_id,black_id,'checkmate',white_id);
-  INSERT INTO public.rated_game_authorizations(game_id,source)
-  VALUES(rated_win,'accepted_invite');
+  INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
+  VALUES(rated_win,'accepted_invite',invite_win);
+
+  -- Even if a buggy handler creates two games for the same invite, only
+  -- the first can ever be authorized to award Elo.
+  INSERT INTO public.games(id,white_id,black_id,status,winner_id)
+  VALUES(duplicate_game,white_id,black_id,'checkmate',white_id);
+  BEGIN
+    INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
+    VALUES(duplicate_game,'accepted_invite',invite_win);
+    RAISE EXCEPTION 'Duplicate invite created a second rated game';
+  EXCEPTION WHEN unique_violation THEN
+    NULL;
+  END;
   SELECT public.apply_completed_game_rating(rated_win) INTO result;
   IF result->>'ok' IS DISTINCT FROM 'true'
       OR result->>'already_processed' IS DISTINCT FROM 'false'
@@ -93,8 +113,8 @@ BEGIN
 
   INSERT INTO public.games(id,white_id,black_id,status,winner_id)
   VALUES(rated_draw,white_id,black_id,'draw',NULL);
-  INSERT INTO public.rated_game_authorizations(game_id,source)
-  VALUES(rated_draw,'accepted_invite');
+  INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
+  VALUES(rated_draw,'accepted_invite',invite_draw);
   SELECT public.apply_completed_game_rating(rated_draw) INTO result;
   IF result->>'ok' IS DISTINCT FROM 'true' THEN
     RAISE EXCEPTION 'Draw rating failed: %',result;
@@ -108,8 +128,8 @@ BEGIN
   -- Missing winner is never treated as a draw, even if a caller asks for it.
   INSERT INTO public.games(id,white_id,black_id,status,winner_id)
   VALUES(invalid_game,white_id,black_id,'resigned',NULL);
-  INSERT INTO public.rated_game_authorizations(game_id,source)
-  VALUES(invalid_game,'accepted_invite');
+  INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
+  VALUES(invalid_game,'accepted_invite',invite_invalid);
   SELECT public.apply_completed_game_rating(invalid_game) INTO result;
   IF result->>'error' IS DISTINCT FROM 'invalid_outcome' THEN
     RAISE EXCEPTION 'An incomplete/forged outcome was accepted: %',result;

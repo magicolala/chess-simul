@@ -217,7 +217,7 @@ export class OnlineGameComponent implements OnDestroy {
 
   opponentTime = computed(() => {
     const g = this.game();
-    const clocks = g?.clocks as { white: number; black: number } | undefined;
+    const clocks = g?.clocks as { white: number; black: number; unit?: string; initialSeconds?: number } | undefined;
     if (!clocks) return 0;
     
     const legacySeconds = clocks.unit === 's' || (!clocks.unit && clocks.initialSeconds !== undefined);

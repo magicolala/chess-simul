@@ -130,3 +130,37 @@ Deno.test('timeout never persists a move and records winner', async () => {
     clocks: { white: 0, black: 300000, unit: 'ms', initialSeconds: 300, incrementSeconds: 0 }
   });
 });
+
+Deno.test('complete stored history detects threefold repetition and finishes as a draw', async () => {
+  await withGame(async (white, black, gameId) => {
+    const played = [
+      'g1f3', 'g8f6', 'f3g1', 'f6g8',
+      'g1f3', 'g8f6', 'f3g1', 'f6g8'
+    ];
+    for (let i = 0; i < played.length; i++) {
+      const player = i % 2 === 0 ? white : black;
+      const { data, error } = await player.client.functions.invoke('submit-move', {
+        body: { game_id: gameId, uci: played[i] }
+      });
+      assert(!error, `Move ${i + 1} failed: ${error?.message}`);
+      assertEquals(data?.ply, i + 1);
+      assertEquals(data?.status, i === 7 ? 'draw' : 'active');
+    }
+
+    const { data: game, error: gameError } = await serviceClient.from('games')
+      .select('status,winner_id,move_count')
+      .eq('id', gameId)
+      .single();
+    assert(!gameError, gameError?.message);
+    assertEquals(game?.status, 'draw');
+    assertEquals(game?.winner_id, null);
+    assertEquals(game?.move_count, 8);
+
+    const { data: storedMoves, error: movesError } = await serviceClient.from('moves')
+      .select('ply')
+      .eq('game_id', gameId)
+      .order('ply', { ascending: true });
+    assert(!movesError, movesError?.message);
+    assertEquals(storedMoves?.map((move) => move.ply), [1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+});

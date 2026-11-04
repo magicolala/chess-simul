@@ -16,6 +16,12 @@ CREATE TABLE public.profiles (
   elo integer NOT NULL DEFAULT 1200,
   onboarding_completed boolean NOT NULL DEFAULT false
 );
+CREATE TABLE public.invites (
+  id uuid PRIMARY KEY,
+  from_user uuid NOT NULL REFERENCES public.profiles(id),
+  to_user uuid NOT NULL REFERENCES public.profiles(id),
+  status text NOT NULL DEFAULT 'pending'
+);
 CREATE TABLE public.games (
   id uuid PRIMARY KEY,
   simul_id uuid,

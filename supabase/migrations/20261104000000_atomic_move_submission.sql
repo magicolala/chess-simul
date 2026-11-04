@@ -123,7 +123,7 @@ REVOKE ALL ON FUNCTION public.persist_validated_move(
   uuid, uuid, integer, text, timestamptz, text, text, text, text, text, uuid
 ) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.persist_validated_move(
-  uuid, uuid, integer, text, timestamptz, text, text, text, text, jsonb, text, uuid
+  uuid, uuid, integer, text, timestamptz, text, text, text, text, text, uuid
 ) TO service_role;
 
 -- Server-side timeout arbitration uses a row lock and database time.

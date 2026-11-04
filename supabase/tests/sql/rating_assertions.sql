@@ -160,10 +160,10 @@ BEGIN
   VALUES(auto_game,white_id,black_id,'active',NULL);
   INSERT INTO public.rated_game_authorizations(game_id,source,source_invite_id)
   VALUES(auto_game,'accepted_invite',invite_auto);
-  UPDATE public.games SET status='checkmate',winner_id=white_id WHERE id=auto_game;
+  UPDATE public.games SET status='checkmate',winner_id='11111111-1111-4111-8111-111111111111'::uuid WHERE id=auto_game;
 
-  SELECT count(*) INTO count_events FROM public.game_rating_events
-    WHERE game_id=auto_game AND winner_id=white_id;
+  SELECT count(*) INTO count_events FROM public.game_rating_events AS e
+    WHERE e.game_id=auto_game AND e.winner_id=e.white_id;
   IF count_events <> 1 THEN
     RAISE EXCEPTION 'Automatic Elo settlement on game finish did not happen';
   END IF;
